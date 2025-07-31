@@ -1,0 +1,27 @@
+# Настройки для загрузки больших файлов
+
+# Nginx настройки (добавить в server блок)
+client_max_body_size 0;  # Убираем ограничения размера
+client_body_timeout 300s;  # 5 минут на загрузку тела запроса
+client_header_timeout 60s;
+proxy_read_timeout 300s;
+proxy_connect_timeout 60s;
+proxy_send_timeout 300s;
+
+# Apache настройки (добавить в .htaccess или httpd.conf)
+# LimitRequestBody 0
+# Timeout 300
+
+# PHP настройки (обновить в php.ini)
+upload_max_filesize = 0
+post_max_size = 0
+max_execution_time = 0
+max_input_time = 300
+memory_limit = 2G
+max_file_uploads = 100
+
+# FastCGI настройки для Nginx
+fastcgi_read_timeout 300;
+fastcgi_send_timeout 300;
+fastcgi_connect_timeout 60;
+fastcgi_buffering off;

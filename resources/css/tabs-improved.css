@@ -1,0 +1,395 @@
+/* Улучшенные стили для вкладок документов и брифов */
+
+/* === ОБЩИЕ СТИЛИ === */
+.module__deal {
+    margin-bottom: 20px;
+}
+
+.faq_item__deal {
+    margin-bottom: 15px;
+    border-radius: var(--radius);
+    background: var(--fff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.faq_text__deal {
+    padding: 15px 20px;
+}
+
+/* === СТИЛИ ДЛЯ ДОКУМЕНТОВ === */
+.document-upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.upload-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    border: 2px dashed #ddd;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.upload-label:hover {
+    border-color: var(--blue);
+    background: #f0f8ff;
+}
+
+.upload-label i {
+    font-size: 2em;
+    color: var(--blue);
+    margin-bottom: 10px;
+}
+
+.upload-text {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.files-count {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.upload-btn {
+    align-self: center;
+    min-width: 200px;
+}
+
+.upload-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: #e8f4f8;
+    border-radius: var(--radius);
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.upload-info i {
+    color: var(--blue);
+}
+
+/* Список документов */
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.document-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+    border: 1px solid #e9ecef;
+}
+
+.document-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.document-info i {
+    color: var(--blue);
+    font-size: 1.1em;
+}
+
+.document-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.document-size {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.document-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--blue);
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-action:hover {
+    transform: scale(1.1);
+    text-decoration: none;
+    color: white;
+}
+
+.btn-action.btn-danger {
+    background: var(--red);
+}
+
+.btn-action.btn-danger:hover {
+    background: #dc3545;
+}
+
+/* === СТИЛИ ДЛЯ БРИФОВ === */
+.brief-status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.brief-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--green);
+    font-weight: 500;
+    margin: 0;
+}
+
+.brief-warning {
+    padding: 15px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: var(--radius);
+}
+
+.brief-warning p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brief-search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.search-brief-btn {
+    align-self: flex-start;
+    min-width: 180px;
+}
+
+/* Статус поиска */
+.search-status {
+    margin-top: 15px;
+    padding: 15px;
+    background: #e3f2fd;
+    border-radius: var(--radius);
+    border: 1px solid #bbdefb;
+}
+
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--blue);
+}
+
+.loading-indicator i {
+    font-size: 1.2em;
+}
+
+/* Результаты поиска */
+.search-results {
+    margin-top: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    background: white;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.results-header h5 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+}
+
+.btn-close-results {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close-results:hover {
+    background: #e9ecef;
+    color: var(--text-primary);
+}
+
+.results-list {
+    padding: 20px;
+}
+
+/* Уведомления */
+.brief-notifications {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: var(--radius);
+}
+
+.brief-notifications.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.brief-notifications.error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.brief-notifications.info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 768px) {
+    .faq_text__deal {
+        padding: 10px 15px;
+    }
+    
+    .upload-label {
+        padding: 20px 15px;
+    }
+    
+    .document-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .document-actions {
+        align-self: flex-end;
+    }
+    
+    .brief-search-form {
+        gap: 10px;
+    }
+    
+    .search-brief-btn {
+        align-self: stretch;
+        min-width: auto;
+    }
+    
+    .results-header {
+        padding: 10px 15px;
+    }
+    
+    .results-list {
+        padding: 15px;
+    }
+}
+
+/* === АНИМАЦИИ === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-results,
+.search-status,
+.brief-notifications {
+    animation: fadeIn 0.3s ease;
+}
+
+/* === СОСТОЯНИЯ === */
+.upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.search-brief-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Выделение при перетаскивании файлов */
+.upload-label.drag-over {
+    border-color: var(--green);
+    background: #f0fff4;
+}
+
+.upload-label.drag-over i {
+    color: var(--green);
+}

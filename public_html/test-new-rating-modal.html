@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест нового модального окна рейтингов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        /* Стили для модального окна */
+        .rating-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .rating-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .rating-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+        }
+
+        .rating-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .rating-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .rating-modal-close:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        /* Стили для информации о сделке */
+        .deal-info-block {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .deal-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .deal-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #666;
+            min-width: 60px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+        }
+
+        .rating-progress-simple {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin: 15px 0;
+            padding: 8px;
+            background: #e9ecef;
+            border-radius: 6px;
+        }
+
+        .specialist-block {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .specialist-avatar {
+            margin-right: 15px;
+        }
+
+        .specialist-avatar img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #dee2e6;
+        }
+
+        .specialist-info {
+            flex: 1;
+        }
+
+        .specialist-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .specialist-role {
+            font-size: 14px;
+            color: #666;
+            text-transform: capitalize;
+        }
+
+        .rating-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .rating-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .rating-stars .star {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .rating-stars .star:hover,
+        .rating-stars .star.active {
+            color: #ffc107;
+        }
+
+        .comment-section {
+            margin: 20px 0;
+        }
+
+        .comment-section textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .comment-section textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .rating-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .rating-actions .btn {
+            min-width: 100px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-outline-danger {
+            background: transparent;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Тест нового модального окна рейтингов</h1>
+        <p>Это тест нового упрощенного дизайна модального окна для оценки специалистов.</p>
+        
+        <button onclick="showTestModal()">Показать модальное окно</button>
+        <button onclick="fillTestData()">Заполнить тестовыми данными</button>
+        <button onclick="hideModal()">Скрыть модальное окно</button>
+    </div>
+
+    <!-- Упрощенное модальное окно для оценки специалистов -->
+    <div id="rating-modal" class="rating-modal" style="display:none;">
+        <div class="rating-modal-backdrop" id="rating-modal-backdrop"></div>
+        <div class="rating-modal-content">
+            <div class="rating-modal-header">
+                <h3>Оценка работы по проекту</h3>
+                <button type="button" class="rating-modal-close" id="rating-modal-close" onclick="hideModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Информация о сделке -->
+            <div class="deal-info-block">
+                <div class="deal-info-row">
+                    <span class="info-label">Проект:</span>
+                    <span id="deal-project-number" class="info-value">№ не указан</span>
+                </div>
+                <div class="deal-info-row">
+                    <span class="info-label">Клиент:</span>
+                    <span id="deal-client-info" class="info-value">не указан</span>
+                </div>
+                <div class="deal-info-row">
+                    <span class="info-label">Телефон:</span>
+                    <span id="deal-client-phone" class="info-value">не указан</span>
+                </div>
+            </div>
+            
+            <!-- Прогресс оценки -->
+            <div class="rating-progress-simple">
+                <span id="current-rating-index">1</span> из <span id="total-ratings">1</span> специалистов
+            </div>
+            
+            <!-- Информация о специалисте (упрощенная) -->
+            <div class="specialist-block">
+                <div class="specialist-avatar">
+                    <img id="rating-user-avatar" src="/storage/icon/profile.svg" alt="Аватар">
+                </div>
+                <div class="specialist-info">
+                    <div class="specialist-name" id="rating-user-name">Имя специалиста</div>
+                    <div class="specialist-role" id="rating-user-role">Должность</div>
+                </div>
+            </div>
+            
+            <!-- Звезды для оценки -->
+            <div class="rating-section">
+                <div class="rating-label">Ваша оценка:</div>
+                <div class="rating-stars">
+                    <span class="star" data-value="1" onclick="selectRating(1)">
+                        <i class="fas fa-star"></i>
+                    </span>
+                    <span class="star" data-value="2" onclick="selectRating(2)">
+                        <i class="fas fa-star"></i>
+                    </span>
+                    <span class="star" data-value="3" onclick="selectRating(3)">
+                        <i class="fas fa-star"></i>
+                    </span>
+                    <span class="star" data-value="4" onclick="selectRating(4)">
+                        <i class="fas fa-star"></i>
+                    </span>
+                    <span class="star" data-value="5" onclick="selectRating(5)">
+                        <i class="fas fa-star"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Комментарий (упрощенный) -->
+            <div class="comment-section">
+                <textarea id="rating-comment" placeholder="Комментарий (необязательно)" maxlength="300" oninput="updateCharCount()"></textarea>
+                <div class="char-counter">
+                    <span id="comment-char-count">0</span>/300
+                </div>
+            </div>
+            
+            <!-- Действия -->
+            <div class="rating-actions">
+                <button id="submit-rating" class="btn btn-primary" disabled>
+                    <i class="fas fa-check"></i> Оценить
+                </button>
+                <button id="skip-rating" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i> Пропустить
+                </button>
+                <button id="close-all-ratings" class="btn btn-outline-danger" onclick="hideModal()">
+                    <i class="fas fa-times"></i> Закрыть все
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRating = 0;
+
+        function showTestModal() {
+            document.getElementById('rating-modal').style.display = 'flex';
+        }
+
+        function hideModal() {
+            document.getElementById('rating-modal').style.display = 'none';
+        }
+
+        function fillTestData() {
+            // Заполняем тестовыми данными
+            document.getElementById('deal-project-number').textContent = '№ EXP-2025-0215';
+            document.getElementById('deal-client-info').textContent = 'Иванов Сергей Петрович';
+            document.getElementById('deal-client-phone').textContent = '+7 (999) 123-45-67';
+            
+            document.getElementById('current-rating-index').textContent = '1';
+            document.getElementById('total-ratings').textContent = '3';
+            
+            document.getElementById('rating-user-name').textContent = 'Ковалева Екатерина';
+            document.getElementById('rating-user-role').textContent = 'Дизайнер';
+            document.getElementById('rating-user-avatar').src = '/storage/icon/profile.svg';
+            
+            console.log('Тестовые данные заполнены');
+        }
+
+        function selectRating(rating) {
+            currentRating = rating;
+            
+            // Обновляем визуальное состояние звезд
+            const stars = document.querySelectorAll('.rating-stars .star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            // Включаем кнопку оценки
+            const submitBtn = document.getElementById('submit-rating');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Оценить (' + rating + ' звезд)';
+            
+            console.log('Выбрана оценка:', rating);
+        }
+
+        function updateCharCount() {
+            const textarea = document.getElementById('rating-comment');
+            const counter = document.getElementById('comment-char-count');
+            counter.textContent = textarea.value.length;
+        }
+
+        // Клик по бэкдропу для закрытия
+        document.getElementById('rating-modal-backdrop').addEventListener('click', hideModal);
+    </script>
+</body>
+</html>

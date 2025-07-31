@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест улучшенного автофокуса Select2</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .select2-container {
+            width: 100% !important;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn-test {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Тест улучшенного автофокуса для Select2</h1>
+        
+        <div class="test-section">
+            <h3>Тест 1: Обычные Select2 поля</h3>
+            
+            <div class="form-group">
+                <label for="test1">Поле со статическими опциями:</label>
+                <select id="test1" class="form-control select2-field" data-placeholder="Выберите значение">
+                    <option value=""></option>
+                    <option value="1">Опция 1</option>
+                    <option value="2">Опция 2</option>
+                    <option value="3">Опция 3</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="test2">Поле с AJAX поиском:</label>
+                <select id="test2" class="form-control select2-search" data-status="active" data-placeholder="Введите для поиска">
+                    <option value=""></option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="test3">Поле поиска специалистов:</label>
+                <select id="test3" class="form-control select2-specialist" data-role="specialist" data-placeholder="Поиск специалистов">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Тест 2: Модальное окно</h3>
+            
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testModal">
+                Открыть модальное окно с Select2
+            </button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Тест 3: Управляющие кнопки</h3>
+            
+            <button type="button" class="btn btn-secondary btn-test" onclick="testReinitialize()">
+                Переинициализировать Select2
+            </button>
+            
+            <button type="button" class="btn btn-info btn-test" onclick="testAddNew()">
+                Добавить новое поле динамически
+            </button>
+            
+            <button type="button" class="btn btn-warning btn-test" onclick="testForceFocus()">
+                Принудительно установить фокус
+            </button>
+            
+            <div id="dynamic-container"></div>
+        </div>
+        
+        <div class="status">
+            <h5>Статус автофокуса:</h5>
+            <div id="status-log"></div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно -->
+    <div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="testModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="testModalLabel">Тест Select2 в модальном окне</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="modal-select1">Select2 в модальном окне:</label>
+                        <select id="modal-select1" class="form-control select2-field" data-placeholder="Выберите в модальном окне">
+                            <option value=""></option>
+                            <option value="m1">Модальная опция 1</option>
+                            <option value="m2">Модальная опция 2</option>
+                            <option value="m3">Модальная опция 3</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal-search">Поиск в модальном окне:</label>
+                        <select id="modal-search" class="form-control select2-search" data-status="active" data-placeholder="Поиск в модальном окне">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Наши скрипты автофокуса -->
+    <script src="js/select2-autofocus.js"></script>
+    <script src="js/deals-compatibility-fixes.js"></script>
+    
+    <script>
+        // Логгирование для отладки
+        function logStatus(message) {
+            var timestamp = new Date().toLocaleTimeString();
+            $('#status-log').append('<div>[' + timestamp + '] ' + message + '</div>');
+            console.log('[Autofocus Test] ' + message);
+        }
+        
+        // Переопределяем console.log для Select2 автофокуса
+        var originalLog = console.log;
+        console.log = function() {
+            var message = Array.prototype.slice.call(arguments).join(' ');
+            if (message.includes('Select2') || message.includes('автофокус') || message.includes('фокус')) {
+                logStatus(message);
+            }
+            originalLog.apply(console, arguments);
+        };
+        
+        $(document).ready(function() {
+            logStatus('Страница загружена, инициализация Select2...');
+            
+            // Даем время основным скриптам для инициализации
+            setTimeout(function() {
+                logStatus('Инициализируем все Select2 элементы...');
+                
+                // Если основная функция инициализации не сработала, делаем вручную
+                if (typeof window.initializeAllSelect2Elements === 'function') {
+                    window.initializeAllSelect2Elements();
+                } else {
+                    // Ручная инициализация Select2
+                    $('.select2-field, .select2-search, .select2-specialist').each(function() {
+                        if (!$(this).hasClass('select2-hidden-accessible')) {
+                            $(this).select2({
+                                placeholder: $(this).data('placeholder') || 'Выберите значение',
+                                allowClear: true,
+                                width: '100%'
+                            });
+                        }
+                    });
+                    
+                    // Применяем автофокус
+                    if (window.addSelect2AutoFocus) {
+                        window.addSelect2AutoFocus();
+                    }
+                }
+                
+                logStatus('Инициализация завершена');
+            }, 500);
+            
+            // Обработчик для модального окна
+            $('#testModal').on('shown.bs.modal', function() {
+                logStatus('Модальное окно открыто, инициализируем Select2...');
+                
+                setTimeout(function() {
+                    if (typeof window.initializeAllSelect2Elements === 'function') {
+                        window.initializeAllSelect2Elements();
+                    } else {
+                        $('#modal-select1, #modal-search').each(function() {
+                            if (!$(this).hasClass('select2-hidden-accessible')) {
+                                $(this).select2({
+                                    placeholder: $(this).data('placeholder'),
+                                    allowClear: true,
+                                    width: '100%',
+                                    dropdownParent: $('#testModal')
+                                });
+                            }
+                        });
+                        
+                        if (window.addSelect2AutoFocus) {
+                            window.addSelect2AutoFocus();
+                        }
+                    }
+                }, 200);
+            });
+            
+            // Обработчик для отслеживания фокуса
+            $(document).on('select2:open', function(e) {
+                logStatus('Select2 открыт: ' + (e.target.id || 'unknown'));
+                
+                // Мониторим установку фокуса
+                setTimeout(function() {
+                    var searchField = $('.select2-container--open .select2-search__field')[0];
+                    if (searchField) {
+                        if (document.activeElement === searchField) {
+                            logStatus('✅ Автофокус установлен успешно!');
+                        } else {
+                            logStatus('❌ Автофокус НЕ установлен. Активный элемент: ' + (document.activeElement.tagName || 'неизвестно'));
+                        }
+                    } else {
+                        logStatus('❌ Поле поиска не найдено');
+                    }
+                }, 100);
+            });
+        });
+        
+        // Тестовые функции
+        function testReinitialize() {
+            logStatus('Переинициализация Select2...');
+            
+            $('.select2-hidden-accessible').select2('destroy');
+            
+            setTimeout(function() {
+                if (typeof window.initializeAllSelect2Elements === 'function') {
+                    window.initializeAllSelect2Elements();
+                }
+            }, 100);
+        }
+        
+        function testAddNew() {
+            var newId = 'dynamic-' + Date.now();
+            var newSelect = '<div class="form-group mt-3"><label for="' + newId + '">Динамическое поле:</label><select id="' + newId + '" class="form-control select2-field" data-placeholder="Динамическое поле"><option value=""></option><option value="d1">Динамическая опция 1</option><option value="d2">Динамическая опция 2</option></select></div>';
+            
+            $('#dynamic-container').append(newSelect);
+            
+            logStatus('Добавлено новое поле: ' + newId);
+            
+            setTimeout(function() {
+                if (typeof window.initializeAllSelect2Elements === 'function') {
+                    window.initializeAllSelect2Elements();
+                }
+            }, 100);
+        }
+        
+        function testForceFocus() {
+            logStatus('Принудительная установка фокуса...');
+            
+            if (window.setupAutoFocusWithRetries) {
+                window.setupAutoFocusWithRetries();
+            } else if (window.forceFocusOnSearchField) {
+                window.forceFocusOnSearchField();
+            } else {
+                logStatus('Функции принудительного фокуса недоступны');
+            }
+        }
+    </script>
+</body>
+</html>

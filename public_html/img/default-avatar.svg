@@ -1,0 +1,6 @@
+<!-- SVG для аватара по умолчанию -->
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="50" fill="#e9ecef"/>
+    <circle cx="50" cy="35" r="15" fill="#6c757d"/>
+    <path d="M50 55 C30 55, 20 70, 20 80 L80 80 C80 70, 70 55, 50 55 Z" fill="#6c757d"/>
+</svg>

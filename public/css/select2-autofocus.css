@@ -1,0 +1,66 @@
+/* Стили для автофокуса Select2 поля поиска */
+
+/* Улучшенная стилизация поля поиска в Select2 */
+.select2-search--dropdown .select2-search__field {
+    transition: all 0.2s ease-in-out;
+    outline: none !important;
+}
+
+/* Стили при фокусе на поле поиска */
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+    background-color: #fff !important;
+}
+
+/* Анимация для открытия dropdown */
+.select2-dropdown {
+    animation: select2FadeIn 0.15s ease-out;
+}
+
+@keyframes select2FadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 768px) {
+    .select2-search--dropdown .select2-search__field {
+        font-size: 16px !important; /* Предотвращает зум на iOS */
+        padding: 10px 12px !important;
+    }
+}
+
+/* Дополнительные стили для улучшения UX */
+.select2-search--dropdown .select2-search__field::placeholder {
+    color: #999;
+    opacity: 1;
+}
+
+/* Стили для контейнера поиска */
+.select2-search--dropdown {
+    padding: 6px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Улучшенные стили для результатов поиска */
+.select2-results__option {
+    transition: background-color 0.1s ease;
+}
+
+.select2-results__option--highlighted {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Стили для загрузки результатов */
+.select2-results__option[aria-live="assertive"] {
+    color: #6c757d;
+    font-style: italic;
+}

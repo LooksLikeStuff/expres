@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование админ-панели логов сделок</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Расширенные стили для админ-панели мониторинга */
+        .admin-deals-monitoring-panel .card {
+            border: 2px solid #dc3545;
+            box-shadow: 0 4px 6px rgba(220, 53, 69, 0.1);
+        }
+
+        .admin-deals-monitoring-panel .card-header {
+            border-bottom: 2px solid #c82333;
+            background: linear-gradient(135deg, #dc3545, #c82333) !important;
+        }
+
+        .admin-deals-monitoring-panel .btn-outline-danger,
+        .admin-deals-monitoring-panel .btn-outline-warning,
+        .admin-deals-monitoring-panel .btn-outline-info,
+        .admin-deals-monitoring-panel .btn-outline-success {
+            border-width: 2px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-deals-monitoring-panel .btn-outline-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .admin-deals-monitoring-panel .btn-outline-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .admin-deals-monitoring-panel .btn-outline-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .admin-deals-monitoring-panel .btn-outline-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            height: 100%;
+        }
+
+        .admin-stats .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .admin-stats .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc3545;
+            line-height: 1.2;
+        }
+
+        .admin-stats .stat-value.text-warning {
+            color: #ffc107 !important;
+        }
+
+        .admin-stats .stat-value.text-info {
+            color: #17a2b8 !important;
+        }
+
+        .admin-stats .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        .admin-deals-monitoring-panel .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-right: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .admin-stats {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .admin-deals-monitoring-panel .row {
+                flex-direction: column;
+            }
+            
+            .admin-deals-monitoring-panel .btn-lg {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+                min-height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <h1 class="mb-4">Тестирование админ-панели мониторинга сделок</h1>
+        
+        <!-- Расширенная админ-панель для глобального мониторинга сделок -->
+        <div class="admin-deals-monitoring-panel mb-4">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Административный контроль и мониторинг сделок
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <a href="#" class="btn btn-outline-danger btn-lg w-100">
+                                        <i class="fas fa-list-alt"></i> Глобальные логи действий
+                                    </a>
+                                    <small class="text-muted d-block mt-1">
+                                        Просмотр всех действий: создание, редактирование, удаление сделок
+                                    </small>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <a href="#" class="btn btn-outline-warning btn-lg w-100">
+                                        <i class="fas fa-trash-alt"></i> Логи удалений
+                                    </a>
+                                    <small class="text-muted d-block mt-1">
+                                        Отслеживание всех удалённых сделок
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <a href="#" class="btn btn-outline-info btn-lg w-100">
+                                        <i class="fas fa-edit"></i> Логи редактирования
+                                    </a>
+                                    <small class="text-muted d-block mt-1">
+                                        История всех изменений в сделках
+                                    </small>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <a href="#" class="btn btn-outline-success btn-lg w-100">
+                                        <i class="fas fa-plus-circle"></i> Логи создания
+                                    </a>
+                                    <small class="text-muted d-block mt-1">
+                                        Отслеживание новых сделок
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="admin-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">1,247</span>
+                                    <span class="stat-label">Всего записей логов</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">23</span>
+                                    <span class="stat-label">Действий сегодня</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value text-warning">15</span>
+                                    <span class="stat-label">Удалённых сделок</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value text-info">156</span>
+                                    <span class="stat-label">За неделю</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Быстрые фильтры -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fas fa-filter"></i> Быстрые фильтры
+                                    </h6>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="#" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-calendar-day"></i> Сегодня
+                                        </a>
+                                        <a href="#" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-calendar-week"></i> За неделю
+                                        </a>
+                                        <a href="#" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-calendar-alt"></i> За месяц
+                                        </a>
+                                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-exchange-alt"></i> Смена статусов
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Демонстрация таблицы логов -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> Пример таблицы логов действий
+                    <span class="badge bg-secondary">125 записей</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Дата/время</th>
+                                <th>Пользователь</th>
+                                <th>Сделка</th>
+                                <th>Тип действия</th>
+                                <th>Описание</th>
+                                <th>IP/User Agent</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-primary">#1001</span></td>
+                                <td>
+                                    <strong>24.07.2025</strong><br>
+                                    <small class="text-muted">14:32:15</small>
+                                </td>
+                                <td>
+                                    <strong>Администратор</strong><br>
+                                    <span class="badge bg-info">admin</span>
+                                </td>
+                                <td>
+                                    <a href="#" class="text-decoration-none">
+                                        <strong>#2567</strong>
+                                    </a><br>
+                                    <small class="text-muted">Дизайн квартиры в ЖК...</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-plus"></i> Создание
+                                    </span>
+                                    <br><small class="text-muted">Создана новая сделка #2567</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button">
+                                        <i class="fas fa-eye"></i> Показать изменения
+                                    </button>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">IP:</strong> 192.168.1.100<br>
+                                    <strong class="text-secondary">UA:</strong> 
+                                    <small class="text-muted" title="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36">
+                                        Mozilla/5.0 (Windows NT 10.0...
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary" title="Все логи этой сделки">
+                                        <i class="fas fa-list"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">#1002</span></td>
+                                <td>
+                                    <strong>24.07.2025</strong><br>
+                                    <small class="text-muted">13:45:28</small>
+                                </td>
+                                <td>
+                                    <strong>Координатор Иван</strong><br>
+                                    <span class="badge bg-info">coordinator</span>
+                                </td>
+                                <td>
+                                    <a href="#" class="text-decoration-none">
+                                        <strong>#2566</strong>
+                                    </a><br>
+                                    <small class="text-muted">Ремонт офиса компании</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-exchange-alt"></i> Изменение статуса
+                                    </span>
+                                    <br><small class="text-muted">Изменен статус с "В работе" на "Завершен"</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button">
+                                        <i class="fas fa-eye"></i> Показать изменения
+                                    </button>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">IP:</strong> 192.168.1.105<br>
+                                    <strong class="text-secondary">UA:</strong> 
+                                    <small class="text-muted" title="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)">
+                                        Mozilla/5.0 (Macintosh...
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary" title="Все логи этой сделки">
+                                        <i class="fas fa-list"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">#1003</span></td>
+                                <td>
+                                    <strong>24.07.2025</strong><br>
+                                    <small class="text-muted">12:18:42</small>
+                                </td>
+                                <td>
+                                    <strong>Партнер Мария</strong><br>
+                                    <span class="badge bg-info">partner</span>
+                                </td>
+                                <td>
+                                    <span class="text-danger">
+                                        <i class="fas fa-trash"></i> Сделка #2565 удалена
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-trash"></i> Удаление
+                                    </span>
+                                    <br><small class="text-muted">Удалена сделка #2565 - Дизайн кухни</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button">
+                                        <i class="fas fa-eye"></i> Показать изменения
+                                    </button>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">IP:</strong> 192.168.1.87<br>
+                                    <strong class="text-secondary">UA:</strong> 
+                                    <small class="text-muted" title="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36">
+                                        Mozilla/5.0 (X11; Linux...
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="text-muted">Н/Д</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h4>Особенности реализованной системы логирования:</h4>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Глобальное логирование:</strong> Все действия со сделками (создание, редактирование, удаление) записываются в единую таблицу логов
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Детальная информация:</strong> Каждый лог содержит IP адрес, User Agent, тип действия, описание и JSON с изменениями
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Расширенные фильтры:</strong> Поиск по пользователю, типу действия, дате, ID сделки и содержимому изменений
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Только для администратора:</strong> Доступ к глобальным логам имеют только пользователи со статусом "admin"
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Автоматическое логирование:</strong> Система Observer автоматически создает логи при любых изменениях в моделях Deal
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Сохранение удаленных данных:</strong> При удалении сделки вся информация сохраняется в логе для возможности восстановления
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

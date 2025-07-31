@@ -1,0 +1,138 @@
+/* Стили для Select2 полей координатора и партнера */
+
+/* Общие стили для результатов поиска пользователей */
+.select2-user-result {
+    padding: 5px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.select2-user-result:last-child {
+    border-bottom: none;
+}
+
+.select2-user-result .user-name {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 2px;
+}
+
+.select2-user-result .user-email {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Стили для Select2 контейнеров в модальных окнах */
+.modal .select2-container {
+    z-index: 9999 !important;
+}
+
+.modal .select2-container--default .select2-dropdown {
+    z-index: 9999 !important;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.modal .select2-container--default .select2-selection--single {
+    height: 38px;
+    line-height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.modal .select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-left: 12px;
+    padding-right: 20px;
+    color: #333;
+}
+
+.modal .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+    right: 10px;
+}
+
+/* Стили для поиска */
+.modal .select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+/* Стили для результатов */
+.modal .select2-container--default .select2-results__option {
+    padding: 8px 12px;
+    line-height: 1.4;
+}
+
+.modal .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal .select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Стили для состояний загрузки и отсутствия результатов */
+.modal .select2-container--default .select2-results__message {
+    padding: 12px;
+    color: #666;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .modal .select2-container--default .select2-selection--single {
+        height: 42px;
+        line-height: 40px;
+    }
+    
+    .modal .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px;
+    }
+    
+    .select2-user-result .user-name {
+        font-size: 16px;
+    }
+    
+    .select2-user-result .user-email {
+        font-size: 14px;
+    }
+}
+
+/* Стили для фокуса */
+.modal .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Улучшенные стили для хоровной структуры */
+.modal .form-group-deal.field-coordinator-id,
+.modal .form-group-deal.field-office-partner-id {
+    margin-bottom: 20px;
+}
+
+.modal .form-group-deal.field-coordinator-id label,
+.modal .form-group-deal.field-office-partner-id label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Стили для Select2 с иконками */
+.select2-coordinator-search,
+.select2-partner-search,
+.select2-cities-search {
+    width: 100% !important;
+}
+
+/* Стили для результатов городов */
+.select2-city-result {
+    padding: 2px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
