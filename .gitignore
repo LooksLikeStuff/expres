@@ -45,3 +45,5 @@ docker-compose.override.yml
 # Логи от npm или yarn
 npm-debug.log*
 yarn-error.log*
+
+.idea
