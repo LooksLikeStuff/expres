@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\MessageDTO;
+use App\Events\MessageSent;
+use App\Http\Requests\MessageRequest;
+use App\Services\Chats\ChatService;
+use App\Services\Chats\MessageService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Message;
@@ -17,30 +23,41 @@ use Illuminate\Support\Facades\Schema;
 
 class ChatController extends Controller
 {
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly ChatService $chatService,
+        private readonly MessageService $messageService,
+    )
+    {
+    }
+
     public function index()
     {
-        return view('chats');
+        $user = \auth()->user()->load('chats.users');
+
+        return view('chats.index', compact('user'));
     }
+
 
     public function getContacts()
     {
         $user = auth()->user();
-        
+
         // Обновляем статус текущего пользователя
         $user->updateLastSeen();
-        
+
         $contacts = User::where('id', '!=', $user->id)->get()->map(function ($contact) {
             // Получаем URL аватарки, устанавливаем дефолтную, если не найдена
             $avatarUrl = $contact->profile_image ? asset('storage/' . $contact->profile_image) : asset('storage/icon/profile.svg');
-            
+
             // Определяем статус пользователя на основе его последней активности
             $status = $contact->isOnline() ? 'online' : 'offline';
-            
+
             // Форматируем информацию о последней активности
-            $lastActivity = $contact->last_seen_at 
-                ? $this->formatLastActivity($contact->last_seen_at) 
+            $lastActivity = $contact->last_seen_at
+                ? $this->formatLastActivity($contact->last_seen_at)
                 : 'Неизвестно';
-            
+
             return [
                 'id' => $contact->id,
                 'name' => $contact->name,
@@ -51,7 +68,7 @@ class ChatController extends Controller
                 'lastActivity' => $lastActivity,
             ];
         });
-        
+
         return response()->json($contacts);
     }
 
@@ -59,7 +76,7 @@ class ChatController extends Controller
     {
         $now = now();
         $lastSeen = \Carbon\Carbon::parse($dateTime);
-        
+
         if ($lastSeen->isToday()) {
             return 'Сегодня, ' . $lastSeen->format('H:i');
         } elseif ($lastSeen->isYesterday()) {
@@ -75,76 +92,85 @@ class ChatController extends Controller
         }
     }
 
-    public function getMessages($id)
+    public function getMessages(int $chatId)
     {
-        $currentUser = Auth::user();
-        
-        try {
-            $recipient = User::findOrFail($id);
-            
-            // Получаем сообщения между пользователями
-            $messages = Message::where(function ($query) use ($currentUser, $recipient) {
-                    $query->where('sender_id', $currentUser->id)
-                        ->where('receiver_id', $recipient->id); // Изменено с recipient_id на receiver_id
-                })->orWhere(function ($query) use ($currentUser, $recipient) {
-                    $query->where('sender_id', $recipient->id)
-                        ->where('receiver_id', $currentUser->id); // Изменено с recipient_id на receiver_id
-                })
-                ->orderBy('created_at')
-                ->get()
-                ->map(function ($message) {
-                    // Подготовка вложений, если есть
-                    $attachments = [];
-                    if ($message->attachments) {
-                        foreach (json_decode($message->attachments, true) as $attachment) {
-                            $attachments[] = [
-                                'name' => $attachment['name'],
-                                'url' => asset('storage/' . $attachment['path']),
-                                'type' => $attachment['type'] ?? 'file'
-                            ];
-                        }
-                    }
-                    
-                    return [
-                        'id' => $message->id,
-                        'sender_id' => $message->sender_id,
-                        'content' => $message->content,
-                        'attachments' => $attachments,
-                        'created_at' => $message->created_at,
-                        'read_at' => $message->read_at
-                    ];
-                });
-            
-            // Отмечаем сообщения как прочитанные
-            Message::where('sender_id', $recipient->id)
-                ->where('receiver_id', $currentUser->id) // Изменено с recipient_id на receiver_id
-                ->whereNull('read_at')
-                ->update(['read_at' => now()]);
-            
-            return response()->json([
-                'messages' => $messages
-            ]);
-        } catch (ModelNotFoundException $e) {
-            // Пользователь не найден
-            return response()->json([
-                'error' => 'Пользователь не найден'
-            ], 404);
-        } catch (\Exception $e) {
-            \Log::error('Ошибка при получении сообщений: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Произошла ошибка при получении сообщений'
-            ], 500);
-        }
+        $messages = $this->messageService->getPaginatedMessagesByChatId($chatId, 20);
+
+        return response()->json([
+            'messages' => $messages,
+        ]);
     }
+
+//    public function getMessages($id)
+//    {
+//        $currentUser = Auth::user();
+//
+//        try {
+//            $recipient = User::findOrFail($id);
+//
+//            // Получаем сообщения между пользователями
+//            $messages = Message::where(function ($query) use ($currentUser, $recipient) {
+//                    $query->where('sender_id', $currentUser->id)
+//                        ->where('receiver_id', $recipient->id); // Изменено с recipient_id на receiver_id
+//                })->orWhere(function ($query) use ($currentUser, $recipient) {
+//                    $query->where('sender_id', $recipient->id)
+//                        ->where('receiver_id', $currentUser->id); // Изменено с recipient_id на receiver_id
+//                })
+//                ->orderBy('created_at')
+//                ->get()
+//                ->map(function ($message) {
+//                    // Подготовка вложений, если есть
+//                    $attachments = [];
+//                    if ($message->attachments) {
+//                        foreach (json_decode($message->attachments, true) as $attachment) {
+//                            $attachments[] = [
+//                                'name' => $attachment['name'],
+//                                'url' => asset('storage/' . $attachment['path']),
+//                                'type' => $attachment['type'] ?? 'file'
+//                            ];
+//                        }
+//                    }
+//
+//                    return [
+//                        'id' => $message->id,
+//                        'sender_id' => $message->sender_id,
+//                        'content' => $message->content,
+//                        'attachments' => $attachments,
+//                        'created_at' => $message->created_at,
+//                        'read_at' => $message->read_at
+//                    ];
+//                });
+//
+//            // Отмечаем сообщения как прочитанные
+//            Message::where('sender_id', $recipient->id)
+//                ->where('receiver_id', $currentUser->id) // Изменено с recipient_id на receiver_id
+//                ->whereNull('read_at')
+//                ->update(['read_at' => now()]);
+//
+//            return response()->json([
+//                'messages' => $messages
+//            ]);
+//        } catch (ModelNotFoundException $e) {
+//            // Пользователь не найден
+//            return response()->json([
+//                'error' => 'Пользователь не найден'
+//            ], 404);
+//        } catch (\Exception $e) {
+//            \Log::error('Ошибка при получении сообщений: ' . $e->getMessage());
+//            return response()->json([
+//                'error' => 'Произошла ошибка при получении сообщений'
+//            ], 500);
+//        }
+//    }
 
     public function getNewMessages($id, Request $request)
     {
         $currentUser = Auth::user();
         $lastId = $request->input('last_id', 0);
-        
+
         try {
             $recipient = User::findOrFail($id);
-            
+
             // Получаем только новые сообщения
             $messages = Message::where(function ($query) use ($currentUser, $recipient) {
                     $query->where('sender_id', $currentUser->id)
@@ -168,7 +194,7 @@ class ChatController extends Controller
                             ];
                         }
                     }
-                    
+
                     return [
                         'id' => $message->id,
                         'sender_id' => $message->sender_id,
@@ -178,13 +204,13 @@ class ChatController extends Controller
                         'read_at' => $message->read_at
                     ];
                 });
-            
+
             // Отмечаем сообщения как прочитанные только если они от другого пользователя
             Message::where('sender_id', $recipient->id)
                 ->where('receiver_id', $currentUser->id) // Изменено с recipient_id на receiver_id
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
-            
+
             return response()->json([
                 'messages' => $messages
             ]);
@@ -201,88 +227,88 @@ class ChatController extends Controller
         }
     }
 
-    public function sendMessage($id, Request $request)
-    {
-        try {
-            $currentUser = Auth::user();
-            // Обновляем статус текущего пользователя
-            $currentUser->updateLastSeen();
-            
-            $recipient = User::findOrFail($id);
-            
-            $validated = $request->validate([
-                'message' => 'nullable|string|max:2000',
-                'attachments' => 'nullable|array',
-                'attachments.*' => 'file|max:10240' // макс. 10MB
-            ]);
-            
-            // Проверка наличия сообщения или вложений
-            if (empty($validated['message']) && !$request->hasFile('attachments')) {
-                return response()->json(['error' => 'Сообщение или вложение обязательно'], 422);
-            }
-            
-            // Обработка вложений
-            $attachmentsData = [];
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('chat_attachments/' . $currentUser->id, 'public');
-                    $attachmentsData[] = [
-                        'name' => $file->getClientOriginalName(),
-                        'path' => $path,
-                        'type' => $file->getMimeType()
-                    ];
-                }
-            }
-            
-            // Создание сообщения
-            $message = new Message();
-            $message->sender_id = $currentUser->id;
-            $message->receiver_id = $recipient->id;
-            $message->content = $validated['message'] ?? null;
-            $message->attachments = !empty($attachmentsData) ? json_encode($attachmentsData) : null;
-            $message->save();
-            
-            // Обновляем last_seen_at для текущего пользователя, если поле существует
-            if (Schema::hasColumn('users', 'last_seen_at')) {
-                $currentUser->last_seen_at = now();
-                $currentUser->save();
-            }
-            
-            // Подготовка вложений для ответа
-            $attachments = [];
-            if (!empty($attachmentsData)) {
-                foreach ($attachmentsData as $attachment) {
-                    $attachments[] = [
-                        'name' => $attachment['name'],
-                        'url' => asset('storage/' . $attachment['path']),
-                        'type' => $attachment['type']
-                    ];
-                }
-            }
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => [
-                    'id' => $message->id,
-                    'sender_id' => $message->sender_id,
-                    'content' => $message->content,
-                    'attachments' => $attachments,
-                    'created_at' => $message->created_at,
-                    'read_at' => null
-                ]
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Ошибка при отправке сообщения: ' . $e->getMessage());
-            return response()->json(['error' => 'Произошла ошибка при отправке сообщения'], 500);
-        }
-    }
+//    public function sendMessage($id, Request $request)
+//    {
+//        try {
+//            $currentUser = Auth::user();
+//            // Обновляем статус текущего пользователя
+//            $currentUser->updateLastSeen();
+//
+//            $recipient = User::findOrFail($id);
+//
+//            $validated = $request->validate([
+//                'message' => 'nullable|string|max:2000',
+//                'attachments' => 'nullable|array',
+//                'attachments.*' => 'file|max:10240' // макс. 10MB
+//            ]);
+//
+//            // Проверка наличия сообщения или вложений
+//            if (empty($validated['message']) && !$request->hasFile('attachments')) {
+//                return response()->json(['error' => 'Сообщение или вложение обязательно'], 422);
+//            }
+//
+//            // Обработка вложений
+//            $attachmentsData = [];
+//            if ($request->hasFile('attachments')) {
+//                foreach ($request->file('attachments') as $file) {
+//                    $path = $file->store('chat_attachments/' . $currentUser->id, 'public');
+//                    $attachmentsData[] = [
+//                        'name' => $file->getClientOriginalName(),
+//                        'path' => $path,
+//                        'type' => $file->getMimeType()
+//                    ];
+//                }
+//            }
+//
+//            // Создание сообщения
+//            $message = new Message();
+//            $message->sender_id = $currentUser->id;
+//            $message->receiver_id = $recipient->id;
+//            $message->content = $validated['message'] ?? null;
+//            $message->attachments = !empty($attachmentsData) ? json_encode($attachmentsData) : null;
+//            $message->save();
+//
+//            // Обновляем last_seen_at для текущего пользователя, если поле существует
+//            if (Schema::hasColumn('users', 'last_seen_at')) {
+//                $currentUser->last_seen_at = now();
+//                $currentUser->save();
+//            }
+//
+//            // Подготовка вложений для ответа
+//            $attachments = [];
+//            if (!empty($attachmentsData)) {
+//                foreach ($attachmentsData as $attachment) {
+//                    $attachments[] = [
+//                        'name' => $attachment['name'],
+//                        'url' => asset('storage/' . $attachment['path']),
+//                        'type' => $attachment['type']
+//                    ];
+//                }
+//            }
+//
+//            return response()->json([
+//                'status' => 'success',
+//                'message' => [
+//                    'id' => $message->id,
+//                    'sender_id' => $message->sender_id,
+//                    'content' => $message->content,
+//                    'attachments' => $attachments,
+//                    'created_at' => $message->created_at,
+//                    'read_at' => null
+//                ]
+//            ]);
+//        } catch (\Exception $e) {
+//            \Log::error('Ошибка при отправке сообщения: ' . $e->getMessage());
+//            return response()->json(['error' => 'Произошла ошибка при отправке сообщения'], 500);
+//        }
+//    }
 
     public function getUnreadCount()
     {
         $count = Message::where('receiver_id', Auth::id()) // Изменено с recipient_id на receiver_id
             ->whereNull('read_at')
             ->count();
-        
+
         return response()->json(['count' => $count]);
     }
 
@@ -302,13 +328,13 @@ class ChatController extends Controller
                     $lastMessage = Message::where('chat_group_id', $group->id)
                         ->orderBy('created_at', 'desc')
                         ->first();
-                    
+
                     // Количество непрочитанных сообщений для текущего пользователя
                     $unreadCount = Message::where('chat_group_id', $group->id)
                         ->where('sender_id', '!=', Auth::id())
                         ->whereNull('read_at')
                         ->count();
-                    
+
                     return [
                         'id' => $group->id,
                         'name' => $group->name,
@@ -322,7 +348,7 @@ class ChatController extends Controller
                         'lastActivity' => $lastMessage ? $this->formatLastActivity($lastMessage->created_at) : $this->formatLastActivity($group->created_at)
                     ];
                 });
-            
+
             return response()->json($chatGroups);
         } catch (\Exception $e) {
             \Log::error('Ошибка при получении групп: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
@@ -342,33 +368,33 @@ class ChatController extends Controller
             'members' => 'required|array|min:1',
             'members.*' => 'exists:users,id',
         ]);
-        
+
         try {
             DB::beginTransaction();
-            
+
             $avatarPath = null;
             if ($request->hasFile('avatar')) {
                 $avatarPath = $request->file('avatar')->store('chat_group_avatars', 'public');
             }
-            
+
             $chatGroup = ChatGroup::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'],
                 'avatar' => $avatarPath ? 'storage/' . $avatarPath : null,
                 'created_by' => Auth::id(),
             ]);
-            
+
             // Добавляем создателя как администратора
             $chatGroup->users()->attach(Auth::id(), ['role' => 'admin']);
-            
+
             // Добавляем остальных участников
             $members = array_diff($validated['members'], [Auth::id()]);
             foreach ($members as $memberId) {
                 $chatGroup->users()->attach($memberId, ['role' => 'member']);
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'status' => 'success',
                 'group' => [
@@ -394,17 +420,17 @@ class ChatController extends Controller
     public function getGroupMessages($id)
     {
         $currentUser = Auth::user();
-        
+
         try {
             $chatGroup = ChatGroup::findOrFail($id);
-            
+
             // Проверяем, является ли пользователь участником группы
             if (!$chatGroup->isMember($currentUser->id)) {
                 return response()->json([
                     'error' => 'У вас нет доступа к этой группе'
                 ], 403);
             }
-            
+
             // Получаем сообщения группы
             $messages = Message::where('chat_group_id', $chatGroup->id)
                 ->orderBy('created_at')
@@ -421,10 +447,10 @@ class ChatController extends Controller
                             ];
                         }
                     }
-                    
+
                     // Получаем данные отправителя
                     $sender = User::find($message->sender_id);
-                    
+
                     return [
                         'id' => $message->id,
                         'sender_id' => $message->sender_id,
@@ -436,13 +462,13 @@ class ChatController extends Controller
                         'read_at' => $message->read_at
                     ];
                 });
-            
+
             // Отмечаем сообщения как прочитанные
             Message::where('chat_group_id', $chatGroup->id)
                 ->where('sender_id', '!=', $currentUser->id)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
-            
+
             return response()->json([
                 'messages' => $messages,
                 'group' => [
@@ -475,25 +501,25 @@ class ChatController extends Controller
         try {
             $currentUser = Auth::user();
             $chatGroup = ChatGroup::findOrFail($id);
-            
+
             // Проверяем, является ли пользователь участником группы
             if (!$chatGroup->isMember($currentUser->id)) {
                 return response()->json([
                     'error' => 'У вас нет доступа к этой группе'
                 ], 403);
             }
-            
+
             $validated = $request->validate([
                 'message' => 'nullable|string|max:2000',
                 'attachments' => 'nullable|array',
                 'attachments.*' => 'file|max:10240' // макс. 10MB
             ]);
-            
+
             // Проверка наличия сообщения или вложений
             if (empty($validated['message']) && !$request->hasFile('attachments')) {
                 return response()->json(['error' => 'Сообщение или вложение обязательно'], 422);
             }
-            
+
             // Обработка вложений
             $attachmentsData = [];
             if ($request->hasFile('attachments')) {
@@ -506,7 +532,7 @@ class ChatController extends Controller
                     ];
                 }
             }
-            
+
             // Создание сообщения
             $message = new Message();
             $message->sender_id = $currentUser->id;
@@ -514,7 +540,7 @@ class ChatController extends Controller
             $message->content = $validated['message'] ?? null;
             $message->attachments = !empty($attachmentsData) ? json_encode($attachmentsData) : null;
             $message->save();
-            
+
             // Подготовка вложений для ответа
             $attachments = [];
             if (!empty($attachmentsData)) {
@@ -526,7 +552,7 @@ class ChatController extends Controller
                     ];
                 }
             }
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => [
@@ -553,17 +579,17 @@ class ChatController extends Controller
     {
         $currentUser = Auth::user();
         $lastId = $request->input('last_id', 0);
-        
+
         try {
             $chatGroup = ChatGroup::findOrFail($id);
-            
+
             // Проверяем, является ли пользователь участником группы
             if (!$chatGroup->isMember($currentUser->id)) {
                 return response()->json([
                     'error' => 'У вас нет доступа к этой группе'
                 ], 403);
             }
-            
+
             // Получаем только новые сообщения
             $messages = Message::where('chat_group_id', $chatGroup->id)
                 ->where('id', '>', $lastId)
@@ -581,10 +607,10 @@ class ChatController extends Controller
                             ];
                         }
                     }
-                    
+
                     // Получаем данные отправителя
                     $sender = User::find($message->sender_id);
-                    
+
                     return [
                         'id' => $message->id,
                         'sender_id' => $message->sender_id,
@@ -596,14 +622,14 @@ class ChatController extends Controller
                         'read_at' => $message->read_at
                     ];
                 });
-            
+
             // Отмечаем сообщения как прочитанные только если они от других пользователей
             Message::where('chat_group_id', $chatGroup->id)
                 ->where('sender_id', '!=', $currentUser->id)
                 ->where('id', '>', $lastId)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
-            
+
             return response()->json([
                 'messages' => $messages
             ]);
@@ -631,16 +657,16 @@ class ChatController extends Controller
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
         ]);
-        
+
         try {
             $currentUser = Auth::user();
             $query = $validated['query'];
-            
+
             // Базовый запрос для поиска
             $messagesQuery = Message::where(function($q) use ($query) {
                 $q->where('content', 'like', "%{$query}%");
             });
-            
+
             // Фильтр по личным чатам
             if (isset($validated['chat_id'])) {
                 $messagesQuery->where(function($q) use ($currentUser, $validated) {
@@ -652,7 +678,7 @@ class ChatController extends Controller
                            ->where('receiver_id', $currentUser->id);
                     });
                 })->whereNull('chat_group_id');
-            } 
+            }
             // Фильтр по групповым чатам
             elseif (isset($validated['chat_group_id'])) {
                 // Проверяем доступ к группе
@@ -662,14 +688,14 @@ class ChatController extends Controller
                         'error' => 'У вас нет доступа к этой группе'
                     ], 403);
                 }
-                
+
                 $messagesQuery->where('chat_group_id', $validated['chat_group_id']);
             }
             // Если не указан конкретный чат, ищем во всех чатах пользователя
             else {
                 // Получаем ID всех групп пользователя
                 $userGroupIds = $currentUser->chatGroups()->pluck('chat_groups.id')->toArray();
-                
+
                 $messagesQuery->where(function($q) use ($currentUser, $userGroupIds) {
                     $q->where(function($q1) use ($currentUser) {
                         $q1->where('sender_id', $currentUser->id)
@@ -677,25 +703,25 @@ class ChatController extends Controller
                     })->orWhereIn('chat_group_id', $userGroupIds);
                 });
             }
-            
+
             // Фильтрация по дате
             if (isset($validated['from_date'])) {
                 $messagesQuery->whereDate('created_at', '>=', $validated['from_date']);
             }
-            
+
             if (isset($validated['to_date'])) {
                 $messagesQuery->whereDate('created_at', '<=', $validated['to_date']);
             }
-            
+
             // Получаем результаты
             $messages = $messagesQuery->orderBy('created_at', 'desc')->limit(100)->get();
-            
+
             // Форматируем результаты
             $results = $messages->map(function($message) {
                 $sender = User::find($message->sender_id);
                 $receiver = $message->receiver_id ? User::find($message->receiver_id) : null;
                 $chatGroup = $message->chat_group_id ? ChatGroup::find($message->chat_group_id) : null;
-                
+
                 return [
                     'id' => $message->id,
                     'content' => $message->content,
@@ -706,7 +732,7 @@ class ChatController extends Controller
                         'avatar' => $sender->avatar ?: asset('storage/icon/profile.svg')
                     ],
                     'is_group' => !is_null($message->chat_group_id),
-                    'chat_details' => $message->chat_group_id 
+                    'chat_details' => $message->chat_group_id
                         ? [
                             'id' => $chatGroup->id,
                             'name' => $chatGroup->name,
@@ -719,7 +745,7 @@ class ChatController extends Controller
                           ]
                 ];
             });
-            
+
             return response()->json([
                 'results' => $results,
                 'total' => $results->count(),
@@ -861,7 +887,7 @@ class ChatController extends Controller
     public function checkNewMessagesInAllChats()
     {
         $currentUser = Auth::user();
-        
+
         try {
             // Проверяем личные сообщения
             $newPersonalMessages = Message::where('receiver_id', $currentUser->id)
@@ -869,33 +895,33 @@ class ChatController extends Controller
                 ->whereNull('chat_group_id')
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
+
             // Проверяем групповые сообщения в группах, где состоит пользователь
             $userGroups = $currentUser->chatGroups()->pluck('chat_groups.id')->toArray();
-            
+
             $newGroupMessages = Message::whereIn('chat_group_id', $userGroups)
                 ->where('sender_id', '!=', $currentUser->id)
                 ->whereNull('read_at')
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
+
             // Отключаем уведомления для групповых чатов - используем только личные сообщения
             // для формирования уведомлений, игнорируя $newGroupMessages
             $allNewMessages = $newPersonalMessages->sortByDesc('created_at');
-            
+
             $hasNewMessages = $allNewMessages->count() > 0;
-            
+
             // Если есть новые сообщения в личных чатах, берем самое последнее для уведомления
             $lastMessage = null;
             if ($hasNewMessages) {
                 $latestMessage = $allNewMessages->first();
-                
+
                 $sender = User::find($latestMessage->sender_id);
                 $senderName = $sender ? $sender->name : 'Неизвестный пользователь';
-                
+
                 // Определяем ID чата (будет только ID контакта для личных сообщений)
                 $chatId = $latestMessage->sender_id;
-                
+
                 $lastMessage = [
                     'id' => $latestMessage->id,
                     'chatId' => $chatId,
@@ -905,10 +931,10 @@ class ChatController extends Controller
                     'createdAt' => $latestMessage->created_at
                 ];
             }
-            
+
             // Для счетчика в шапке сайта включаем и личные, и групповые сообщения
             $totalNewMessagesCount = $newPersonalMessages->count() + $newGroupMessages->count();
-            
+
             return response()->json([
                 'hasNewMessages' => $hasNewMessages,
                 'newMessagesCount' => $totalNewMessagesCount,

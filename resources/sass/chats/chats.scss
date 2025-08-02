@@ -1,0 +1,30 @@
+.chats {
+
+    //.chats__list
+    &__list {
+        padding: 0;
+        list-style-type: none;
+
+        //.chats__list-option
+        &-option {
+            cursor: pointer;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            padding: 5px 10px;
+            align-items: center;
+            justify-content: start;
+            color: #7e7e7e;
+            font-weight: 500;
+            border-bottom: 1px solid #b3b3b3;
+            transition: all 0.2s ease-in-out;
+
+            //.chats__list-option.active
+            &.active {
+                color: #ffffff;
+                background: #1059b7;
+                border-bottom: #023070;
+            }
+        }
+    }
+}

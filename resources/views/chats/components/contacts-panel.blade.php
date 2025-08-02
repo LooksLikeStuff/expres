@@ -1,8 +1,8 @@
 <!-- Левая панель с контактами -->
-<div class="col-md-3 col-lg-3 contacts-list" id="contacts-list">
+<div class="col-md-3 col-lg-4 contacts-list" id="contacts-list">
     <!-- Верхняя часть с поиском -->
     <div class=" border-bottom">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-center align-items-center py-3">
             <h4 class="mb-0">Сообщения</h4>
             <div>
                 <!-- Удаляем кнопку обновления сообщений, так как всё обновляется автоматически -->
@@ -13,26 +13,33 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Переключение между личными и групповыми чатами -->
-        @include('chats.components.tab-selector')
-        
+
         <!-- Поиск -->
         <div class="input-group mb-3">
             <span class="input-group-text bg-light border-0">
                 <i class="bi bi-search"></i>
             </span>
-            <input type="text" id="search-contact" class="form-control border-0 bg-light" placeholder="Поиск...">
+            <input type="text" id="search-contact" class="form-control border-0 bg-light m-0" placeholder="Поиск...">
         </div>
+
+        <!-- Переключение между личными и групповыми чатами -->
+        @include('chats.components.tab-selector')
+
     </div>
-    
+
     <!-- Индикатор загрузки контактов -->
-    <div id="contacts-loading" class="d-flex justify-content-center align-items-center py-4" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Загрузка...</span>
-        </div>
-    </div>
-    
+{{--    <div id="send-button" class="d-flex justify-content-center align-items-center py-4 chats__add" style="display: none;">--}}
+{{--        <div class="spinner-border text-primary" role="status">--}}
+{{--            <span class="visually-hidden">Загрузка...</span>--}}
+{{--        </div>--}}
+{{--    </div>--}}
+
+    <ul id="user__chats" class="chats__list">
+        @foreach($user->chats as $chat)
+            <li class="chats__list-option" data-chat-id="{{$chat->id}}">{{$chat->getTitleForUser($user->id)}}</li>
+        @endforeach
+    </ul>
+
     <!-- Список контактов -->
     <div class="contacts-body">
         <ul id="contacts" class="list-unstyled mb-0">

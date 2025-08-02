@@ -11,14 +11,14 @@
     <link rel="stylesheet" href="{{ asset('/css/animate.css') }}">
     <link rel="stylesheet" href="{{ asset('/css/introjs.min.css') }}">
 
-  
+
     <script src="{{ asset('/js/wow.js') }}"></script>
     <!-- Подключаем стили Intro.js -->
 
 
     <script src="{{ asset('/js/intro.min.js') }}"></script>
 
- 
+
     <!-- CSS стили (загружаем сначала) -->
     <link rel="stylesheet" href="{{ asset('/css/p/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/css/p/5.15.4/all.min.css') }}">
@@ -27,32 +27,35 @@
     <link rel="stylesheet" href="{{ asset('/css/p/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/css/p/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin-briefs.css') }}">
-    
+
+    @yield('stylesheets')
+
     <!-- JavaScript (основные библиотеки) -->
     <script src="{{ asset('/js/p/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('/js/p/popper.min.js') }}"></script>
     <script src="{{ asset('/js/p/bootstrap.min.js') }}"></script>
-    
+
     <!-- JavaScript (дополнительные плагины) -->
     <script src="{{ asset('/js/p/bootstrap-select.min.js') }}"></script>
     <script src="{{ asset('/js/p/defaults-ru_RU.min.js') }}"></script>
     <script src="{{ asset('/js/p/axios.min.js') }}"></script>
     <script src="{{ asset('/js/p/jquery.dataTables.min.js') }}"></script>
-    
+
     <!-- Исправленный путь к Select2 -->
     <script src="{{ asset('/js/p/select2.min.js') }}"></script>
-    
+
     <script src="{{ asset('/js/p/jquery.simplePagination.min.js') }}"></script>
-    
+
     <!-- Подключаем систему загрузки больших файлов -->
     <script src="{{ asset('js/large-file-upload.js') }}"></script>
-    
+
     <!-- Подключаем CSS для загрузки больших файлов -->
     <link rel="stylesheet" href="{{ asset('css/large-file-upload.css') }}"></script>
-    
+
+    @yield('scripts')
 
     @vite(['resources/css/font.css', 'resources/js/ratings.js','resources/css/animation.css', 'resources/css/style.css', 'resources/css/element.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js', 'resources/js/modal.js', 'resources/js/success.js', 'resources/js/mask.js'])
-    
+
     <!-- Обязательный (и достаточный) тег для браузеров -->
     <link type="image/x-icon" rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
 
@@ -105,7 +108,7 @@
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
                         console.log('ServiceWorker зарегистрирован:', registration.scope);
-                        
+
                         // Передаем CSRF токен в сервис-воркер
                         if (registration.active) {
                             registration.active.postMessage({
@@ -129,7 +132,7 @@
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
                         console.log('Разрешение на уведомления получено');
-                        
+
                         // Подписываемся на push-уведомления
                         if (registration && registration.pushManager) {
                             registration.pushManager.subscribe({
@@ -182,7 +185,7 @@
             for (let i = 0; i < rawData.length; ++i) {
                 outputArray[i] = rawData.charCodeAt(i);
             }
-            
+
             return outputArray;
         }
     </script>
@@ -193,7 +196,7 @@
             animateClass: 'animated', // default
             offset: 0, // default
             mobile: true, // default
-            live: true // default  
+            live: true // default
         })
         wow.init();
     </script>
@@ -795,22 +798,22 @@
         function preventInputZoom() {
             // Проверяем, является ли устройство iOS
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
+
             if (isIOS) {
                 // Запоминаем исходное значение метатега viewport
                 const originalViewport = document.querySelector('meta[name="viewport"]').getAttribute('content');
-                
+
                 // Находим все поля ввода
                 const inputElements = document.querySelectorAll('input, select, textarea');
-                
+
                 // Добавляем обработчики событий для каждого поля ввода
                 inputElements.forEach(input => {
                     // При фокусе запрещаем масштабирование
                     input.addEventListener('focus', function() {
-                        document.querySelector('meta[name="viewport"]').setAttribute('content', 
+                        document.querySelector('meta[name="viewport"]').setAttribute('content',
                             'width=device-width, initial-scale=1, maximum-scale=1');
                     });
-                    
+
                     // При потере фокуса восстанавливаем исходные настройки
                     input.addEventListener('blur', function() {
                         setTimeout(function() {
@@ -820,7 +823,7 @@
                 });
             }
         }
-        
+
         // Вызываем функцию при загрузке страницы
         document.addEventListener('DOMContentLoaded', preventInputZoom);
     </script>
@@ -864,12 +867,12 @@
         @include('layouts/mobponel')
     </main>
 
-    
+
 
     <!-- Дополнительные скрипты в конце страницы -->
     @stack('scripts')
 
-   
+
     <!-- Убедимся, что Bootstrap JS подключен -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -910,7 +913,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <!-- Информация о сделке -->
             <div class="deal-info-block">
                 <div class="deal-info-row">
@@ -926,12 +929,12 @@
                     <span id="deal-client-phone" class="info-value">не указан</span>
                 </div>
             </div>
-            
+
             <!-- Прогресс оценки -->
             <div class="rating-progress-simple">
                 <span id="current-rating-index">1</span> из <span id="total-ratings">1</span> специалистов
             </div>
-            
+
             <!-- Информация о специалисте (упрощенная) -->
             <div class="specialist-block">
                 <div class="specialist-avatar">
@@ -942,7 +945,7 @@
                     <div class="specialist-role" id="rating-user-role">Должность</div>
                 </div>
             </div>
-            
+
             <!-- Звезды для оценки -->
             <div class="rating-section">
                 <div class="rating-label">Ваша оценка:</div>
@@ -964,7 +967,7 @@
                     </span>
                 </div>
             </div>
-            
+
             <!-- Комментарий (упрощенный) -->
             <div class="comment-section">
                 <textarea id="rating-comment" placeholder="Комментарий (необязательно)" maxlength="300"></textarea>
@@ -972,7 +975,7 @@
                     <span id="comment-char-count">0</span>/300
                 </div>
             </div>
-            
+
             <!-- Действия -->
             <div class="rating-actions">
                 <button id="submit-rating" class="btn btn-primary" disabled>
@@ -993,12 +996,12 @@
             // Инициализация всплывающих подсказок Bootstrap с задержкой в 2 секунды
             if (typeof $().tooltip === 'function') {
                 $('[title]').tooltip({
-                    placement: 'auto', 
+                    placement: 'auto',
                     trigger: 'hover',
                     delay: {show: 1000, hide: 100}, // Задержка в 1 секунду
                     template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
                 });
-                
+
                 // Повторная инициализация подсказок после загрузки динамического контента
                 $(document).ajaxComplete(function() {
                     setTimeout(function() {
@@ -1020,13 +1023,13 @@
             // Инициализация всплывающих подсказок Bootstrap с задержкой в 1 секунду
             if (typeof $().tooltip === 'function') {
                 $('[title]').tooltip({
-                    placement: 'auto', 
+                    placement: 'auto',
                     trigger: 'hover',
                     delay: {show: 800, hide: 100},
                     html: true,
                     template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
                 });
-                
+
                 // Специальная инициализация для наград
                 $('.award-icon').tooltip({
                     placement: 'auto',
@@ -1034,7 +1037,7 @@
                     html: true,
                     template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
                 });
-                
+
                 // Повторная инициализация подсказок после загрузки динамического контента
                 $(document).ajaxComplete(function() {
                     setTimeout(function() {
@@ -1045,11 +1048,11 @@
                             html: true,
                             template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
                         });
-                        
+
                         $('.award-icon').tooltip({
                             placement: 'auto',
                             delay: {show: 500, hide: 100},
-                            html: true, 
+                            html: true,
                             template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
                         });
                     }, 500);
@@ -1059,7 +1062,7 @@
     </script>
 
 <style>
-    
+
         @media only screen and (max-width:780px) {
             .flex-h1 {
                     flex-wrap: wrap;

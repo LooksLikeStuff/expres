@@ -5149,9 +5149,9 @@ button.buttonSealaActive {
     gap: var(--g20);
 }
 
-/* УСТАРЕВШЕЕ: Стили для module__deal теперь управляются из 
+/* УСТАРЕВШЕЕ: Стили для module__deal теперь управляются из
    /resources/views/deals/partials/components/styles.blade.php в рамках единой системы */
-/* 
+/*
 fieldset.module__deal {
     display: flex;
     position: relative;
@@ -6429,9 +6429,9 @@ u {
     -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
-   
+
     -webkit-backdrop-filter: blur(3px);
-   
+
             backdrop-filter: blur(3px);
 }
 
@@ -6703,7 +6703,7 @@ u {
 .show-contacts-btn {
     position: absolute;
     top: 15px;
- 
+
     display: none !important;
 }
 
@@ -6716,17 +6716,17 @@ u {
     margin: 10px 0px;
 }
 
-form#message-form {
+#message-form {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
 }
 
-form#message-form input {
+#message-form input {
     width: 70%;
 }
 
-form#message-form button {
+#message-form button {
     width: 6%;
     min-height: 100%;
     max-height: 100%;
@@ -6739,7 +6739,7 @@ form#message-form button {
     color: var(--black);
 }
 
-form#message-form .input-group {
+#message-form .input-group {
     -webkit-box-shadow: none;
             box-shadow: none;
     border-radius: 0px !important;
@@ -7101,7 +7101,7 @@ form#message-form .input-group {
 button#emoji-button {
 }
 
-form#message-form button:hover {
+#message-form button:hover {
     background: rgb(245, 247, 250) !important;
 }
 
@@ -11845,7 +11845,7 @@ table.dataTable thead .sorting {
         -ms-flex-align: center;
             align-items: center;
     padding-bottom: 10px;
-  
+
     position: relative;
 }
 
@@ -12871,7 +12871,7 @@ p.help-text {
 /* ÃÂ¡ÃÂ¾Ã‘â€¦Ã‘â‚¬ÃÂ°ÃÂ½Ã‘ÂÃÂµÃÂ¼ ÃÂ²ÃÂ¸ÃÂ´ÃÂ¸ÃÂ¼ÃÂ¾Ã‘ÂÃ‘â€šÃ‘Å’ ÃÂ½ÃÂ°Ã‘Ë†ÃÂµÃÂ¹ ÃÂºÃÂ°Ã‘ÂÃ‘â€šÃÂ¾ÃÂ¼ÃÂ½ÃÂ¾ÃÂ¹ Ã‘ÂÃ‘â€šÃ‘â‚¬ÃÂµÃÂ»ÃÂºÃÂ¸ */
 
 /* ÃÂ¡Ã‘â€šÃÂ¸ÃÂ»ÃÂ¸ ÃÂ´ÃÂ»Ã‘Â ÃÂ·ÃÂ²ÃÂµÃÂ·ÃÂ´ÃÂ¾Ã‘â€¡ÃÂµÃÂº Ã‘â‚¬ÃÂµÃÂ¹Ã‘â€šÃÂ¸ÃÂ½ÃÂ³ÃÂ° ÃÂ¾Ã‘â€š ÃÂºÃÂ»ÃÂ¸ÃÂµÃÂ½Ã‘â€šÃÂ¾ÃÂ² */
-.deal-rating-stars.client-rating .fa-star, 
+.deal-rating-stars.client-rating .fa-star,
 .deal-rating-stars.client-rating .fa-star-half-alt {
     color: #FF4040; /* ÃÅ¡Ã‘â‚¬ÃÂ°Ã‘ÂÃÂ½Ã‘â€¹ÃÂ¹ Ã‘â€ ÃÂ²ÃÂµÃ‘â€š ÃÂ´ÃÂ»Ã‘Â ÃÂ·ÃÂ²ÃÂµÃÂ·ÃÂ´ ÃÂ¾Ã‘â€ ÃÂµÃÂ½ÃÂ¾ÃÂº ÃÂ¾Ã‘â€š ÃÂºÃÂ»ÃÂ¸ÃÂµÃÂ½Ã‘â€šÃÂ¾ÃÂ² */
 }
@@ -12881,7 +12881,7 @@ p.help-text {
 }
 
 /* ÃÂ¡Ã‘â€šÃÂ¸ÃÂ»ÃÂ¸ ÃÂ´ÃÂ»Ã‘Â ÃÂ·ÃÂ²ÃÂµÃÂ·ÃÂ´ÃÂ¾Ã‘â€¡ÃÂµÃÂº ÃÂ¾ÃÂ±Ã‘â€°ÃÂµÃÂ³ÃÂ¾ Ã‘â‚¬ÃÂµÃÂ¹Ã‘â€šÃÂ¸ÃÂ½ÃÂ³ÃÂ° */
-.deal-rating-stars.overall-rating .fa-star, 
+.deal-rating-stars.overall-rating .fa-star,
 .deal-rating-stars.overall-rating .fa-star-half-alt {
     color: #FFD700; /* Ãâ€”ÃÂ¾ÃÂ»ÃÂ¾Ã‘â€šÃÂ¾ÃÂ¹ Ã‘â€ ÃÂ²ÃÂµÃ‘â€š ÃÂ´ÃÂ»Ã‘Â ÃÂ·ÃÂ²ÃÂµÃÂ·ÃÂ´ ÃÂ¾ÃÂ±Ã‘â€°ÃÂ¸Ã‘â€¦ ÃÂ¾Ã‘â€ ÃÂµÃÂ½ÃÂ¾ÃÂº */
 }
@@ -12938,7 +12938,7 @@ text-decoration: underline;
 margin-right: 8px;
 color: #FF8C00;
 font-size: 16px;
-}   
+}
 
 .tooltip {
     -webkit-transition: none !important;
@@ -13487,23 +13487,23 @@ font-size: 16px;
                 align-items: flex-start;
         gap: 15px;
     }
-    
+
     .deals-actions {
         width: 100%;
         -ms-flex-wrap: wrap;
             flex-wrap: wrap;
     }
-    
+
     .deals-filter {
         width: 100%;
     }
-    
+
     .search-box {
         -webkit-box-flex: 1;
             -ms-flex-positive: 1;
                 flex-grow: 1;
     }
-    
+
     .deals-container.list-view .deal-card {
         -ms-grid-columns: 1fr;
         grid-template-columns: 1fr;
@@ -13579,11 +13579,11 @@ div#all-deals-pagination ul {
             -o-transition: opacity 0.5s ease;
             transition: opacity 0.5s ease;
         }
-        
+
         .show-rating-modal {
             opacity: 1;
         }
-        
+
         .rating-modal-content {
             background: white;
             padding: 25px;
@@ -13593,14 +13593,14 @@ div#all-deals-pagination ul {
             -webkit-box-shadow: 0 0 20px rgba(0,0,0,0.3);
                     box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
-        
+
         .rating-progress {
             text-align: left;
             margin-bottom: 15px;
             font-weight: bold;
             color: #666;
         }
-        
+
         .rating-alert {
             background-color: #fff3cd;
             color: #856404;
@@ -13610,7 +13610,7 @@ div#all-deals-pagination ul {
             border: 1px solid #ffecb5;
             text-align: center;
         }
-        
+
         .rating-user-info {
             display: -webkit-box;
             display: -ms-flexbox;
@@ -13623,7 +13623,7 @@ div#all-deals-pagination ul {
             background: #f8f9fa;
             border-radius: 8px;
         }
-        
+
         .rating-avatar {
             width: 60px;
             height: 60px;
@@ -13632,22 +13632,22 @@ div#all-deals-pagination ul {
             -o-object-fit: cover;
                object-fit: cover;
         }
-        
+
         .rating-name {
             font-weight: bold;
             font-size: 18px;
             margin-bottom: 5px;
         }
-        
+
         .rating-role {
             color: #666;
         }
-        
+
         .rating-instruction {
             margin-bottom: 15px;
             text-align: center;
         }
-        
+
         .rating-stars {
             display: -webkit-box;
             display: -ms-flexbox;
@@ -13658,7 +13658,7 @@ div#all-deals-pagination ul {
             font-size: 28px;
             margin-bottom: 20px;
         }
-        
+
         .star {
             cursor: pointer;
             color: #ddd;
@@ -13669,21 +13669,21 @@ div#all-deals-pagination ul {
             transition: transform 0.2s, color 0.2s;
             transition: transform 0.2s, color 0.2s, -webkit-transform 0.2s;
         }
-        
+
         .star:hover {
             -webkit-transform: scale(1.2);
                 -ms-transform: scale(1.2);
                     transform: scale(1.2);
         }
-        
+
         .star.active {
             color: #ffc107;
         }
-        
+
         .rating-comment {
             margin-bottom: 20px;
         }
-        
+
         .rating-comment textarea {
             width: 100%;
             padding: 10px;
@@ -13692,7 +13692,7 @@ div#all-deals-pagination ul {
             min-height: 100px;
             margin-top: 5px;
         }
-        
+
         #submit-rating {
             width: 100%;
             padding: 12px;
@@ -13707,11 +13707,11 @@ div#all-deals-pagination ul {
             -o-transition: background-color 0.2s;
             transition: background-color 0.2s;
         }
-        
+
         #submit-rating:hover {
             background-color: #0069d9;
         }
-        
+
         /* Стили для блокировки страницы во время оценки */
         body.rating-in-progress {
             overflow: hidden !important;
@@ -13983,19 +13983,19 @@ div#all-deals-pagination ul {
         height: 45px !important;
         font-size: 16px !important;
     }
-    
+
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: 45px !important;
     }
-    
+
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 45px !important;
     }
-    
+
     .select2-dropdown {
         font-size: 16px !important;
     }
-    
+
     .select2-results__option {
         padding: 12px 15px !important;
         font-size: 16px !important;
@@ -14192,20 +14192,20 @@ div#all-deals-pagination ul {
         padding: 20px;
         margin: 10px;
     }
-    
+
     .deal-info-row {
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .info-value {
         text-align: left;
     }
-    
+
     .rating-actions {
         flex-direction: column;
     }
-    
+
     .rating-actions .btn {
         width: 100%;
     }

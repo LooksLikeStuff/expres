@@ -1,0 +1,69 @@
+
+
+.messages {
+    display: flex;
+    width: 100%;
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+
+    //.messages__container
+    &__container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 12px;
+    }
+}
+
+.message {
+    padding: 10px;
+    border-radius: 8px;
+    align-self: end;
+    background: #1059b7;
+    color: #eeeeee;
+
+    //.message__body
+    &__body {
+        display: flex;
+        gap: 12px;
+    }
+
+
+    //.message__opportunity
+    &__opportunity {
+        align-self: start;
+        background: #cccccc;
+        color: #232323;
+
+        //.message__opportunity  > .message__sender
+        > .message__sender {
+            color: #6c6c6c;
+        }
+
+        //.message__opportunity  > .message__time
+        .message__time {
+            color: #6c6c6c;
+        }
+
+    }
+
+    //.message__sender
+    &__sender {
+        font-size: 11px;
+        margin-bottom: 6px;
+        color: #c9c7c7;
+    }
+
+
+    //.message__time
+    &__time {
+        font-size: 10px;
+        color: #c9c7c7;
+        align-self: end
+
+    }
+
+}

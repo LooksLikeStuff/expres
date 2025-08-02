@@ -28,7 +28,17 @@ class Message extends Model
         'type' => MessageType::class,
     ];
 
+    protected $appends = ['time', 'sender_name'];
 
+    public function getTimeAttribute()
+    {
+        return $this->created_at?->toTimeString('minute');
+    }
+
+    public function getSenderNameAttribute()
+    {
+        return $this->sender()->first(['name'])->name;
+    }
     /**
      * Получить отправителя сообщения.
      */

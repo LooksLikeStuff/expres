@@ -1,35 +1,57 @@
 <!-- Область чата -->
-<div class="col-md-9 col-lg-9 p-0 chat-area">
+<div class="col-md-9 col-lg-8 p-0 chat-area">
     <!-- Заголовок чата -->
     <div class="chat-header d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
             <h5 id="current-chat-name">Выберите чат</h5>
             <div id="chat-status" class="small text-muted ms-2"></div>
         </div>
-       
+
     </div>
     <!-- Сообщения -->
-    <div class="messages-box position-relative" id="messages-container">
-        <div class="empty-chat">
+    <div class="messages-box messages position-relative">
+        <div class="empty-chat align-self-center">
             <i class="bi bi-chat-dots"></i>
             <p>Выберите контакт, чтобы начать общение</p>
         </div>
-        <div class="loading-overlay" id="messages-loading" style="display: none;">
+        <div class="loading-overlay d-none" id="messages-loading">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Загрузка сообщений...</span>
             </div>
         </div>
+        <div id="messages_container" class="messages__container">
+
+        </div>
+{{--        <div class="message">--}}
+{{--            <div class="message__sender">--}}
+{{--                Данчик Скворцов--}}
+{{--            </div>--}}
+{{--            <div class="message__body">--}}
+{{--                Личное сообщение--}}
+{{--                <span class="message__time">16:15</span>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+
+{{--        <div class="message message__opportunity">--}}
+{{--            <div class="message__sender">--}}
+{{--                НЕ Данчик Скворцов--}}
+{{--            </div>--}}
+{{--            <div class="message__body">--}}
+{{--                Собеседник написал сообщение--}}
+{{--                <span class="message__time">16:15</span>--}}
+{{--            </div>--}}
+{{--        </div>--}}
     </div>
-    
+
     <!-- Индикатор набора текста -->
     <div class="typing-indicator" id="typing-indicator">
         <i class="bi bi-pencil-fill me-2"></i> Собеседник печатает...
     </div>
-    
+
     <!-- Форма отправки сообщений -->
     <div class="chat-input-area">
         <!-- Область предпросмотра файлов -->
-        <div id="file-preview" class="file-preview">
+        <div id="file-preview" class="file-preview d-none">
             <div id="file-preview-list">
                 <!-- Элементы предпросмотра будут добавляться здесь -->
             </div>
@@ -37,17 +59,17 @@
         <!-- Прогресс загрузки файлов -->
         <div class="file-upload-progress">
             <div class="progress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" aria-valuenow="0" aria-valuemin="0" 
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar" aria-valuenow="0" aria-valuemin="0"
                      aria-valuemax="100" style="width: 0%"></div>
             </div>
         </div>
-        
+
         <!-- Сообщение об ошибке -->
         <div id="error-message" class="error-message" style="display: none;"></div>
-        
+
         <!-- Форма сообщения -->
-        <form id="message-form" class="d-none">
+        <div id="message-form" class="d-none">
             <div class="input-group">
                 <input type="text" class="form-control" id="message-input" placeholder="Введите сообщение...">
                 <button type="button" class="btn btn-outline-secondary" id="emoji-button" title="Эмодзи">
@@ -57,7 +79,7 @@
                     <i class="bi bi-paperclip"></i>
                 </button>
                 <input type="file" id="file-input" class="d-none" multiple>
-                <button type="submit" class="btn btn-primary" id="send-button" title="Отправить">
+                <button type="submit" class="btn btn-primary" id="send_btn" title="Отправить">
                     <i class="bi bi-send"></i>
                 </button>
                 <div class="loading-spinner" id="loading-spinner">
@@ -66,9 +88,9 @@
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
-    
+
     <!-- Панель эмодзи -->
     @include('chats.components.emoji-picker')
 </div>
