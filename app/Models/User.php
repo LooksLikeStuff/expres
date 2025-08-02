@@ -106,11 +106,15 @@ class User extends Authenticatable
             // Очищаем связи пользователя с сделками через pivot-таблицу
             // но НЕ удаляем записи в самой pivot-таблице
             // $user->dealsPivot()->update(['deleted_user_id' => $user->id]);
-            
+
             // Аналогично для других связей, если необходимо
         });
     }
 
+    public function chats()
+    {
+        return $this->belongsToMany(Chat::class, 'user_chats');
+    }
     /**
      * Отношение многие-ко-многим с моделью Deal.
      */
@@ -120,7 +124,7 @@ class User extends Authenticatable
                     ->withPivot('role')
                     ->withTimestamps();
     }
-    
+
     /**
      * Альтернативное отношение для прямого доступа к pivot-таблице.
      */
@@ -136,7 +140,7 @@ class User extends Authenticatable
 
     /**
      * Получить URL аватара пользователя
-     * 
+     *
      * @return string
      */
     public function getAvatarUrlAttribute()
@@ -146,40 +150,40 @@ class User extends Authenticatable
             if (!empty($this->attributes['avatar_url']) && filter_var($this->attributes['avatar_url'], FILTER_VALIDATE_URL)) {
                 return $this->attributes['avatar_url'];
             }
-            
+
             // Если есть profile_image и файл существует, используем его
             if ($this->profile_image && Storage::disk('public')->exists($this->profile_image)) {
                 return asset('storage/' . $this->profile_image);
             }
-            
+
             // Если avatar_url существует как локальный путь, используем его
             if (!empty($this->attributes['avatar_url'])) {
                 return asset('' . ltrim($this->attributes['avatar_url'], ''));
             }
-            
+
             // Проверяем, существует ли столбец avatar и есть ли в нем значение
             if (Schema::hasColumn('users', 'avatar') && !empty($this->attributes['avatar'])) {
                 return asset('storage/' . $this->attributes['avatar']);
             }
-            
+
             // Если ничего не найдено, возвращаем дефолтный аватар
         } catch (\Exception $e) {
             \Log::error('Ошибка при получении аватара: ' . $e->getMessage());
         }
-        
+
         // Проверяем, существует ли файл дефолтного аватара
         $defaultPaths = [
             'storage/icon/profile.svg',
             'storage/icon/profile.svg',
             'img/avatar-default.png'
         ];
-        
+
         foreach ($defaultPaths as $path) {
             if (file_exists(public_path($path))) {
                 return asset($path);
             }
         }
-        
+
         // Запасной вариант - вернуть URL заглушки
         return asset('storage/icon/profile.svg');
     }
@@ -189,7 +193,7 @@ class User extends Authenticatable
      *
      * @return string
      */
-    
+
     public function isCoordinator()
     {
         return $this->status === 'coordinator';
@@ -231,7 +235,7 @@ class User extends Authenticatable
         } else if (Schema::hasColumn('messages', 'recipient_id')) {
             return $this->hasMany(Message::class, 'recipient_id');
         }
-        
+
         // По умолчанию используем receiver_id
         return $this->hasMany(Message::class, 'receiver_id');
     }
@@ -242,10 +246,10 @@ class User extends Authenticatable
     public function messages()
     {
         // Проверяем, какое имя колонки существует
-        $receiverColumn = Schema::hasColumn('messages', 'receiver_id') 
-            ? 'receiver_id' 
+        $receiverColumn = Schema::hasColumn('messages', 'receiver_id')
+            ? 'receiver_id'
             : (Schema::hasColumn('messages', 'recipient_id') ? 'recipient_id' : 'receiver_id');
-        
+
         return Message::where(function ($query) use ($receiverColumn) {
             $query->where('sender_id', $this->id)
                   ->orWhere($receiverColumn, $this->id);
@@ -262,7 +266,7 @@ class User extends Authenticatable
             if (!Schema::hasTable('messages')) {
                 return 0;
             }
-            
+
             return $this->receivedMessages()
                 ->whereNull('read_at')
                 ->count();
@@ -319,9 +323,9 @@ class User extends Authenticatable
     {
         $readMessageIds = GroupMessageRead::where('user_id', $this->id)
             ->pluck('group_message_id');
-        
+
         return GroupMessage::whereIn(
-            'chat_group_id', 
+            'chat_group_id',
             $this->chatGroups()->pluck('chat_groups.id')
         )
             ->whereNotIn('id', $readMessageIds)
@@ -332,7 +336,7 @@ class User extends Authenticatable
     /**
      * Проверяет, находится ли пользователь в сети
      * Пользователь считается онлайн, если был активен за последние 5 минут
-     * 
+     *
      * @return bool
      */
     public function isOnline()
@@ -340,11 +344,11 @@ class User extends Authenticatable
         if (!$this->last_seen_at) {
             return false;
         }
-        
+
         // Считаем пользователя онлайн, если он был активен в последние 5 минут
         return $this->last_seen_at->gt(now()->subMinutes(5));
     }
-    
+
     /**
      * Обновляет время последней активности пользователя
      */
@@ -390,7 +394,7 @@ class User extends Authenticatable
             ->where('role', $role)
             ->avg('score');
     }
-    
+
     /**
      * Получить общий средний рейтинг пользователя
      *
@@ -401,7 +405,7 @@ class User extends Authenticatable
         return $this->receivedRatings()
             ->avg('score');
     }
-    
+
     /**
      * Получить количество полученных оценок
      *
@@ -448,4 +452,5 @@ class User extends Authenticatable
             ->withPivot('awarded_by', 'comment', 'awarded_at')
             ->withTimestamps();
     }
+
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -16,13 +18,10 @@ use App\Http\Controllers\DealsController;
 use App\Http\Controllers\AccountController;
 
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RatingController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
-use App\Http\Controllers\BriefSearchController;
 
 // Главная страница
 Route::get('/', function () {
@@ -239,7 +238,7 @@ Route::post('login/code', [AuthController::class, 'loginByCode'])->name('login.c
 Route::post('/send-code', [AuthController::class, 'sendCode'])->name('send.code');
 Route::get('register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('register', [AuthController::class, 'register'])->name('register.post');
-Route::match(['GET', 'POST'], '/logout', [AuthController::class, 'logout'])->name('logout');
+//Route::match(['GET', 'POST'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/register/executor', [AuthController::class, 'showRegistrationFormForExecutors'])->name('register.executor');
 Route::post('/register/executor', [AuthController::class, 'registerExecutor'])->name('register.executor.post');
@@ -410,3 +409,14 @@ Route::get('/test/csrf-protection', function () {
     return view('test.csrf-protection-test');
 })->name('test.csrf.protection')->middleware('auth');
 
+
+
+
+//Chats
+Route::middleware('auth')->group(function () {
+    Route::prefix('chats')->controller(ChatController::class)->group(function () {
+        Route::get('/', 'index')->name('chats.index');
+    });
+
+    Route::resource('messages', MessageController::class);
+});

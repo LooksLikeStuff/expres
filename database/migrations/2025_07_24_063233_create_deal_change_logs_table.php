@@ -24,13 +24,13 @@ return new class extends Migration
                 $table->ipAddress('ip_address')->nullable()->comment('IP адрес пользователя');
                 $table->text('user_agent')->nullable()->comment('User Agent браузера');
                 $table->timestamps();
-                
+
                 // Индексы для быстрого поиска
                 $table->index(['deal_id', 'created_at']);
                 $table->index(['user_id', 'created_at']);
                 $table->index(['action_type', 'created_at']);
                 $table->index('created_at');
-                
+
                 // Внешний ключ на пользователя (с возможностью NULL если пользователь удален)
                 $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             });

@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_online')->default(false)->after('firebase_token');
-            $table->timestamp('last_seen_at')->nullable()->after('is_online');
-            
-            $table->index('is_online');
-            $table->index('last_seen_at');
+//            $table->boolean('is_online')->default(false)->after('firebase_token');
+//            $table->timestamp('last_seen_at')->nullable()->after('is_online');
+//
+//            $table->index('is_online');
+//            $table->index('last_seen_at');
         });
     }
 

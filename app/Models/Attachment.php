@@ -10,16 +10,17 @@ class Attachment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'message_id',
-        'file_path',
-        'file_type',
+        'path',
+        'name',
+        'mime_type',
+        'filesize',
     ];
 
     public function message()
     {
         return $this->belongsTo(Message::class);
     }
-    
+
     /**
      * Получить полный URL для вложения
      *
@@ -30,10 +31,10 @@ class Attachment extends Model
         if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
             return $this->file_path;
         }
-        
+
         return asset('storage/' . $this->file_path);
     }
-    
+
     /**
      * Получить размер файла в удобочитаемом формате
      *
@@ -44,9 +45,9 @@ class Attachment extends Model
         if (!file_exists(storage_path('app/public/' . $this->file_path))) {
             return 'N/A';
         }
-        
+
         $size = filesize(storage_path('app/public/' . $this->file_path));
-        
+
         if ($size < 1024) {
             return $size . ' bytes';
         } elseif ($size < 1024 * 1024) {
@@ -57,7 +58,7 @@ class Attachment extends Model
             return round($size / (1024 * 1024 * 1024), 1) . ' GB';
         }
     }
-    
+
     /**
      * Определить MIME-тип файла
      *
@@ -66,7 +67,7 @@ class Attachment extends Model
     public function getMimeType()
     {
         $extension = pathinfo($this->file_path, PATHINFO_EXTENSION);
-        
+
         $mimeTypes = [
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
@@ -81,13 +82,13 @@ class Attachment extends Model
             'txt' => 'text/plain',
             // Добавьте другие типы файлов по необходимости
         ];
-        
+
         return $mimeTypes[$extension] ?? 'application/octet-stream';
     }
-    
+
     /**
      * Проверить, является ли файл изображением
-     * 
+     *
      * @return bool
      */
     public function isImage()

@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('deal_files')) return;
+
         Schema::create('deal_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('deal_id');
@@ -21,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('uploaded_by');
             $table->bigInteger('file_size')->default(0);
             $table->timestamps();
-            
+
             $table->foreign('deal_id')->references('id')->on('deals')->onDelete('cascade');
             $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('cascade');
             $table->index(['deal_id', 'created_at']);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MessageType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,20 +18,16 @@ class Message extends Model
      */
     protected $fillable = [
         'sender_id',
-        'receiver_id', // Изменено с recipient_id на receiver_id, чтобы соответствовать имени в БД
+        'chat_id',
+        'reply_to_id',
         'content',
-        'attachments',
-        'read_at',
+        'type',
     ];
 
-    /**
-     * Атрибуты, которые должны быть приведены к типам.
-     *
-     * @var array
-     */
     protected $casts = [
-        'read_at' => 'datetime',
+        'type' => MessageType::class,
     ];
+
 
     /**
      * Получить отправителя сообщения.
