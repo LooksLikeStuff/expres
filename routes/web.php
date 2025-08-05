@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrifsController;
 use App\Http\Controllers\Chats\ChatController;
 use App\Http\Controllers\Chats\MessageController;
+use App\Http\Controllers\Chats\ReadReceiptController;
 use App\Http\Controllers\Chats\UserChatController;
 use App\Http\Controllers\ClientDealsController;
 use App\Http\Controllers\CommercialController;
@@ -420,5 +421,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('messages', MessageController::class);
+    Route::resource('readReceipts', ReadReceiptController::class);
+
     Route::delete('/userChats/{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
+
 });

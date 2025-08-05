@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Common;
+use App\Models\Chats\Attachment;
+use App\Models\Chats\Message;
 use App\Models\Commercial;
+use App\Models\Common;
 use App\Models\Deal;
 use App\Models\Estimate;
-use App\Models\Message;
-use App\Models\User;
 use App\Models\Rating;
-use App\Models\Attachment;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,40 +30,40 @@ class DashboardController extends BaseAdminController
         $commercialsCount = Commercial::count();
         $dealsCount = Deal::count();
         $estimatesCount = Estimate::count();
-        
+
         // Статистика пользователей по статусам
         $usersByStatus = User::select('status', DB::raw('count(*) as count'))
                            ->groupBy('status')
                            ->get();
-                           
+
         // Сделки по статусам
         $dealsByStatus = Deal::select('status', DB::raw('count(*) as count'))
                           ->groupBy('status')
                           ->get();
-        
+
         // Недавние пользователи
         $recentUsers = User::orderBy('created_at', 'desc')
                          ->take(5)
                          ->get(['id', 'email', 'status', 'created_at']);
-                         
+
         // Недавние сделки
         $recentDeals = Deal::orderBy('created_at', 'desc')
                         ->take(5)
                         ->get(['id', 'status', 'total_sum', 'created_at']);
-        
+
         // Активность за последние 30 дней
         $startDate = Carbon::now()->subDays(30);
-        
+
         $newUsersLast30Days = User::where('created_at', '>=', $startDate)->count();
         $newDealsLast30Days = Deal::where('created_at', '>=', $startDate)->count();
         $newMessagesLast30Days = Message::where('created_at', '>=', $startDate)->count();
-        
+
         // Средний рейтинг исполнителей
         $avgRating = Rating::avg('score') ?: 0;
-        
+
         // Общая сумма всех сделок
         $totalDealAmount = Deal::sum('total_sum');
-        
+
         // Пользователи по ролям
         $userRoles = [
             'client' => User::where('status', 'client')->count(),
@@ -74,10 +74,10 @@ class DashboardController extends BaseAdminController
             'visualizer' => User::where('status', 'visualizer')->count(),
             'admin' => User::where('status', 'admin')->count(),
         ];
-        
+
         // Данные для графика роста пользователей
         $userGrowthData = $this->getUserGrowthChartData();
-        
+
         // Данные для графика роста сделок
         $dealGrowthData = $this->getDealGrowthChartData();
 
@@ -111,7 +111,7 @@ class DashboardController extends BaseAdminController
     {
         $startDate = Carbon::now()->subMonths(6)->startOfMonth();
         $endDate = Carbon::now()->endOfMonth();
-        
+
         $users = User::select(
             DB::raw('YEAR(created_at) as year'),
             DB::raw('MONTH(created_at) as month'),
@@ -123,33 +123,33 @@ class DashboardController extends BaseAdminController
         ->orderBy('year', 'asc')
         ->orderBy('month', 'asc')
         ->get();
-        
+
         $labels = [];
         $data = [];
-        
+
         $monthNames = [
             1 => 'Январь', 2 => 'Февраль', 3 => 'Март', 4 => 'Апрель', 5 => 'Май', 6 => 'Июнь',
             7 => 'Июль', 8 => 'Август', 9 => 'Сентябрь', 10 => 'Октябрь', 11 => 'Ноябрь', 12 => 'Декабрь'
         ];
-        
+
         // Заполняем данные для всех месяцев, включая нулевые значения
         $currentDate = clone $startDate;
-        
+
         while ($currentDate <= $endDate) {
             $year = $currentDate->year;
             $month = $currentDate->month;
-            
+
             $userCount = $users
                 ->where('year', $year)
                 ->where('month', $month)
                 ->first();
-            
+
             $labels[] = $monthNames[$month] . ' ' . $year;
             $data[] = $userCount ? $userCount->count : 0;
-            
+
             $currentDate->addMonth();
         }
-        
+
         return [
             'labels' => $labels,
             'data' => $data
@@ -163,7 +163,7 @@ class DashboardController extends BaseAdminController
     {
         $startDate = Carbon::now()->subMonths(6)->startOfMonth();
         $endDate = Carbon::now()->endOfMonth();
-        
+
         $deals = Deal::select(
             DB::raw('YEAR(created_at) as year'),
             DB::raw('MONTH(created_at) as month'),
@@ -175,46 +175,46 @@ class DashboardController extends BaseAdminController
         ->orderBy('year', 'asc')
         ->orderBy('month', 'asc')
         ->get();
-        
+
         $labels = [];
         $data = [];
-        
+
         $monthNames = [
             1 => 'Январь', 2 => 'Февраль', 3 => 'Март', 4 => 'Апрель', 5 => 'Май', 6 => 'Июнь',
             7 => 'Июль', 8 => 'Август', 9 => 'Сентябрь', 10 => 'Октябрь', 11 => 'Ноябрь', 12 => 'Декабрь'
         ];
-        
+
         // Заполняем данные для всех месяцев, включая нулевые значения
         $currentDate = clone $startDate;
-        
+
         while ($currentDate <= $endDate) {
             $year = $currentDate->year;
             $month = $currentDate->month;
-            
+
             $dealCount = $deals
                 ->where('year', $year)
                 ->where('month', $month)
                 ->first();
-            
+
             $labels[] = $monthNames[$month] . ' ' . $year;
             $data[] = $dealCount ? $dealCount->count : 0;
-            
+
             $currentDate->addMonth();
         }
-        
+
         return [
             'labels' => $labels,
             'data' => $data
         ];
     }
-    
+
     /**
      * Получить аналитические данные для AJAX запросов
      */
     public function getAnalyticsData(Request $request)
     {
         $period = $request->input('period', '30days');
-        
+
         switch ($period) {
             case '7days':
                 $startDate = Carbon::now()->subDays(7);
@@ -236,9 +236,9 @@ class DashboardController extends BaseAdminController
                 $startDate = Carbon::now()->subDays(30);
                 $periodText = 'последние 30 дней';
         }
-        
+
         $endDate = Carbon::now();
-        
+
         // Получаем данные о пользователях за выбранный период
         $usersByDate = User::select(
             DB::raw('DATE(created_at) as date'),
@@ -249,7 +249,7 @@ class DashboardController extends BaseAdminController
         ->groupBy('date')
         ->orderBy('date', 'asc')
         ->get();
-        
+
         // Получаем данные о сделках за выбранный период
         $dealsByDate = Deal::select(
             DB::raw('DATE(created_at) as date'),
@@ -260,21 +260,21 @@ class DashboardController extends BaseAdminController
         ->groupBy('date')
         ->orderBy('date', 'asc')
         ->get();
-        
+
         // KPI данные для обновления карточек
         $kpiData = $this->getKPIData($startDate, $endDate, $periodText);
-        
+
         // Данные для круговых диаграмм
         $userRolesData = $this->getUserRolesData();
         $dealStatusData = $this->getDealStatusData($startDate, $endDate);
-        
+
         // Данные для графиков роста
         $userGrowthData = $this->getGrowthChartData($usersByDate, $startDate, $endDate);
         $dealGrowthData = $this->getGrowthChartData($dealsByDate, $startDate, $endDate);
-        
+
         // Данные для прогноза
         $forecastData = $this->getForecastData($userGrowthData, $dealGrowthData);
-        
+
         return response()->json([
             'period' => $period,
             'kpi' => $kpiData,
@@ -294,39 +294,39 @@ class DashboardController extends BaseAdminController
         // Общее количество пользователей
         $totalUsers = User::count();
         $newUsers = User::where('created_at', '>=', $startDate)->count();
-        
+
         // Определение тренда для пользователей
         $previousPeriodStart = (clone $startDate)->subDays($endDate->diffInDays($startDate));
         $previousPeriodUsers = User::where('created_at', '>=', $previousPeriodStart)
                                 ->where('created_at', '<', $startDate)
                                 ->count();
         $usersTrendDirection = ($newUsers >= $previousPeriodUsers) ? 'up' : 'down';
-        
+
         // Общее количество сделок
         $totalDeals = Deal::count();
         $newDeals = Deal::where('created_at', '>=', $startDate)->count();
-        
+
         // Определение тренда для сделок
         $previousPeriodDeals = Deal::where('created_at', '>=', $previousPeriodStart)
                                 ->where('created_at', '<', $startDate)
                                 ->count();
         $dealsTrendDirection = ($newDeals >= $previousPeriodDeals) ? 'up' : 'down';
-        
+
         // Общая сумма сделок
         $totalAmount = Deal::sum('total_sum');
         $formattedAmount = number_format($totalAmount, 0, '.', ' ');
-        
+
         // Средний рейтинг
         $avgRating = Rating::avg('score') ?: 0;
         $avgRatingFormatted = number_format($avgRating, 1);
-        
+
         // Тренд рейтинга
         $previousRating = Rating::where('created_at', '>=', $previousPeriodStart)
                           ->where('created_at', '<', $startDate)
                           ->avg('score') ?: 0;
         $ratingDiff = $avgRating - $previousRating;
         $ratingTrendDirection = ($ratingDiff >= 0) ? 'up' : 'down';
-        
+
         return [
             'users' => [
                 'total' => $totalUsers,
@@ -367,7 +367,7 @@ class DashboardController extends BaseAdminController
             'visualizer' => User::where('status', 'visualizer')->count(),
             'admin' => User::where('status', 'admin')->count(),
         ];
-        
+
         return [
             'labels' => ['Клиенты', 'Координаторы', 'Партнеры', 'Архитекторы', 'Дизайнеры', 'Визуализаторы', 'Администраторы'],
             'data' => array_values($userRoles)
@@ -384,15 +384,15 @@ class DashboardController extends BaseAdminController
                         ->where('created_at', '<=', $endDate)
                         ->groupBy('status')
                         ->get();
-        
+
         $labels = [];
         $data = [];
-        
+
         foreach ($dealsByStatus as $status) {
             $labels[] = $status->status;
             $data[] = $status->count;
         }
-        
+
         return [
             'labels' => $labels,
             'data' => $data
@@ -407,40 +407,40 @@ class DashboardController extends BaseAdminController
         // Форматируем данные для построения графика
         $dates = [];
         $counts = [];
-        
+
         // Создаем полный диапазон дат в указанном периоде
         $current = clone $startDate;
-        
+
         // Если данных слишком много (больше 60 дней), группируем по неделям
         $groupByWeek = $startDate->diffInDays($endDate) > 60;
         $groupByMonth = $startDate->diffInDays($endDate) > 180;
-        
+
         if ($groupByMonth) {
             // Группировка по месяцам
             $monthData = [];
-            
+
             while ($current <= $endDate) {
                 $monthKey = $current->format('Y-m');
                 $monthLabel = $current->format('F Y');
-                
+
                 if (!isset($monthData[$monthKey])) {
                     $monthData[$monthKey] = [
                         'label' => $monthLabel,
                         'count' => 0
                     ];
                 }
-                
+
                 // Ищем данные для текущего дня
                 $dateStr = $current->format('Y-m-d');
                 $dataForDate = $dataByDate->where('date', $dateStr)->first();
-                
+
                 if ($dataForDate) {
                     $monthData[$monthKey]['count'] += $dataForDate->count;
                 }
-                
+
                 $current->addDay();
             }
-            
+
             foreach ($monthData as $data) {
                 $dates[] = $data['label'];
                 $counts[] = $data['count'];
@@ -448,29 +448,29 @@ class DashboardController extends BaseAdminController
         } else if ($groupByWeek) {
             // Группировка по неделям
             $weekData = [];
-            
+
             while ($current <= $endDate) {
                 $weekKey = $current->year . '-' . $current->week;
                 $weekLabel = 'Неделя ' . $current->week . ' ' . $current->year;
-                
+
                 if (!isset($weekData[$weekKey])) {
                     $weekData[$weekKey] = [
                         'label' => $weekLabel,
                         'count' => 0
                     ];
                 }
-                
+
                 // Ищем данные для текущего дня
                 $dateStr = $current->format('Y-m-d');
                 $dataForDate = $dataByDate->where('date', $dateStr)->first();
-                
+
                 if ($dataForDate) {
                     $weekData[$weekKey]['count'] += $dataForDate->count;
                 }
-                
+
                 $current->addDay();
             }
-            
+
             foreach ($weekData as $data) {
                 $dates[] = $data['label'];
                 $counts[] = $data['count'];
@@ -480,17 +480,17 @@ class DashboardController extends BaseAdminController
             while ($current <= $endDate) {
                 $dateStr = $current->format('Y-m-d');
                 $dateLabel = $current->format('d.m');
-                
+
                 $dates[] = $dateLabel;
-                
+
                 // Ищем данные для этой даты
                 $dataForDate = $dataByDate->where('date', $dateStr)->first();
                 $counts[] = $dataForDate ? $dataForDate->count : 0;
-                
+
                 $current->addDay();
             }
         }
-        
+
         return [
             'labels' => $dates,
             'data' => $counts
@@ -505,7 +505,7 @@ class DashboardController extends BaseAdminController
         // Используем последние 3 точки данных для построения прогноза
         $userHistorical = $userGrowthData['data'];
         $dealHistorical = $dealGrowthData['data'];
-        
+
         // Простой метод прогнозирования на основе среднего роста
         function predictFuture($data, $forecastPoints = 3) {
             // Если меньше 3 точек, просто дублируем последнее значение
@@ -513,44 +513,44 @@ class DashboardController extends BaseAdminController
                 $lastValue = end($data) ?: 1;
                 return array_fill(0, $forecastPoints, $lastValue);
             }
-            
+
             $last3 = array_slice($data, -3);
             $avgChange = 0;
-            
+
             // Рассчитываем средний прирост
             for ($i = 1; $i < count($last3); $i++) {
                 $avgChange += $last3[$i] - $last3[$i-1];
             }
             $avgChange = $avgChange / (count($last3) - 1);
-            
+
             // Если изменение слишком маленькое, делаем минимальный прогноз роста
             if (abs($avgChange) < 0.5) {
                 $avgChange = $last3[0] > 0 ? 1 : -1;
             }
-            
+
             // Прогноз на будущие периоды
             $forecast = [];
             $lastValue = end($last3);
-            
+
             for ($i = 0; $i < $forecastPoints; $i++) {
                 $nextValue = max(1, round($lastValue + $avgChange * ($i + 1)));
                 $forecast[] = $nextValue;
                 $lastValue = $nextValue;
             }
-            
+
             return $forecast;
         }
-        
+
         // Генерируем прогноз
         $userForecast = predictFuture($userHistorical);
         $dealForecast = predictFuture($dealHistorical);
-        
+
         // Метки для прогнозных периодов
         $labels = $userGrowthData['labels'];
-        
+
         // Добавляем метки для прогнозных периодов
         $forecastLabels = ['Прогноз 1 мес', 'Прогноз 2 мес', 'Прогноз 3 мес'];
-        
+
         return [
             'labels' => array_merge($labels, $forecastLabels),
             'users' => [
@@ -601,10 +601,10 @@ class DashboardController extends BaseAdminController
                 'attachments_today' => Attachment::whereDate('created_at', today())->count()
             ]
         ];
-        
+
         return response()->json($data);
     }
-    
+
     /**
      * Управление сделками
      */
@@ -613,7 +613,7 @@ class DashboardController extends BaseAdminController
         // Реализация метода управления сделками
         return view('admin.deals');
     }
-    
+
     /**
      * Статистика по сделкам
      */
@@ -622,7 +622,7 @@ class DashboardController extends BaseAdminController
         // Реализация метода статистики сделок
         return view('admin.deals_stats');
     }
-    
+
     /**
      * Управление сметами
      */

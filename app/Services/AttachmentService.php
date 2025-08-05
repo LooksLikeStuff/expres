@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Message;
+use App\Models\Chats\Message;
 
 class AttachmentService
 {

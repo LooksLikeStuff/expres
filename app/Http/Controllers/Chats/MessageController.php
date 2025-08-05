@@ -7,7 +7,7 @@ use App\Enums\MessageType;
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MessageRequest;
-use App\Models\Message;
+use App\Models\Chats\Message;
 use App\Services\AttachmentService;
 use App\Services\Chats\MessageService;
 use Illuminate\Http\Request;

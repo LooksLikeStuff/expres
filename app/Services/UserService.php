@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\DTO\UserDTO;
+use App\Models\Chats\UserChat;
 use App\Models\User;
-use App\Models\UserChat;
 
 class UserService
 {

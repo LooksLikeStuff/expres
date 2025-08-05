@@ -18,4 +18,5 @@ class UserChatController extends Controller
     {
         $this->userChatService->removeUser($chatId, $request->validated('user_id'));
     }
+
 }

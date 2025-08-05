@@ -3,7 +3,7 @@
 namespace App\Services\Chats;
 
 use App\DTO\ChatDTO;
-use App\Models\Chat;
+use App\Models\Chats\Chat;
 
 class ChatService
 {

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Chats;
 
 use App\Enums\ChatType;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

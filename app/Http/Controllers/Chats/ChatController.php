@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatGroup;
-use App\Models\Message;
+use App\Models\Chats\Message;
 use App\Models\User;
 use App\Services\Chats\ChatService;
 use App\Services\Chats\MessageService;

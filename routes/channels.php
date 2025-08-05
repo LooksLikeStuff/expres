@@ -2,9 +2,8 @@
 
 // routes/channels.php
 
-use App\Models\Chat;
+use App\Models\Chats\Chat;
 use Illuminate\Support\Facades\Broadcast;
-use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\Models\Chat;
+use App\Models\Chats\Chat;
 
 class ChatObserver
 {

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
-use App\Models\ReadReceipt;
+use App\Models\Chats\ReadReceipt;
 use Illuminate\Http\Request;
 
 class ReadReceiptController extends Controller

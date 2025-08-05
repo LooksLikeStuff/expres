@@ -3,7 +3,7 @@
 namespace App\Services\Chats;
 
 use App\DTO\MessageDTO;
-use App\Models\Message;
+use App\Models\Chats\Message;
 
 class MessageService
 {

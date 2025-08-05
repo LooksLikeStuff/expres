@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Chat;
+use App\Models\Chats\Chat;
 use App\Models\User;
 
 class ChatPolicy
