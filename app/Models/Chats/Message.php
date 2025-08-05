@@ -31,7 +31,7 @@ class Message extends Model
         'type' => MessageType::class,
     ];
 
-    protected $appends = ['time', 'sender_name'];
+    protected $appends = ['time', 'sender_name', 'read_at'];
 
     public function getTimeAttribute(): string
     {
@@ -41,6 +41,18 @@ class Message extends Model
     public function getSenderNameAttribute(): string
     {
         return $this->sender()->first(['name'])->name;
+    }
+
+    public function getReadAtAttribute()
+    {
+        return $this->readReceipt?->read_at;
+    }
+
+    // Message.php
+    public function readReceipt()
+    {
+        return $this->hasOne(ReadReceipt::class)
+            ->where('user_id', auth()->id());
     }
 
 

@@ -23,18 +23,18 @@ export default class ChatClient {
     }
 
     joinChat(chatId, callback) {
-        //Проверяем чтобы не создавать одинаковые соединения
         if (this.currentChatId === chatId) return;
 
-        //Выходим с текущего чата (закрываем соединение)
         this.leaveCurrentChat();
-
         this.currentChatId = chatId;
 
         this.echo.private(`chat.${chatId}`)
             .listen('MessageSent', (e) => {
-                console.log(e);
-                callback(e);
+                callback('message', e);
+            })
+            .listen('MessageRead', (e) => {
+                if (e.user_id === this.getUserId()) return;
+                callback('read', e);
             });
     }
 
@@ -91,4 +91,50 @@ export default class ChatClient {
             console.error('Ошибка при удалении пользователя');
         }
     }
+
+    observeReadReceipts(container) {
+        if (!this.observer) {
+            this.observer = new IntersectionObserver(this.handleIntersection.bind(this), {
+                threshold: 1.0,
+            });
+        }
+
+        container.querySelectorAll('[data-read-status="0"]').forEach(el => {
+            this.observer.observe(el);
+        });
+    }
+
+    async handleIntersection(entries) {
+        for (const entry of entries) {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const messageId = el.dataset.messageId;
+                const userId = this.getUserId();
+
+                if (!messageId || el.dataset.readStatus !== '0') continue;
+
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                const response = await fetch('/readReceipts/read', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                    },
+                    body: JSON.stringify({
+                        message_id: messageId,
+                        user_id: userId,
+                        read_at: new Date().toISOString(),
+                    }),
+                });
+
+                if (response.ok) {
+                    el.dataset.readStatus = '1';
+                    this.observer.unobserve(el);
+                }
+            }
+        }
+    }
+
+
 }

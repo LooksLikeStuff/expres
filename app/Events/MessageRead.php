@@ -2,24 +2,26 @@
 
 namespace App\Events;
 
-use App\Models\Chats\Message;
+use App\Models\Chats\ReadReceipt;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageRead implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private Message $message;
+    private ReadReceipt $readReceipt;
     /**
      * Create a new event instance.
      */
-    public function __construct(Message $message)
+    public function __construct(ReadReceipt $readReceipt)
     {
-        $this->message = $message;
+        $this->readReceipt = $readReceipt;
     }
 
     /**
@@ -30,22 +32,16 @@ class MessageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.' . $this->message->chat_id),
+            new PrivateChannel('chat.' . $this->readReceipt->message->chat_id),
         ];
     }
 
     public function broadcastWith(): array
     {
-        $sender = $this->message->sender()->first(['name']);
-
         return [
-            'content' => $this->message->content,
-            'attachments' => $this->message->attachments,
-            'type' => $this->message->type->value,
-            'sender_id' => $this->message->sender_id,
-            'sender_name' => $sender->name,
-            'time' => $this->message->created_at->toTimeString('minute'),
+            'message_id' => $this->readReceipt->message_id,
+            'user_id' => $this->readReceipt->user_id,
+            'read_at' => $this->readReceipt->read_at,
         ];
     }
-
 }

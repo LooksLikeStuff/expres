@@ -421,7 +421,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('messages', MessageController::class);
-    Route::resource('readReceipts', ReadReceiptController::class);
+    Route::controller(ReadReceiptController::class)->prefix('readReceipts')->group(function () {
+        Route::patch('read', 'readMessage');
+    });
 
     Route::delete('/userChats/{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
 

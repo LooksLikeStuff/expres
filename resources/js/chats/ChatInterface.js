@@ -1,3 +1,5 @@
+import {read} from "@popperjs/core";
+
 export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
@@ -67,12 +69,21 @@ export default class ChatInterface {
 
 
         this.displayChatMessages(messages.data.reverse());
+        this.chatClient.observeReadReceipts(this.messageContainer);
         this.displayChatUsers(users);
 
 
-        this.chatClient.joinChat(chatId, (message) => {
-            this.appendMessage(message);
+        this.chatClient.joinChat(chatId, (type, data) => {
+            if (type === 'message') {
+                this.appendMessage(data);
+            } else if (type === 'read') {
+                this.markAsRead(data);
+            }
         });
+    }
+
+    markAsRead(data) {
+        console.log(data);
     }
 
     async getChatData(chatId) {
@@ -94,7 +105,7 @@ export default class ChatInterface {
         }
     }
     displayChatMessages(messages) {
-        messages.forEach((message) => this.appendMessage(message));
+        messages.forEach((message) => this.appendMessage(message, false));
 
         this.messagesLoader.classList.add('d-none');
 
@@ -114,6 +125,11 @@ export default class ChatInterface {
 
         const div = document.createElement('div');
         div.classList.add('message');
+
+        const isRead = Boolean(message.read_at); // read_status может быть true/false
+        div.dataset.readStatus = isRead ? '1' : '0';
+        div.dataset.messageId = message.id;
+
 
         if (isOpportunity) {
             div.classList.add('message__opportunity');
