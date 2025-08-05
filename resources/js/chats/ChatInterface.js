@@ -72,15 +72,31 @@ export default class ChatInterface {
         this.chatClient.observeReadReceipts(this.messageContainer);
         this.displayChatUsers(users);
 
-
         this.chatClient.joinChat(chatId, (type, data) => {
-            if (type === 'message') {
-                this.appendMessage(data);
-            } else if (type === 'read') {
-                this.markAsRead(data);
+            switch (type) {
+                case 'message':
+                    this.appendMessage(data);
+                    break;
+                case 'read':
+                    this.markAsRead(data);
+                    break;
+                case 'typing':
+                    console.log(data);
+                    // this.handleTypingIndicator(data);
+                    break;
             }
         });
+
         this.initPresenceHandlers(chatId);
+
+// Удаляем предыдущий обработчик и добавляем новый
+        this.messageInput.removeEventListener('_typing', this._typingListener);
+        this._typingListener = () => {
+            this.chatClient.sendTypingEvent();
+        };
+        this.messageInput.addEventListener('input', this._typingListener);
+        this.messageInput.addEventListener('_typing', this._typingListener); // для возможного удаления
+
     }
 
     markAsRead(data) {

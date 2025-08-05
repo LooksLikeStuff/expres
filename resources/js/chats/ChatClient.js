@@ -6,6 +6,7 @@ export default class ChatClient {
         this.currentChatId = null;
         this.echo = null;
         this.currentPresenceChannel = null;
+        this.lastTyping = null;
     }
 
     initEcho(pusherKey, cluster) {
@@ -34,9 +35,14 @@ export default class ChatClient {
                 callback('message', e);
             })
             .listen('MessageRead', (e) => {
-                if (e.user_id === this.getUserId()) return;
+                if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('read', e);
-            });
+            })
+            .listenForWhisper('typing', (e) => {
+                console.log(e);
+                if (parseInt(e.user_id) === this.getUserId()) return;
+                callback('typing', e);
+        });
     }
 
     leaveCurrentChat() {
@@ -155,4 +161,17 @@ export default class ChatClient {
             });
     }
 
+    sendTypingEvent() {
+        if (!this.currentChatId || !this.echo) return;
+
+        if (this.lastTyping && Date.now() - this.lastTyping < 2000) return;
+
+        this.lastTyping = Date.now();
+
+        this.echo.private(`chat.${this.currentChatId}`)
+            .whisper('typing', {
+                user_id: this.userId,
+                timestamp: new Date().toISOString(),
+            });
+    }
 }
