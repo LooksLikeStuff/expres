@@ -167,6 +167,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\FirebaseServiceProvider::class,
+        \App\Providers\ViewServiceProvider::class,
     ],
     /*
     |--------------------------------------------------------------------------
