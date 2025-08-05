@@ -25,12 +25,6 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
-            $table->foreignId('chat_id')
-                ->index()
-                ->constrained('chats')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-
             $table->timestamp('read_at');
 
             $table->timestamps();

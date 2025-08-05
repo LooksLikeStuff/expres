@@ -11,7 +11,6 @@ class ReadReceipt extends Model
 
     protected $fillable = [
         'message_id',
-        'user_id',
         'chat_id',
         'read_at',
     ];
