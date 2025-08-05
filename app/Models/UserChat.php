@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Scopes\OnlyActiveScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,4 +16,9 @@ class UserChat extends Model
         'joined_at',
         'left_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new OnlyActiveScope);
+    }
 }
