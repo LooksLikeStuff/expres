@@ -18,3 +18,20 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('chat.{chat}', function ($user, Chat $chat) {
     return Gate::allows('access', $chat);
 });
+
+Broadcast::channel('presence-chat.{chatId}', function ($user, $chatId) {
+    $chat = Chat::find($chatId);
+
+    if (!$chat) {
+        return false;
+    }
+
+    if (Gate::allows('access', $chat)) {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+        ];
+    }
+
+    return false;
+});

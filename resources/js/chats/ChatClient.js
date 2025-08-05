@@ -5,6 +5,7 @@ export default class ChatClient {
         this.userId = userId;
         this.currentChatId = null;
         this.echo = null;
+        this.currentPresenceChannel = null;
     }
 
     initEcho(pusherKey, cluster) {
@@ -136,5 +137,22 @@ export default class ChatClient {
         }
     }
 
+    joinPresenceChannel(chatId, onUsersChange) {
+        const channelName = `presence-chat.${chatId}`;
+
+        this.currentPresenceChannel = this.echo.join(channelName)
+            .here((users) => {
+                // начальный список пользователей
+                onUsersChange(users);
+            })
+            .joining((user) => {
+                // пользователь присоединился
+                onUsersChange(null, {type: 'joined', user});
+            })
+            .leaving((user) => {
+                // пользователь вышел
+                onUsersChange(null, {type: 'left', user});
+            });
+    }
 
 }

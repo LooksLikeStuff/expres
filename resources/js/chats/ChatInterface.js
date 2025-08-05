@@ -80,6 +80,7 @@ export default class ChatInterface {
                 this.markAsRead(data);
             }
         });
+        this.initPresenceHandlers(chatId);
     }
 
     markAsRead(data) {
@@ -230,5 +231,41 @@ export default class ChatInterface {
         this.userListContainer.innerHTML = '';
 
         Array.from(users).forEach((user) => this.addUserItem(user));
+    }
+
+    initPresenceHandlers(chatId) {
+        this.onlineUsers = [];
+
+        this.chatClient.joinPresenceChannel(chatId, (users, event) => {
+            if (users) {
+                // При инициализации
+                this.onlineUsers = users;
+            }
+
+            if (event) {
+                if (event.type === 'joined') {
+                    this.onlineUsers.push(event.user);
+                } else if (event.type === 'left') {
+                    this.onlineUsers = this.onlineUsers.filter(u => u.id !== event.user.id);
+                }
+            }
+
+            // обновляем UI
+            this.renderOnlineUsers();
+        });
+    }
+
+    renderOnlineUsers() {
+        console.log(this.onlineUsers.length, this.onlineUsers);
+        const container = document.getElementById('online-users');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        this.onlineUsers.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = user.name;
+            container.appendChild(li);
+        });
     }
 }
