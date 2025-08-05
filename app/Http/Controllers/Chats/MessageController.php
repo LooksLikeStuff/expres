@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\chats;
+namespace App\Http\Controllers\Chats;
 
 use App\DTO\MessageDTO;
 use App\Enums\MessageType;

@@ -3,9 +3,9 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrifsController;
-use App\Http\Controllers\chats\ChatController;
-use App\Http\Controllers\chats\MessageController;
-use App\Http\Controllers\chats\UserChatController;
+use App\Http\Controllers\Chats\ChatController;
+use App\Http\Controllers\Chats\MessageController;
+use App\Http\Controllers\Chats\UserChatController;
 use App\Http\Controllers\ClientDealsController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\CommonController;

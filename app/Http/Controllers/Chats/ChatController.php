@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\chats;
+namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatGroup;
