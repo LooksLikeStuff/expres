@@ -15,8 +15,12 @@ return new class extends Migration
         Schema::create('attachments', function (Blueprint $table) {
             $table->id('id');
 
+            $table->foreignId('message_id')
+                ->constrained('messages')
+                ->onDelete('cascade');
+
             $table->string('path');
-            $table->string('name', 128);
+            $table->string('original_name', 128);
             $table->string('mime_type');
 
             $table->bigInteger('filesize');

@@ -4,17 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Attachment extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'message_id',
         'path',
-        'name',
+        'original_name',
         'mime_type',
         'filesize',
     ];
+
+    protected $appends = ['full_path'];
+
+    public function getFullPathAttribute(): string
+    {
+        return Storage::disk('public')->url($this->path);
+    }
 
     public function message()
     {

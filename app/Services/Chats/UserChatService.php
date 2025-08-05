@@ -14,4 +14,11 @@ class UserChatService
             'user_id' => $userChatDTO->userId,
         ], $userChatDTO->toArray());
     }
+
+    public function removeUser(int $chatId, int $userId)
+    {
+        return UserChat::where('chat_id', $chatId)
+            ->where('user_id', $userId)
+            ->update(['left_at' => now()]);
+    }
 }

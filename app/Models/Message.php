@@ -6,6 +6,7 @@ use App\Enums\MessageType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Message extends Model
 {
@@ -30,14 +31,20 @@ class Message extends Model
 
     protected $appends = ['time', 'sender_name'];
 
-    public function getTimeAttribute()
+    public function getTimeAttribute(): string
     {
         return $this->created_at?->toTimeString('minute');
     }
 
-    public function getSenderNameAttribute()
+    public function getSenderNameAttribute(): string
     {
         return $this->sender()->first(['name'])->name;
+    }
+
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(Attachment::class);
     }
     /**
      * Получить отправителя сообщения.

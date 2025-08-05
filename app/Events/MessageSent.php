@@ -43,6 +43,8 @@ class MessageSent implements ShouldBroadcast
 
         return [
             'content' => $this->message->content,
+            'attachments' => $this->message->attachments,
+            'type' => $this->message->type->value,
             'sender_id' => $this->message->sender_id,
             'sender_name' => $sender->name,
             'time' => $this->message->created_at->toTimeString('minute'),

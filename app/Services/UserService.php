@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTO\UserDTO;
 use App\Models\User;
+use App\Models\UserChat;
 
 class UserService
 {
@@ -25,5 +26,21 @@ class UserService
             ->where('name', $name)
             ->first()
             ?->id;
+    }
+
+    public function getByChatId(int $chatId)
+    {
+        return User::select(['id', 'name'])
+            ->whereIn('id', UserChat::select(['user_id'])
+                ->where('chat_id', $chatId)
+                ->pluck('user_id')
+                ->toArray()
+            )
+            ->get();
+    }
+
+    public function getAll()
+    {
+        return User::select(['id', 'name'])->get();
     }
 }

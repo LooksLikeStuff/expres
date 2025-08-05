@@ -42,20 +42,53 @@ export default class ChatClient {
         this.echo.leave(`chat.${this.currentChatId}`);
     }
 
-    async sendMessage(chatId, content) {
+    async sendMessage(chatId, content, attachments) {
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const formData = new FormData();
+
+        formData.append('chat_id', chatId);
+        formData.append('content', content);
+
+
+        if (attachments && attachments.length) {
+            Array.from(attachments).forEach((file) => {
+                formData.append('attachments[]', file);
+            });
+        }
 
         return await fetch('/messages', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': token,
             },
-            body: JSON.stringify({ chat_id: chatId, content }),
+            body: formData,
         });
     }
 
     getUserId() {
         return parseInt(this.userId);
+    }
+
+    async removeUserFromCurrentChat(userId) {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const response = await fetch(`/userChats/${this.currentChatId}/users/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                '_method': 'DELETE',
+            })
+        });
+
+        if (response.ok) {
+            const li = document.querySelector(`.chats__userlist-item[data-user-id="${userId}"]`);
+            if (li) li.remove();
+        } else {
+            console.error('Ошибка при удалении пользователя');
+        }
     }
 }

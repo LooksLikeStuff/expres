@@ -1,28 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BrifsController;
-use App\Http\Controllers\DealFeedController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CommonController;
 use App\Http\Controllers\chats\ChatController;
 use App\Http\Controllers\chats\MessageController;
 use App\Http\Controllers\chats\UserChatController;
-use App\Http\Controllers\CommercialController;
-use App\Http\Controllers\DealModalController;
 use App\Http\Controllers\ClientDealsController;
-use App\Http\Controllers\SupportController;
-use App\Http\Controllers\SmetsController;
+use App\Http\Controllers\CommercialController;
+use App\Http\Controllers\CommonController;
+use App\Http\Controllers\DealFeedController;
+use App\Http\Controllers\DealModalController;
 use App\Http\Controllers\DealsController;
-use App\Http\Controllers\AccountController;
-
-
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
-
+use App\Http\Controllers\SmetsController;
+use App\Http\Controllers\SupportController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+
 
 // Главная страница
 Route::get('/', function () {

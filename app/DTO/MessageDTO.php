@@ -28,6 +28,17 @@ class MessageDTO
         );
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            senderId: auth()->id(),
+            chatId: $data['chat_id'],
+            content: $data['content'],
+            type: $data['type'],
+            replyToId: $data['reply_to_id'] ?? null,
+        );
+    }
+
     public function toArray()
     {
         return [

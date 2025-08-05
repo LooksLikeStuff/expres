@@ -16,6 +16,13 @@
         gap: 8px;
         padding-bottom: 12px;
     }
+
+    //.messages__form
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 }
 
 .message {
@@ -64,6 +71,24 @@
         color: #c9c7c7;
         align-self: end
 
+    }
+
+    //.message__files
+    &__files {
+        display: grid;
+        gap: 4px;
+
+        //.message__files-item
+        &-item {
+            border-radius: 4px;
+            border: 1px solid #a8a8a8;
+
+        }
+        img {
+            border-radius: 4px;
+            max-width: 300px;
+            max-height: 400px;
+        }
     }
 
 }

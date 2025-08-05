@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MessageRequest extends FormRequest
+class RemoveUserFromChatRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,7 @@ class MessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'chat_id' => 'required|integer',
-            'content' => 'required|string',
-            'reply_to_id' => 'nullable|integer,exists:messages,id',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif|max:10240',
+            'user_id' => 'required|int|exists:users,id',
         ];
     }
 }

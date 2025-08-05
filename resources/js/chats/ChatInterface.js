@@ -6,6 +6,16 @@ export default class ChatInterface {
         this.messageInput = document.getElementById('message-input');
         this.messageForm = document.getElementById('message-form');
         this.messagesLoader = document.getElementById('messages-loading');
+
+        //Файлы вложения
+        this.attachPreviewContainer = document.getElementById('attach__container')
+        this.attachInput = document.getElementById('file-input');
+        this.attachInputButton = document.getElementById('attachment-button');
+
+        this.attachInputButton.addEventListener('click', () => this.attachFile());
+        this.attachInput.addEventListener('change', () => this.displayAttachmentFiles());
+
+        this.userListContainer = document.getElementById('chats_userlist');
     }
 
     init() {
@@ -20,8 +30,21 @@ export default class ChatInterface {
         document.getElementById('send_btn').addEventListener('click', async () => {
             const content = this.messageInput.value.trim();
             if (content) {
-                await this.chatClient.sendMessage(this.chatClient.currentChatId, content);
+                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.attachInput.files);
                 this.messageInput.value = '';
+                this.hideAttachments();
+            }
+        });
+
+        //Обработчики кнопки удалить
+        document.querySelector('body').addEventListener('click', async (event) => {
+            // Проверяем, нажата ли кнопка удаления
+            if (event.target.matches('.chats__userlist-remove button')) {
+                event.preventDefault();
+
+                const userId = event.target.getAttribute('data-user-id');
+
+                await this.chatClient.removeUserFromCurrentChat(userId);
             }
         });
     }
@@ -37,9 +60,14 @@ export default class ChatInterface {
         this.highlightActiveChat(chatId);
 
         //Получаем сообщения чата
-        let messages = await this.getChatMessages(chatId);
-        console.log(messages)
-        this.displayChatMessages(messages.messages.data.reverse());
+        let data = await this.getChatData(chatId);
+
+        let messages = data.messages;
+        let users = data.users;
+
+
+        this.displayChatMessages(messages.data.reverse());
+        this.displayChatUsers(users);
 
 
         this.chatClient.joinChat(chatId, (message) => {
@@ -47,7 +75,7 @@ export default class ChatInterface {
         });
     }
 
-    async getChatMessages(chatId) {
+    async getChatData(chatId) {
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         const response = await fetch(`/chats/${chatId}/messages`, {
@@ -86,6 +114,7 @@ export default class ChatInterface {
 
         const div = document.createElement('div');
         div.classList.add('message');
+
         if (isOpportunity) {
             div.classList.add('message__opportunity');
         }
@@ -117,6 +146,73 @@ export default class ChatInterface {
         div.appendChild(messageBodyDiv);
 
         this.messageContainer.appendChild(div);
+
+        if (message.type === 'file') {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add('message__files');
+
+            if (isOpportunity) messageDiv.classList.add('message__opportunity');
+
+            message.attachments.forEach((attach) => {
+                const messageFileItemDiv = document.createElement('div');
+                messageFileItemDiv.classList.add('message__files-item')
+
+                const img = document.createElement('img')
+                img.setAttribute('src', attach.full_path);
+                img.setAttribute('alt', 'image')
+
+                messageFileItemDiv.appendChild(img);
+
+                messageDiv.appendChild(messageFileItemDiv)
+            })
+
+            this.messageContainer.appendChild(messageDiv);
+        }
     }
 
+    attachFile() {
+        this.attachInput.click();
+    }
+
+    displayAttachmentFiles() {
+        const files = this.attachInput.files;
+
+        this.attachPreviewContainer.classList.remove('d-none');
+        this.attachPreviewContainer.innerHTML = ''; // очищаем предыдущие превью
+
+        Array.from(files).forEach((file) => {
+            const div = document.createElement('div');
+            div.classList.add('attach__item');
+            div.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            this.attachPreviewContainer.appendChild(div);
+        });
+    }
+
+    hideAttachments() {
+        this.attachPreviewContainer.classList.add('d-none');
+        this.attachPreviewContainer.innerHTML = '';
+        this.attachInput.value = null;
+    }
+
+    addUserItem(user) {
+        const li = document.createElement('li');
+        li.classList.add('chats__userlist-item');
+        li.setAttribute('data-user-id', user.id); // можно будет потом легко удалить
+
+        li.innerHTML = `
+            ${user.name}
+            <span class="chats__userlist-remove">
+                <button class="btn btn-danger remove__btn" data-user-id="${user.id}">x</button>
+            </span>
+        `;
+
+        this.userListContainer.appendChild(li);
+    }
+
+    displayChatUsers(users) {
+        this.userListContainer.innerHTML = '';
+
+        Array.from(users).forEach((user) => this.addUserItem(user));
+    }
 }
