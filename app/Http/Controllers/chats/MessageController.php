@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\chats;
 
 use App\DTO\MessageDTO;
+use App\Enums\MessageType;
 use App\Events\MessageSent;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\MessageRequest;
 use App\Models\Message;
+use App\Services\AttachmentService;
 use App\Services\Chats\MessageService;
 use Illuminate\Http\Request;
 
@@ -13,6 +16,7 @@ class MessageController extends Controller
 {
     public function __construct(
         private readonly MessageService $messageService,
+        private readonly AttachmentService $attachmentService,
     )
     {
     }
@@ -38,7 +42,16 @@ class MessageController extends Controller
      */
     public function store(MessageRequest $request)
     {
-        $message = $this->messageService->create(MessageDTO::fromMessageRequest($request));
+        $data = $request->validated();
+
+        //Устанавливаем тип сообщения
+        $data['type'] = !empty($data['attachments']) ? MessageType::FILE : MessageType::TEXT;
+
+        $message = $this->messageService->create(MessageDTO::fromArray($data));
+
+        if (!empty($data['attachments'])) {
+            $this->attachmentService->saveMessageAttachments($message, $data['attachments']);
+        }
 
         broadcast(new MessageSent($message))->toOthers();
 

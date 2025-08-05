@@ -1,25 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\chats;
 
-use App\DTO\MessageDTO;
-use App\Events\MessageSent;
-use App\Http\Requests\MessageRequest;
+use App\Http\Controllers\Controller;
+use App\Models\ChatGroup;
+use App\Models\Message;
+use App\Models\User;
 use App\Services\Chats\ChatService;
 use App\Services\Chats\MessageService;
 use App\Services\UserService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Message;
-use App\Models\ChatGroup; // Добавляем импорт модели ChatGroup
-use App\Models\GroupMessage;
-use App\Models\GroupMessageRead;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Schema;
+
+// Добавляем импорт модели ChatGroup
 
 class ChatController extends Controller
 {
@@ -95,9 +91,11 @@ class ChatController extends Controller
     public function getMessages(int $chatId)
     {
         $messages = $this->messageService->getPaginatedMessagesByChatId($chatId, 20);
+        $users = $this->userService->getByChatId($chatId);
 
         return response()->json([
             'messages' => $messages,
+            'users' => $users,
         ]);
     }
 

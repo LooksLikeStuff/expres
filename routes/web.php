@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -9,6 +7,9 @@ use App\Http\Controllers\BrifsController;
 use App\Http\Controllers\DealFeedController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CommonController;
+use App\Http\Controllers\chats\ChatController;
+use App\Http\Controllers\chats\MessageController;
+use App\Http\Controllers\chats\UserChatController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\DealModalController;
 use App\Http\Controllers\ClientDealsController;
@@ -421,4 +422,5 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('messages', MessageController::class);
+    Route::delete('/userChats/{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
 });
