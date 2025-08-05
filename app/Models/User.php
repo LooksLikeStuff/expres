@@ -113,7 +113,8 @@ class User extends Authenticatable
 
     public function chats()
     {
-        return $this->belongsToMany(Chat::class, 'user_chats');
+        return $this->belongsToMany(Chat::class, 'user_chats')
+            ->wherePivotNull('left_at');
     }
     /**
      * Отношение многие-ко-многим с моделью Deal.
