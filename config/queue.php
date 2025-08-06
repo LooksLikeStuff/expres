@@ -24,6 +24,31 @@ return [
     |
     */
     'connections' => [
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+            'dsn' => env('RABBITMQ_DSN', null),
+
+            'host' => env('RABBITMQ_HOST', '127.0.0.1'),
+            'port' => env('RABBITMQ_PORT', 5672),
+            'vhost' => env('RABBITMQ_VHOST', '/'),
+            'login' => env('RABBITMQ_USER', 'guest'),
+            'password' => env('RABBITMQ_PASSWORD', 'guest'),
+
+            'queue' => env('RABBITMQ_QUEUE', 'default'),
+            'options' => [
+                'exchange' => [
+                    'name' => env('RABBITMQ_EXCHANGE_NAME'),
+
+                    /*
+                     * Тип обменника: direct, fanout, topic, headers
+                     */
+                    'type' => env('RABBITMQ_EXCHANGE_TYPE', 'direct'),
+                    'declare' => env('RABBITMQ_EXCHANGE_DECLARE', true),
+                ],
+            ],
+
+            'worker' => env('RABBITMQ_WORKER', 'default'),
+        ],
         'sync' => [
             'driver' => 'sync',
         ],

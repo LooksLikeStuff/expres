@@ -11,7 +11,8 @@ return [
      */
     'api_key' => env('FCM_SERVER_KEY', ''),
     'vapid_key' => env('FCM_VAPID_KEY', ''),
-    
+    'project_id' => env('FIREBASE_PROJECT_ID', ''),
+
     /*
      * ------------------------------------------------------------------------
      * Firebase Credentials
@@ -20,9 +21,7 @@ return [
      * Путь к файлу учетных данных сервисного аккаунта Firebase.
      * Если ваша учетная запись Firebase требует файла JSON с credentials, укажите путь здесь.
      */
-    'credentials' => [
-        'file' => env('FIREBASE_CREDENTIALS', storage_path('app/firebase/firebase_credentials.json')),
-    ],
+    'credentials' => env('FIREBASE_CREDENTIALS'),
 
     /*
      * ------------------------------------------------------------------------
