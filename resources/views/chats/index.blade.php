@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@vite(['resources/js/chats/index.js', 'resources/sass/chats/index.scss'])
+@vite(['resources/js/app.js', 'resources/js/chats/index.js', 'resources/sass/chats/index.scss'])
 
 @section('stylesheets')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -9,8 +9,6 @@
 
 @section('scripts')
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
 
 @section('content')

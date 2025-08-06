@@ -1,11 +1,20 @@
 import './bootstrap';
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then(reg => {
+            console.log('Service Worker зарегистрирован');
+        });
+}
+
 // import './chat.js'; // Инициализация функционала чата
 
 // document.addEventListener('DOMContentLoaded', () => {
 // 	// Инициализация чата, если мы на странице чатов
 //     if (window.location.pathname.includes('/chats')) {
 //         // Чат уже инициализируется в своём скрипте
-      
+
 //     }
 // });
 
@@ -32,7 +41,7 @@ import './bootstrap';
 //                 const count = response.data.count;
 //                 const menuItem = document.querySelector('.ponel-menu .bi-chat-dots').closest('a');
 //                 let messageBadge = menuItem.querySelector('.badge');
-                
+
 //                 if (count > 0) {
 //                     if (messageBadge) {
 //                         messageBadge.textContent = count;
@@ -56,7 +65,7 @@ import './bootstrap';
 //     if (typeof window.checkUnreadMessages === 'function') {
 //         window.checkUnreadMessages();
 //     }
-    
+
 //     // Проверяем каждую минуту
 //     setInterval(function() {
 //         if (typeof window.checkUnreadMessages === 'function') {

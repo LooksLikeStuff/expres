@@ -454,5 +454,8 @@ class User extends Authenticatable
             ->withPivot('awarded_by', 'comment', 'awarded_at')
             ->withTimestamps();
     }
-
+    public function fcmTokens()
+    {
+        return $this->hasMany(UserFCMToken::class);
+    }
 }

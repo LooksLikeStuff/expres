@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
     const chatClient = new ChatClient(userId);
-    chatClient.initEcho('371b92c8af1e4bce7e5f', 'ap1');
+    chatClient.init();
 
     const chatInterface = new ChatInterface(chatClient);
     chatInterface.init();

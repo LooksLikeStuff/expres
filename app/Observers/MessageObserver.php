@@ -3,17 +3,23 @@
 namespace App\Observers;
 
 use App\DTO\ReadReceiptDTO;
+use App\Jobs\SendMessagePushNotificationJob;
 use App\Models\Chats\Message;
 use App\Services\Chats\ReadReceiptService;
 
 class MessageObserver
 {
+
     /**
      * Handle the Message "created" event.
      */
-    public function created(Message $message, ReadReceiptService $readReceiptService): void
+    public function created(Message $message): void
     {
-        $readReceiptService->create(ReadReceiptDTO::fromMessage($message));
+        $service = app(ReadReceiptService::class);
+        $service->create(ReadReceiptDTO::fromMessage($message));
+
+        // Диспатчим уведомление (асинхронно, без тормозов для основного потока)
+        dispatch(new SendMessagePushNotificationJob($message))->onQueue('notifications');
     }
 
     /**

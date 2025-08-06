@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrifsController;
 use App\Http\Controllers\Chats\ChatController;
+use App\Http\Controllers\Chats\FCMTokenController;
 use App\Http\Controllers\Chats\MessageController;
 use App\Http\Controllers\Chats\ReadReceiptController;
 use App\Http\Controllers\Chats\UserChatController;
@@ -426,5 +427,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::delete('/userChats/{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
+    // routes/api.php или web.php
+    Route::post('/fcm/register', [FCMTokenController::class, 'store'])->middleware('auth');
 
 });

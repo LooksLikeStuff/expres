@@ -1,4 +1,7 @@
 import Echo from 'laravel-echo';
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 export default class ChatClient {
     constructor(userId) {
@@ -7,13 +10,72 @@ export default class ChatClient {
         this.echo = null;
         this.currentPresenceChannel = null;
         this.lastTyping = null;
+        this.observer = null;
     }
 
-    initEcho(pusherKey, cluster) {
+    init() {
+        this.initEcho();
+        this.initFirebase();
+    }
+
+    initFirebase() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFrkGJgs8g3OzVCv-g1J8pCkZo-QLTZqY",
+            authDomain: "mypersonal-38208.firebaseapp.com",
+            projectId: "mypersonal-38208",
+            storageBucket: "mypersonal-38208.firebasestorage.app",
+            messagingSenderId: "444177232931",
+            appId: "1:444177232931:web:503d0aa632374e236f2d96",
+            measurementId: "G-T5V0Z8E2B8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        getAnalytics(app);
+        const messaging = getMessaging(app);
+
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                getToken(messaging, {
+                    vapidKey: 'BBeAohFVaOp0MWRUU4qx0BEufspsdUtnyJvwFbwbfqnmps25IzHtQFRGkmrvqnpmrQo9YaxP96NnP7a-uSxMZ9g'
+                }).then((currentToken) => {
+                    if (currentToken) {
+                        this.registerFirebaseToken(currentToken);
+                    } else {
+                        console.warn('Нет токена. Запроси разрешение на уведомления.');
+                    }
+                }).catch((err) => {
+                    console.error('Ошибка при получении токена:', err);
+                });
+            } else {
+                console.warn('Пользователь запретил уведомления:', permission);
+            }
+        });
+
+
+// 🎯 Обработка сообщений когда пользователь на сайте
+        onMessage(messaging, (payload) => {
+            console.log('Сообщение получено в фокусе:', payload);
+            // Покажи что-то в UI (например, notification badge)
+        });
+
+    }
+
+    async registerFirebaseToken(fcmToken) {
+        await fetch('/fcm/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ token: fcmToken }),
+        });
+    }
+
+    initEcho() {
         this.echo = new Echo({
             broadcaster: 'pusher',
-            key: pusherKey,
-            cluster,
+            key: '371b92c8af1e4bce7e5f',
+            cluster: 'ap1',
             forceTLS: true,
             authEndpoint: '/broadcasting/auth',
             auth: {
@@ -25,6 +87,7 @@ export default class ChatClient {
     }
 
     joinChat(chatId, callback) {
+        if (!this.echo) return;
         if (this.currentChatId === chatId) return;
 
         this.leaveCurrentChat();
@@ -39,14 +102,18 @@ export default class ChatClient {
                 callback('read', e);
             })
             .listenForWhisper('typing', (e) => {
-                console.log(e);
                 if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('typing', e);
-        });
+            });
     }
 
     leaveCurrentChat() {
+        if (!this.echo || !this.currentChatId) return;
+
         this.echo.leave(`chat.${this.currentChatId}`);
+        this.echo.leave(`presence-chat.${this.currentChatId}`);
+        this.currentChatId = null;
+        this.currentPresenceChannel = null;
     }
 
     async sendMessage(chatId, content, attachments) {
@@ -55,7 +122,6 @@ export default class ChatClient {
 
         formData.append('chat_id', chatId);
         formData.append('content', content);
-
 
         if (attachments && attachments.length) {
             Array.from(attachments).forEach((file) => {
@@ -144,26 +210,26 @@ export default class ChatClient {
     }
 
     joinPresenceChannel(chatId, onUsersChange) {
+        if (!this.echo) return;
+
         const channelName = `presence-chat.${chatId}`;
 
         this.currentPresenceChannel = this.echo.join(channelName)
             .here((users) => {
-                // начальный список пользователей
                 onUsersChange(users);
             })
             .joining((user) => {
-                // пользователь присоединился
-                onUsersChange(null, {type: 'joined', user});
+                onUsersChange(null, { type: 'joined', user });
             })
             .leaving((user) => {
-                // пользователь вышел
-                onUsersChange(null, {type: 'left', user});
+                onUsersChange(null, { type: 'left', user });
             });
     }
 
     sendTypingEvent() {
         if (!this.currentChatId || !this.echo) return;
 
+        // Ограничим отправку whisper'ов раз в 2 секунды
         if (this.lastTyping && Date.now() - this.lastTyping < 2000) return;
 
         this.lastTyping = Date.now();
@@ -174,4 +240,5 @@ export default class ChatClient {
                 timestamp: new Date().toISOString(),
             });
     }
+
 }
