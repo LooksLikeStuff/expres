@@ -143,7 +143,7 @@
                                                 <hr class="my-2">
                                                 <div class="d-flex justify-content-between">
                                                     <span>Сделка:</span>
-                                                    <a href="{{ route('deal.edit', $brief->deal_id) }}">
+                                                    <a href="{{ route('deal.edit-page', $brief->deal_id) }}">
                                                         <strong>#{{ $brief->deal_id }}</strong>
                                                     </a>
                                                 </div>

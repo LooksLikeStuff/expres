@@ -1,0 +1,3996 @@
+v1/disk/resources : Файлы и папкиПоказать/СкрытьОперации краткоОперации подробно
+delete/v1/disk/resources
+Удалить файл или папку
+
+Заметки
+По умолчанию удалит ресурс в Корзину. Чтобы удалить ресурс не помещая в корзину, следует указать параметр permanently=true. Если удаление происходит асинхронно, то вернёт ответ со статусом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ со статусом 204 и пустым телом.
+
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к файлу или папке.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+md5	
+md5 удаляемого файла.
+
+query	string
+permanently	
+Удалить ресурс не помещая в Корзину.
+
+query	boolean
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+200		
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+204	
+OK
+
+400	
+Проверка md5 возможна только для файлов
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+md5 ресурса не совпадает с переданным
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+get/v1/disk/resources
+Получить метаинформацию о файле или каталоге
+
+Заметки
+Если путь указывает на каталог, в ответе также описываются ресурсы этого каталога.
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.606Z",
+  "modified": "2025-08-05T13:34:14.606Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.606Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.606Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ]
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых вложенных ресурсов.
+
+query	long
+offset	
+Смещение от начала списка вложенных ресурсов.
+
+query	long
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+sort	
+Поле для сортировки вложенных ресурсов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.624Z",
+  "modified": "2025-08-05T13:34:14.624Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.624Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.624Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ]
+}
+patch/v1/disk/resources
+Обновить пользовательские данные ресурса
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.627Z",
+  "modified": "2025-08-05T13:34:14.627Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.627Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.627Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ]
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к обновляемому ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+body	
+(required)
+
+Content Type параметра: 
+application/json
+body	
+ОписаниеПример
+{
+  "custom_properties": {}
+}
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+415	
+Неподдерживаемый формат данных в теле запроса.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.641Z",
+  "modified": "2025-08-05T13:34:14.641Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.641Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.641Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ]
+}
+put/v1/disk/resources
+Создать папку
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к создаваемой папке.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+201	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+Достигнут предел вложенности папок
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+post/v1/disk/resources/copy
+Создать копию файла или папки
+
+Заметки
+Если копирование происходит асинхронно, то вернёт ответ с кодом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ с кодом 201 и ссылкой на созданный ресурс.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+from	
+(required)
+Путь к копируемому ресурсу.
+
+query	string
+path	
+(required)
+Путь к создаваемому ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+overwrite	
+Перезаписать существующий ресурс.
+
+query	boolean
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+201	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+get/v1/disk/resources/download
+Получить ссылку на скачивание файла
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+get/v1/disk/resources/files
+Получить список файлов упорядоченный по имени
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "limit": 0,
+  "offset": 0,
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.672Z",
+      "modified": "2025-08-05T13:34:14.672Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.672Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.672Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ]
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых вложенных ресурсов.
+
+query	long
+media_type	
+Фильтр по медиа типу.
+
+query	string
+offset	
+Смещение от начала списка вложенных ресурсов.
+
+query	long
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+sort	
+Поле для сортировки ресурсов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "limit": 0,
+  "offset": 0,
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.684Z",
+      "modified": "2025-08-05T13:34:14.684Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.685Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.685Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ]
+}
+get/v1/disk/resources/last-uploaded
+Получить список файлов упорядоченный по дате загрузки
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.687Z",
+      "modified": "2025-08-05T13:34:14.687Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.687Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.687Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ],
+  "limit": 0
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых вложенных ресурсов.
+
+query	long
+media_type	
+Фильтр по медиа типу.
+
+query	string
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.696Z",
+      "modified": "2025-08-05T13:34:14.696Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.696Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.696Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ],
+  "limit": 0
+}
+post/v1/disk/resources/move
+Переместить файл или папку
+
+Заметки
+Если перемещение происходит асинхронно, то вернёт ответ с кодом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ с кодом 201 и ссылкой на созданный ресурс.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+from	
+(required)
+Путь к перемещаемому ресурсу.
+
+query	string
+path	
+(required)
+Путь к создаваемому ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+overwrite	
+Перезаписать существующий ресурс.
+
+query	boolean
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+201	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+Неправильное новое положение для ресурса
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+412	
+Перемещение папки с чужим проектом Wfolio в Диск из чужого ОП не поддерживается
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+get/v1/disk/resources/public
+Получить список опубликованных ресурсов
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "limit": 0,
+  "offset": 0,
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.710Z",
+      "modified": "2025-08-05T13:34:14.710Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.710Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.710Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ],
+  "type": "string"
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых ресурсов.
+
+query	long
+offset	
+Смещение от начала списка ресурсов.
+
+query	long
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+type	
+Фильтр по типам ресурсов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "limit": 0,
+  "offset": 0,
+  "items": [
+    {
+      "path": "string",
+      "type": "string",
+      "name": "string",
+      "created": "2025-08-05T13:34:14.721Z",
+      "modified": "2025-08-05T13:34:14.721Z",
+      "size": 0,
+      "mime_type": "string",
+      "md5": "string",
+      "sha256": "string",
+      "preview": "string",
+      "public_key": "string",
+      "public_url": "string",
+      "_embedded": {
+        "total": 0,
+        "limit": 0,
+        "offset": 0,
+        "path": "string",
+        "sort": "string",
+        "items": [
+          {}
+        ]
+      },
+      "media_type": "string",
+      "file": "string",
+      "resource_id": "string",
+      "share": {
+        "is_owned": true,
+        "is_root": true,
+        "rights": "string"
+      },
+      "revision": 0,
+      "comment_ids": {
+        "public_resource": "string",
+        "private_resource": "string"
+      },
+      "custom_properties": {},
+      "exif": {
+        "date_time": "2025-08-05T13:34:14.721Z",
+        "gps_latitude": {},
+        "gps_longitude": {}
+      },
+      "antivirus_status": {},
+      "photoslice_time": "2025-08-05T13:34:14.721Z",
+      "sizes": [
+        {
+          "url": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ],
+  "type": "string"
+}
+put/v1/disk/resources/publish
+Опубликовать ресурс
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к публикуемому ресурсу.
+
+query	string
+allow_address_access	
+Возможность клиента обрабатывать ответы от адресного доступа.
+
+query	boolean
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+body	
+(required)
+
+Content Type параметра: 
+application/json
+body	
+ОписаниеПример
+{
+  "public_settings": {
+    "available_until": 0,
+    "read_only": true,
+    "available_until_verbose": {
+      "enabled": true,
+      "value": 0
+    },
+    "password": "string",
+    "password_verbose": {
+      "enabled": true,
+      "value": "string"
+    },
+    "external_organization_id": "string",
+    "external_organization_id_verbose": {
+      "enabled": true,
+      "value": "string"
+    },
+    "accesses": [
+      {}
+    ]
+  }
+}
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректный запрос.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Достигнут лимит на выдачу прав.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "data": {}
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+412	
+Адресная выдача доступа к данному ресурсу не поддерживается для пользователей не из организации владельца
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+415	
+Неподдерживаемый формат данных в теле запроса.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+Недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+put/v1/disk/resources/unpublish
+Отменить публикацию ресурса
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+get/v1/disk/resources/upload
+Получить ссылку для загрузки файла
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true,
+  "operation_id": "string"
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к загружаемому файлу на Диске.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+overwrite	
+Перезаписать существующий файл.
+
+query	boolean
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true,
+  "operation_id": "string"
+}
+post/v1/disk/resources/upload
+Загрузить файл в Диск по URL
+
+Заметки
+Загрузка происходит асинхронно. Поэтому в ответ на запрос возвращается ссылка на асинхронную операцию.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь, куда будет помещён ресурс.
+
+query	string
+url	
+(required)
+URL внешнего ресурса, который следует загрузить.
+
+query	string
+disable_redirects	
+Запретить делать редиректы.
+
+query	boolean
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+202	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+v1/disk/public/resources : Публичные файлы и папкиПоказать/СкрытьОперации краткоОперации подробно
+get/v1/disk/public/resources
+Получить метаинформацию о публичном файле или каталоге
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.761Z",
+  "modified": "2025-08-05T13:34:14.761Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ],
+    "public_key": "string"
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.761Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.762Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ],
+  "views_count": 0,
+  "owner": {
+    "uid": "string",
+    "login": "string",
+    "display_name": "string"
+  }
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+public_key	
+(required)
+Ключ или публичный URL ресурса.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых вложенных ресурсов.
+
+query	long
+offset	
+Смещение от начала списка вложенных ресурсов.
+
+query	long
+path	
+Путь к ресурсу в публичной папке.
+
+query	string
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+sort	
+Поле для сортировки вложенных ресурсов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.772Z",
+  "modified": "2025-08-05T13:34:14.772Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ],
+    "public_key": "string"
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.772Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.772Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ],
+  "views_count": 0,
+  "owner": {
+    "uid": "string",
+    "login": "string",
+    "display_name": "string"
+  }
+}
+get/v1/disk/public/resources/download
+Получить ссылку на скачивание публичного ресурса
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+public_key	
+(required)
+Ключ или публичный URL ресурса.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+path	
+Путь к ресурсу в публичной папке.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+patch/v1/disk/public/resources/public-settings
+Обновить настройки публичных ссылок
+
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+body	
+(required)
+
+Content Type параметра: 
+application/json
+body	
+ОписаниеПример
+{
+  "available_until": 0,
+  "password": "string",
+  "accesses": [
+    {
+      "type": "macro",
+      "rights": [
+        "string"
+      ],
+      "id": 0,
+      "org_id": 0,
+      "macros": [
+        "string"
+      ]
+    }
+  ]
+}
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+200		
+400	
+Отсутствуют необходимые данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Достигнут лимит на выдачу прав.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "data": {}
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+415	
+Неподдерживаемый формат данных в теле запроса.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+post/v1/disk/public/resources/save-to-disk
+Сохранить публичный ресурс в папку Загрузки
+
+Заметки
+Если сохранение происходит асинхронно, то вернёт ответ с кодом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ с кодом 201 и ссылкой на созданный ресурс.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+public_key	
+(required)
+Ключ или публичный URL ресурса.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+name	
+Имя, под которым ресурс будет сохранён в папке.
+
+query	string
+path	
+Путь к копируемому ресурсу в публичной папке.
+
+query	string
+save_path	
+Путь к папке, в которую будет сохранен ресурс. По умолчанию «Загрузки».
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+201	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Запрошенный ресурс доступен только для чтения.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+v1/disk/trash/resources : КорзинаПоказать/СкрытьОперации краткоОперации подробно
+delete/v1/disk/trash/resources
+Очистить Корзину
+
+Заметки
+Если удаление происходит асинхронно, то вернёт ответ со статусом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ со статусом 204 и пустым телом. Если параметр path не задан или указывает на корень Корзины, то корзина будет полностью очищена, иначе из Корзины будет удалён только тот ресурс, на который указывает path.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+path	
+Путь к ресурсу в Корзине.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+204	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+get/v1/disk/trash/resources
+Получить содержимое Корзины
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.812Z",
+  "modified": "2025-08-05T13:34:14.812Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.813Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.813Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ],
+  "origin_path": "string",
+  "deleted": "2025-08-05T13:34:14.813Z"
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу в Корзине.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+limit	
+Количество выводимых вложенных ресурсов.
+
+query	long
+offset	
+Смещение от начала списка вложенных ресурсов.
+
+query	long
+preview_crop	
+Разрешить обрезку превью.
+
+query	boolean
+preview_size	
+Размер превью.
+
+query	string
+sort	
+Поле для сортировки вложенных ресурсов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "path": "string",
+  "type": "string",
+  "name": "string",
+  "created": "2025-08-05T13:34:14.821Z",
+  "modified": "2025-08-05T13:34:14.821Z",
+  "size": 0,
+  "mime_type": "string",
+  "md5": "string",
+  "sha256": "string",
+  "preview": "string",
+  "public_key": "string",
+  "public_url": "string",
+  "_embedded": {
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "path": "string",
+    "sort": "string",
+    "items": [
+      {}
+    ]
+  },
+  "media_type": "string",
+  "file": "string",
+  "resource_id": "string",
+  "share": {
+    "is_owned": true,
+    "is_root": true,
+    "rights": "string"
+  },
+  "revision": 0,
+  "comment_ids": {
+    "public_resource": "string",
+    "private_resource": "string"
+  },
+  "custom_properties": {},
+  "exif": {
+    "date_time": "2025-08-05T13:34:14.821Z",
+    "gps_latitude": {},
+    "gps_longitude": {}
+  },
+  "antivirus_status": {},
+  "photoslice_time": "2025-08-05T13:34:14.821Z",
+  "sizes": [
+    {
+      "url": "string",
+      "name": "string"
+    }
+  ],
+  "origin_path": "string",
+  "deleted": "2025-08-05T13:34:14.821Z"
+}
+put/v1/disk/trash/resources/restore
+Восстановить ресурс из Корзины
+
+Заметки
+Если восстановление происходит асинхронно, то вернёт ответ с кодом 202 и ссылкой на асинхронную операцию. Иначе вернёт ответ с кодом 201 и ссылкой на созданный ресурс.
+
+Пример ответа (Статус 200)
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+path	
+(required)
+Путь к ресурсу в Корзине.
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+force_async	
+Выполнить асинхронно.
+
+query	boolean
+name	
+Имя, под которым будет восстановлен ресурс.
+
+query	string
+overwrite	
+Перезаписать существующий ресурс восстанавливаемым.
+
+query	boolean
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+201	
+OK
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+202	
+Операция выполняется асинхронно.
+
+ОписаниеПример
+{
+  "method": "string",
+  "href": "string",
+  "templated": true
+}
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+409	
+Ресурс "{path}" уже существует.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Ресурс заблокирован. Возможно, над ним выполняется другая операция.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+507	
+У владельца общей папки недостаточно свободного места.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+v1/disk/operations/{operation_id} : Асинхронная операцияПоказать/СкрытьОперации краткоОперации подробно
+get/v1/disk/operations/{operation_id}
+Получить статус асинхронной операции
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "status": "string"
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+operation_id	
+(required)
+Идентификатор операции.
+
+path	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+API недоступно. Диск в режиме "только чтение". Проверьте тариф вашей организации.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "status": "string"
+}
+v1/diskПоказать/СкрытьОперации краткоОперации подробно
+get/v1/disk
+Получить метаинформацию о диске пользователя
+
+Пример ответа (Статус 200)
+OK
+
+ОписаниеПример
+{
+  "total_space": 0,
+  "used_space": 0,
+  "trash_size": 0,
+  "max_file_size": 0,
+  "paid_max_file_size": 0,
+  "photounlim_size": 0,
+  "system_folders": {
+    "downloads": "string",
+    "applications": "string",
+    "screenshots": "string",
+    "photostream": "string",
+    "social": "string",
+    "facebook": "string",
+    "google": "string",
+    "instagram": "string",
+    "vkontakte": "string",
+    "mailru": "string",
+    "odnoklassniki": "string",
+    "scans": "string",
+    "attach": "string",
+    "messenger": "string",
+    "calendar": "string"
+  },
+  "is_paid": true,
+  "revision": 0,
+  "user": {
+    "uid": "string",
+    "login": "string",
+    "display_name": "string",
+    "country": "string",
+    "is_child": true,
+    "reg_time": "2025-08-05T13:34:14.837Z"
+  },
+  "unlimited_autoupload_enabled": true,
+  "reg_time": "2025-08-05T13:34:14.837Z",
+  "is_idm_managed_public_access": true,
+  "is_idm_managed_folder_address_access": true,
+  "payment_flow": true,
+  "free_photounlim_end_date": 0,
+  "will_be_overdrawn": true,
+  "hide_screenshots_in_photoslice": true,
+  "is_legal_entity": true,
+  "deletion_restriction_days": 0
+}
+
+
+Content Type ответа 
+application/json
+Параметры
+Параметр	Значение	Описание	Тип параметра	Тип данных
+extra_fields	
+Дополнительные поля, которые нужно вернуть
+
+query	string
+fields	
+Список возвращаемых атрибутов.
+
+query	string
+Что может прийти в ответ
+HTTP код	Причина	Структура ответа	Заголовки
+400	
+Некорректные данные.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+401	
+Не авторизован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+403	
+Пользователь заблокирован.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "uid": 0,
+  "login": "string"
+}
+404	
+Не удалось найти запрошенный ресурс.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+406	
+Ресурс не может быть представлен в запрошенном формате.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+413	
+Загрузка файла недоступна. Файл слишком большой.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string",
+  "reason": "string",
+  "limit": 0
+}
+423	
+Технические работы. Сейчас можно только просматривать и скачивать файлы.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+429	
+Слишком много запросов.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+503	
+Сервис временно недоступен.
+
+ОписаниеПример
+{
+  "error": "string",
+  "description": "string",
+  "message": "string"
+}
+default		
+ОписаниеПример
+{
+  "total_space": 0,
+  "used_space": 0,
+  "trash_size": 0,
+  "max_file_size": 0,
+  "paid_max_file_size": 0,
+  "photounlim_size": 0,
+  "system_folders": {
+    "downloads": "string",
+    "applications": "string",
+    "screenshots": "string",
+    "photostream": "string",
+    "social": "string",
+    "facebook": "string",
+    "google": "string",
+    "instagram": "string",
+    "vkontakte": "string",
+    "mailru": "string",
+    "odnoklassniki": "string",
+    "scans": "string",
+    "attach": "string",
+    "messenger": "string",
+    "calendar": "string"
+  },
+  "is_paid": true,
+  "revision": 0,
+  "user": {
+    "uid": "string",
+    "login": "string",
+    "display_name": "string",
+    "country": "string",
+    "is_child": true,
+    "reg_time": "2025-08-05T13:34:14.843Z"
+  },
+  "unlimited_autoupload_enabled": true,
+  "reg_time": "2025-08-05T13:34:14.843Z",
+  "is_idm_managed_public_access": true,
+  "is_idm_managed_folder_address_access": true,
+  "payment_flow": true,
+  "free_photounlim_end_date": 0,
+  "will_be_overdrawn": true,
+  "hide_screenshots_in_photoslice": true,
+  "is_legal_entity": true,
+  "deletion_restriction_days": 0
+}

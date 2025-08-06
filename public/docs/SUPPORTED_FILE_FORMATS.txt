@@ -1,0 +1,237 @@
+/**
+ * Полный список поддерживаемых форматов файлов для загрузки
+ * Создано для максимальной совместимости с различными типами проектов
+ */
+
+/* === ДОКУМЕНТЫ === */
+// Текстовые документы
+.txt, .rtf, .odt, .pages
+
+// Microsoft Office
+.doc, .docx, .xls, .xlsx, .ppt, .pptx
+
+// PDF и электронные книги
+.pdf, .epub
+
+// OpenOffice / LibreOffice
+.odt, .ods, .odp
+
+// Другие форматы документов
+.csv, .xml, .json
+
+/* === ИЗОБРАЖЕНИЯ === */
+// Растровые изображения
+.jpg, .jpeg, .png, .gif, .bmp, .webp, .tiff, .tif
+
+// Векторные изображения
+.svg, .eps, .ai
+
+// Профессиональные графические форматы
+.psd, .xcf, .raw, .cr2, .nef, .arw
+
+// Специальные форматы
+.ico, .cur
+
+/* === САПР И 3D МОДЕЛИРОВАНИЕ === */
+// ArchiCAD
+.pln, .plp, .mod, .tpl
+
+// AutoCAD
+.dwg, .dxf, .dwt, .dws
+
+// Revit (Autodesk)
+.rvt, .rfa, .rte, .rft
+
+// SketchUp
+.skp, .skb
+
+// 3ds Max (Autodesk)
+.max, .3ds
+
+// Maya (Autodesk)
+.ma, .mb
+
+// Blender
+.blend
+
+// Cinema 4D
+.c4d
+
+// SolidWorks
+.sldprt, .sldasm, .slddrw
+
+// Inventor (Autodesk)
+.ipt, .iam, .idw, .ipn
+
+// CATIA (Dassault Systèmes)
+.catpart, .catproduct, .catdrawing
+
+// Универсальные 3D форматы
+.obj, .fbx, .dae, .gltf, .glb, .ply, .stl
+
+// Форматы обмена данными
+.step, .stp, .iges, .igs, .sat, .x_t, .x_b
+
+// Промышленные стандарты
+.ifc, .rfa, .rvt
+
+/* === АРХИВЫ === */
+// Популярные архивы
+.zip, .rar, .7z, .tar, .gz
+
+// Специальные архивы
+.ace, .arj, .cab, .lzh, .uue
+
+/* === АУДИО === */
+// Популярные аудио форматы
+.mp3, .wav, .flac, .aac, .ogg, .wma, .m4a
+
+// Профессиональные аудио форматы
+.aiff, .au, .ra
+
+/* === ВИДЕО === */
+// Популярные видео форматы
+.mp4, .avi, .mov, .wmv, .flv, .webm, .mkv
+
+// Профессиональные видео форматы
+.mxf, .prores, .dnxhd
+
+/* === ЭЛЕКТРОННЫЕ ТАБЛИЦЫ === */
+// Microsoft Excel
+.xls, .xlsx, .xlsm, .xlsb
+
+// OpenOffice Calc
+.ods
+
+// Другие табличные форматы
+.csv, .tsv
+
+/* === ПРЕЗЕНТАЦИИ === */
+// Microsoft PowerPoint
+.ppt, .pptx, .pps, .ppsx
+
+// OpenOffice Impress
+.odp
+
+// Apple Keynote
+.key
+
+/* === ШРИФТЫ === */
+// TrueType и OpenType
+.ttf, .otf, .woff, .woff2
+
+// PostScript
+.pfb, .pfm
+
+/* === ВЕКТОРНЫЕ ФОРМАТЫ === */
+// Adobe Illustrator
+.ai, .eps
+
+// CorelDRAW
+.cdr, .cmx
+
+// Inkscape
+.svg
+
+/* === СПЕЦИАЛЬНЫЕ ПРОЕКТНЫЕ ФОРМАТЫ === */
+// Sketchbook
+.sketchbook
+
+// Photoshop
+.psd, .psb
+
+// GIMP
+.xcf
+
+// Кисти и текстуры
+.abr, .pat, .grd
+
+/* === ТЕХНИЧЕСКИЕ ЧЕРТЕЖИ === */
+// Микростанция
+.dgn
+
+// VectorWorks
+.vwx, .mcd
+
+// ArchiCAD библиотеки
+.gsm, .lcf
+
+// Планы и чертежи
+.plt, .hpg
+
+/* === ИНЖЕНЕРНЫЕ ФОРМАТЫ === */
+// КОМПАС-3D
+.cdw, .m3d, .a3d
+
+// T-FLEX CAD
+.grb
+
+// nanoCAD
+.dwg, .dxf
+
+/* === ГЕОДЕЗИЧЕСКИЕ ДАННЫЕ === */
+// Геоинформационные системы
+.shp, .kml, .kmz, .gpx
+
+// Топографические данные
+.topo, .dem
+
+/* === ЭЛЕКТРИЧЕСКИЕ СХЕМЫ === */
+// Altium Designer
+.schdoc, .pcbdoc
+
+// Eagle
+.sch, .brd
+
+// KiCad
+.pro, .sch, .kicad_pcb
+
+/* === МУЛЬТИМЕДИА === */
+// Flash
+.swf, .fla
+
+// Веб-форматы
+.html, .css, .js
+
+// Анимация
+.gif, .apng
+
+/* === СПЕЦИАЛЬНЫЕ ФОРМАТЫ === */
+// Точечные облака
+.las, .laz, .xyz, .ply
+
+// BIM данные
+.ifc, .ifcxml, .ifczip
+
+// Геология
+.sur, .tin
+
+// Математические данные
+.mat, .m
+
+/* === БАЗЫ ДАННЫХ === */
+// Microsoft Access
+.mdb, .accdb
+
+// SQLite
+.db, .sqlite, .sqlite3
+
+// Excel базы
+.xlsx, .xlsm
+
+/* === ПРИМЕЧАНИЯ === */
+
+1. Все форматы поддерживают загрузку файлов до 1.5 ГБ
+2. Рекомендуется использовать архивы для больших проектов
+3. Некоторые форматы могут требовать специального ПО для просмотра
+4. PDF рекомендуется для финальных версий документов
+5. Для 3D моделей предпочтительны универсальные форматы (OBJ, FBX, STEP)
+
+/* === ГРУППИРОВКА ПО НАЗНАЧЕНИЮ === */
+
+// Документооборот: PDF, DOC, DOCX, XLS, XLSX, TXT, RTF
+// Архитектура: PLN, DWG, DXF, RVT, IFC, PDF
+// 3D моделирование: MAX, SKP, OBJ, FBX, STEP, STL
+// Изображения: JPG, PNG, GIF, WebP, SVG, PSD
+// Архивы: ZIP, RAR, 7Z
+// Инженерия: DWG, DXF, STEP, IGES, SAT

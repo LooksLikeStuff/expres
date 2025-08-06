@@ -314,12 +314,8 @@ class CommonController extends Controller
         $history->changes_description = !empty($changeList) ? implode("; ", $changeList) : "Нет изменений";
         $history->save();
         
-        // Устанавливаем статус "Отредактированный" если были изменения
-        if (!empty($changeList)) {
-            $brif->status = 'Отредактированный';
-        } else {
-            $brif->status = 'Завершенный'; // Если изменений не было
-        }
+        // Восстанавливаем статус "Завершенный"
+        $brif->status = 'Завершенный';
         $brif->edit_status = null;
         $brif->save();
         
@@ -348,13 +344,13 @@ class CommonController extends Controller
         ]);
 
         // Валидация входящих данных
-        $data = $request->validate([
+        $data = $request->validate([ 
             'answers'      => 'nullable|array',
             'price'        => 'nullable|numeric',
             'documents'    => 'nullable|array',
-            'documents.*'  => 'file|max:51200|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
+            'documents.*'  => 'file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
             'references'   => 'nullable|array',
-            'references.*' => 'file|max:51200|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
+            'references.*' => 'file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
             'skip_page'    => 'nullable|boolean'
         ]);
 
@@ -452,15 +448,22 @@ class CommonController extends Controller
             }
             
             // Если это была пропущенная страница и после её заполнения не осталось других пропущенных страниц,
-            // проверяем, должен ли бриф быть завершен
-            if ($wasSkipped && empty($skippedPages)) {
-                // Используем новый метод для проверки завершенности
-                if ($brif->shouldBeCompleted()) {
-                    $brif->completeIfShouldBe();
-                    
-                    return redirect()->route('user_deal')
-                        ->with('success', 'Бриф успешно заполнен!');
-                }
+            // и мы находимся на последней странице, завершаем бриф
+            if ($wasSkipped && empty($skippedPages) && $page == 5) {
+                // Завершаем бриф
+                $brif->status = 'Завершенный';
+                $brif->save();
+                
+                // Логируем успешное завершение брифа после заполнения пропущенных страниц
+                \Illuminate\Support\Facades\Log::info('Бриф успешно завершен после заполнения пропущенных страниц', [
+                    'brief_id' => $brif->id,
+                    'user_id' => auth()->id(),
+                    'status' => $brif->status,
+                    'page' => $page
+                ]);
+                
+                return redirect()->route('user_deal')
+                    ->with('success', 'Бриф успешно заполнен!');
             }
         } else {
             // Если страница пропущена, добавляем ее в массив пропущенных (только если страница < 5)
@@ -500,16 +503,13 @@ class CommonController extends Controller
         $brif->current_page = $page;
         $brif->save();
         
-        // УПРОЩЕННАЯ ЛОГИКА ЗАВЕРШЕНИЯ БРИФА
-        // Проверяем, должен ли бриф быть завершен
-        if ($brif->shouldBeCompleted()) {
-            $brif->completeIfShouldBe();
-        }
-        
         // Обновляем список пропущенных страниц после сохранения
         $skippedPages = json_decode($brif->skipped_pages ?? '[]', true);
         
-        // Если текущая страница < 5, всегда переходим на следующую страницу
+        // ВАЖНОЕ ИЗМЕНЕНИЕ: Сначала проверяем текущую страницу, чтобы правильно управлять переходами
+        
+        // Если текущая страница < 5, всегда переходим на следующую страницу,
+        // игнорируя пропущенные страницы до завершения основного потока
         if ($page < 5) {
             $nextPage = $page + 1;
             
@@ -525,48 +525,84 @@ class CommonController extends Controller
             return redirect()->route('common.questions', ['id' => $brif->id, 'page' => $nextPage]);
         }
         
-        // Если мы на странице 5 или больше
+        // Если текущая страница 5 или одна из пропущенных страниц
         else {
-            // Если есть пропущенные страницы, переходим к первой из них
+            // Если мы находимся на странице 5 (последней странице)
+            if ($page == 5) {
+                // Проверяем, остались ли ещё пропущенные страницы
+                if (!empty($skippedPages)) {
+                    sort($skippedPages); // Сортируем по возрастанию
+                    $nextPage = $skippedPages[0];
+                    
+                    \Illuminate\Support\Facades\Log::info('Переход на пропущенную страницу брифа', [
+                        'brief_id' => $brif->id,
+                        'user_id' => auth()->id(),
+                        'current_page' => $page,
+                        'next_page' => $nextPage,
+                        'skipped_pages' => $skippedPages
+                    ]);
+                    
+                    return redirect()->route('common.questions', ['id' => $brif->id, 'page' => $nextPage])
+                        ->with('warning', 'У вас остались пропущенные вопросы. Пожалуйста, заполните их.');
+                } else {
+                    // Если мы на последней странице и нет пропущенных страниц,
+                    // завершаем бриф принудительно
+                    $brif->status = 'Завершенный';
+                    $brif->save();
+                    
+                    \Illuminate\Support\Facades\Log::info('Бриф успешно завершен после прохождения всех страниц', [
+                        'brief_id' => $brif->id,
+                        'user_id' => auth()->id(),
+                        'status' => $brif->status
+                    ]);
+                }
+            }
+            
+            // Стандартная проверка для других случаев
             if (!empty($skippedPages)) {
                 sort($skippedPages); // Сортируем по возрастанию
                 $nextPage = $skippedPages[0];
-                
-                \Illuminate\Support\Facades\Log::info('Переход на пропущенную страницу брифа', [
-                    'brief_id' => $brif->id,
-                    'user_id' => auth()->id(),
-                    'current_page' => $page,
-                    'next_page' => $nextPage,
-                    'skipped_pages' => $skippedPages
-                ]);
-                
                 return redirect()->route('common.questions', ['id' => $brif->id, 'page' => $nextPage])
                     ->with('warning', 'У вас остались пропущенные вопросы. Пожалуйста, заполните их.');
+            } else {
+                // Если пропущенных страниц больше нет
+                
+                // Если бриф находится в режиме редактирования, перенаправляем на метод update
+                if ($brif->edit_status === 'Редактируется') {
+                    // Создаем скрытую форму и отправляем POST запрос на метод update
+                    echo '
+                    <form id="updateForm" action="'.route('common.update', $brif->id).'" method="POST" style="display:none;">
+                        '.csrf_field().'
+                        <input type="hidden" name="completed_edit" value="1">
+                    </form>
+                    <script>
+                        document.getElementById("updateForm").submit();
+                    </script>';
+                    exit;
+                } else {
+                    // Если не в режиме редактирования, проверяем что заполнены все основные страницы
+                    // и завершаем бриф только если заполнены все страницы (1-5)
+                    if ($page == 5) {
+                        // Устанавливаем статус "Завершенный"
+                        $brif->status = 'Завершенный';
+                        $brif->save();
+                        
+                        // Логируем успешное завершение брифа
+                        \Illuminate\Support\Facades\Log::info('Бриф успешно завершен', [
+                            'brief_id' => $brif->id,
+                            'user_id' => auth()->id(),
+                            'status' => $brif->status
+                        ]);
+                        
+                        return redirect()->route('user_deal')
+                            ->with('success', 'Бриф успешно заполнен!');
+                    } else {
+                        // Иначе просто возвращаемся на страницу со сделками
+                        return redirect()->route('user_deal')
+                            ->with('success', 'Данные успешно сохранены!');
+                    }
+                }
             }
-            
-            // Если бриф находится в режиме редактирования, перенаправляем на метод update
-            if ($brif->edit_status === 'Редактируется') {
-                // Создаем скрытую форму и отправляем POST запрос на метод update
-                echo '
-                <form id="updateForm" action="'.route('common.update', $brif->id).'" method="POST" style="display:none;">
-                    '.csrf_field().'
-                    <input type="hidden" name="completed_edit" value="1">
-                </form>
-                <script>
-                    document.getElementById("updateForm").submit();
-                </script>';
-                exit;
-            }
-            
-            // В остальных случаях завершаем и перенаправляем на страницу сделок
-            \Illuminate\Support\Facades\Log::info('Бриф завершен, перенаправление на страницу сделок', [
-                'brief_id' => $brif->id,
-                'user_id' => auth()->id(),
-                'status' => $brif->status
-            ]);
-            
-            return redirect()->route('user_deal')
-                ->with('success', 'Бриф успешно заполнен!');
         }
     }
 

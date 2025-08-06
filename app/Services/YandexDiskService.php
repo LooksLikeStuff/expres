@@ -185,8 +185,8 @@ class YandexDiskService
             
             // Создаем родительские директории рекурсивно
             $parentDir = dirname($path);
-            // Если путь содержит родительскую директорию и это не корень
-            if ($parentDir && $parentDir !== '.' && $parentDir !== '/') {
+            // Если путь содержит родительскую директорию и это не корень или текущая директория
+            if ($parentDir && $parentDir !== '.' && $parentDir !== '/' && $parentDir !== $path) {
                 $parentCreated = $this->createDirectory($parentDir);
                 if (!$parentCreated) {
                     Log::error("Не удалось создать родительскую директорию: {$parentDir}");
@@ -277,13 +277,19 @@ class YandexDiskService
             
             // Ensure directory exists with improved error handling
             $directory = dirname($path);
-            Log::info("Создаем директорию для файла", ['directory' => $directory]);
             
-            $directoryCreated = $this->createDirectory($directory);
-            
-            if (!$directoryCreated) {
-                Log::error("Не удалось создать директорию для загрузки", ['directory' => $directory]);
-                return ['success' => false, 'message' => "Не удалось создать директорию: {$directory}"];
+            // Проверяем, что директория не является текущей папкой
+            if ($directory === '.' || empty($directory)) {
+                Log::info("Файл загружается в корневую директорию, создание папки не требуется", ['path' => $path]);
+            } else {
+                Log::info("Создаем директорию для файла", ['directory' => $directory]);
+                
+                $directoryCreated = $this->createDirectory($directory);
+                
+                if (!$directoryCreated) {
+                    Log::error("Не удалось создать директорию для загрузки", ['directory' => $directory]);
+                    return ['success' => false, 'message' => "Не удалось создать директорию: {$directory}"];
+                }
             }
             
             // Get upload URL

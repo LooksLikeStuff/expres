@@ -22,8 +22,7 @@
         'resources/js/mask.js',
     ])
 
-    <script src="{{ asset('/js/wow.js') }}"></script>
-    <!-- Подключаем стили Intro.js -->
+   <!-- Подключаем стили Intro.js -->
 
     <script src="{{ asset('/js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('/js/intro.min.js') }}"></script>

@@ -1,0 +1,255 @@
+/**
+ * Стили для исправления отображения ссылок Яндекс.Диска
+ * Финальная версия с улучшенным дизайном
+ */
+
+/* Контейнер для ссылок на файлы Яндекс.Диска */
+.yandex-file-links-container {
+    margin-top: 8px;
+    padding: 0;
+    border-radius: 6px;
+    background: transparent;
+}
+
+/* Обертка для каждой ссылки */
+.yandex-file-link-wrapper {
+    display: inline-block;
+    margin: 4px 8px 4px 0;
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Основные стили ссылок */
+.yandex-file-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+    color: #155724;
+    text-decoration: none;
+    border-radius: 20px;
+    border: 2px solid #c3e6cb;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(195, 230, 203, 0.3);
+}
+
+.yandex-file-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.yandex-file-link:hover {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #0d4717;
+    text-decoration: none;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+    border-color: #28a745;
+}
+
+.yandex-file-link:hover::before {
+    left: 100%;
+}
+
+/* Иконка в ссылке */
+.yandex-file-link i {
+    margin-right: 6px;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+/* Стили для успешно загруженных файлов */
+.yandex-file-link.file-success {
+    background: linear-gradient(135deg, #d1ecf1 0%, #b8dce8 100%);
+    color: #0c5460;
+    border-color: #bee5eb;
+    position: relative;
+}
+
+.yandex-file-link.file-success::after {
+    content: "✓";
+    position: absolute;
+    right: -6px;
+    top: -6px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    transform: scale(0);
+    animation: successBadge 0.4s ease-out 0.2s forwards;
+    box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
+}
+
+.yandex-file-link.file-success:hover {
+    background: linear-gradient(135deg, #b8dce8 0%, #9fcddb 100%);
+    color: #0a4c57;
+    border-color: #17a2b8;
+}
+
+/* Анимация успешной загрузки */
+@keyframes successBadge {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(-90deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Анимация появления */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для кнопки удаления файла */
+.delete-file-btn {
+    margin-left: 8px;
+    padding: 2px 6px;
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    border-radius: 50%;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.delete-file-btn:hover {
+    background: #dc3545;
+    color: white;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Состояние загрузки */
+.yandex-file-link.uploading {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+    border-color: #ffeaa7;
+    position: relative;
+}
+
+.yandex-file-link.uploading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Состояние ошибки */
+.yandex-file-link.error {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.yandex-file-link.error:hover {
+    background: linear-gradient(135deg, #f5c6cb 0%, #f1b0b7 100%);
+    color: #5f161d;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .yandex-file-link {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin: 2px 4px 2px 0;
+    }
+    
+    .yandex-file-link i {
+        margin-right: 4px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .yandex-file-link {
+        display: block;
+        margin: 4px 0;
+        text-align: center;
+    }
+    
+    .yandex-file-link-wrapper {
+        display: block;
+        margin: 4px 0;
+    }
+}
+
+/* Улучшенная интеграция с формой */
+.form-group .yandex-file-links-container {
+    background: rgba(248, 249, 250, 0.5);
+    border-radius: 6px;
+    padding: 8px;
+    border: 1px dashed #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-group .yandex-file-links-container:not(:empty) {
+    background: rgba(232, 245, 232, 0.3);
+    border-color: #c3e6cb;
+    border-style: solid;
+}
+
+/* Специальные стили для файлов скриншотов */
+.yandex-file-link[href*="screenshot"] {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    color: #01579b;
+    border-color: #b3e5fc;
+}
+
+.yandex-file-link[href*="screenshot"]:hover {
+    background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%);
+    color: #014a7b;
+    border-color: #0288d1;
+}
+
+/* Специальные стили для файлов планировок */
+.yandex-file-link[href*="plan"] {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #4a148c;
+    border-color: #e1bee7;
+}
+
+.yandex-file-link[href*="plan"]:hover {
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+    color: #38006b;
+    border-color: #8e24aa;
+}

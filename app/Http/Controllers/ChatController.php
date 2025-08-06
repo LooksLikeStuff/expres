@@ -213,7 +213,7 @@ class ChatController extends Controller
             $validated = $request->validate([
                 'message' => 'nullable|string|max:2000',
                 'attachments' => 'nullable|array',
-                'attachments.*' => 'file|max:10240' // макс. 10MB
+                'attachments.*' => 'file' // Убираем ограничение размера
             ]);
             
             // Проверка наличия сообщения или вложений
@@ -486,7 +486,7 @@ class ChatController extends Controller
             $validated = $request->validate([
                 'message' => 'nullable|string|max:2000',
                 'attachments' => 'nullable|array',
-                'attachments.*' => 'file|max:10240' // макс. 10MB
+                'attachments.*' => 'file' // Убираем ограничение размера
             ]);
             
             // Проверка наличия сообщения или вложений

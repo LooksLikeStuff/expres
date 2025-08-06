@@ -36,7 +36,6 @@ class Commercial extends Model
         'zone_budgets',
         'documents',
         'current_page',
-        'edit_status',
     ];
 
     /**
@@ -163,78 +162,5 @@ class Commercial extends Model
         }
         
         return $url;
-    }
-    
-    /**
-     * Проверяет, должен ли коммерческий бриф быть завершен
-     * 
-     * @return bool
-     */
-    public function shouldBeCompleted()
-    {
-        // Проверяем, что текущая страница >= 8 (последняя страница)
-        if ($this->current_page < 8) {
-            return false;
-        }
-        
-        // Проверяем наличие базовых данных
-        $zones = json_decode($this->zones ?? '[]', true);
-        if (empty($zones)) {
-            return false; // Нет зон - бриф не может быть завершен
-        }
-        
-        // Проверяем наличие хотя бы некоторых предпочтений или цены
-        $preferences = json_decode($this->preferences ?? '[]', true);
-        $hasPreferences = !empty($preferences);
-        $hasPrice = !empty($this->price);
-        
-        return $hasPreferences || $hasPrice;
-    }
-    
-    /**
-     * Принудительно завершает коммерческий бриф, если он должен быть завершен
-     * 
-     * @return bool Был ли изменен статус
-     */
-    public function completeIfShouldBe()
-    {
-        if (!in_array($this->status, ['Завершенный', 'Отредактированный']) && $this->shouldBeCompleted()) {
-            $oldStatus = $this->status;
-            
-            // Если бриф находится в режиме редактирования, устанавливаем соответствующий статус
-            if ($this->edit_status === 'Редактируется') {
-                // Получаем старые данные из сессии для сравнения
-                $oldData = session('commercial_edit_old_data_' . $this->id, []);
-                $newData = $this->getAttributes();
-                
-                // Проверяем, были ли изменения
-                $hasChanges = false;
-                foreach ($newData as $key => $value) {
-                    if (isset($oldData[$key]) && $oldData[$key] !== $value && !in_array($key, ['updated_at', 'edit_status', 'status', 'current_page'])) {
-                        $hasChanges = true;
-                        break;
-                    }
-                }
-                
-                $this->status = $hasChanges ? 'Отредактированный' : 'Завершенный';
-            } else {
-                $this->status = 'Завершенный';
-            }
-            
-            $this->save();
-            
-            \Illuminate\Support\Facades\Log::info('Автоматически завершен коммерческий бриф', [
-                'brief_id' => $this->id,
-                'old_status' => $oldStatus,
-                'new_status' => $this->status,
-                'current_page' => $this->current_page,
-                'zones_count' => count(json_decode($this->zones ?? '[]', true)),
-                'edit_mode' => $this->edit_status === 'Редактируется'
-            ]);
-            
-            return true;
-        }
-        
-        return false;
     }
 }

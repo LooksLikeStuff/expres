@@ -22,7 +22,7 @@ export default defineConfig({
         'resources/js/login.js',
         'resources/js/mask.js',
         'resources/js/ratings.js',
-        // 'resources/js/large-file-upload.js', // Временно отключен, используется public/js версия
+        // Новая система загрузки файлов на Яндекс.Диск v3.0 находится в public/js
         'public/js/jquery-3.6.0.min.js',
         'public/js/wow.js',
         'public/css/animate.css'
@@ -40,7 +40,7 @@ export default defineConfig({
       overlay: false
     },
     cors: {
-      origin: 'https://back',
+      origin: ['http://back', 'https://back', 'http://127.0.0.1', 'http://localhost'],
       credentials: true
     }
   },

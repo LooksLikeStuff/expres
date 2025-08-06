@@ -75,7 +75,6 @@
                                             <select name="status" id="status" class="form-control">
                                                 <option value="Активный" {{ $brief->status == 'Активный' ? 'selected' : '' }}>Активный</option>
                                                 <option value="Завершенный" {{ $brief->status == 'Завершенный' ? 'selected' : '' }}>Завершенный</option>
-                                                <option value="Отредактированный" {{ $brief->status == 'Отредактированный' ? 'selected' : '' }}>Отредактированный</option>
                                                 <option value="completed" {{ $brief->status == 'completed' ? 'selected' : '' }}>Выполнен</option>
                                             </select>
                                         </div>

@@ -1,0 +1,139 @@
+/* 🗓️ СТИЛИ ДЛЯ АВТОМАТИЧЕСКОГО КАЛЬКУЛЯТОРА ДАТ ПРОЕКТА */
+
+/* Основные стили для автоматически рассчитываемого поля */
+.auto-calculated-field {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border: 2px solid #28a745 !important;
+    position: relative;
+}
+
+/* Активное состояние поля с рассчитанным значением */
+.auto-calculated-active {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+/* Анимация процесса расчета */
+.calculating {
+    background: linear-gradient(45deg, #fff3cd, #ffeaa7) !important;
+    animation: calculating-pulse 0.5s ease-in-out;
+}
+
+/* Анимация успешного расчета */
+.calculated {
+    background: linear-gradient(45deg, #d4edda, #c3e6cb) !important;
+    animation: calculated-success 0.5s ease-in-out;
+}
+
+/* Анимация пульсации при расчете */
+@keyframes calculating-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Анимация успешного завершения расчета */
+@keyframes calculated-success {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0);
+    }
+    50% { 
+        transform: scale(1.01);
+        box-shadow: 0 0 0 0.4rem rgba(40, 167, 69, 0.3);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+}
+
+/* Анимация появления индикатора успеха */
+.calculation-success {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Улучшенный внешний вид AUTO бейджа */
+.badge.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    animation: badge-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes badge-glow {
+    from { box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3); }
+    to { box-shadow: 0 2px 8px rgba(40, 167, 69, 0.6); }
+}
+
+/* Стили для современной карточки калькулятора */
+.modern-date-calculator {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.modern-date-calculator .card-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border-bottom: none;
+}
+
+/* Стили для улучшенного date picker */
+.enhanced-date-picker:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Дополнительные стили для индикатора автоматического расчета */
+.auto-calculated-field::after {
+    content: "🤖";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Стили для текста успешного расчета */
+.calculation-success small {
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Hover эффекты для полей ввода дат */
+.enhanced-date-picker:hover {
+    border-color: #0056b3;
+    transition: border-color 0.3s ease;
+}
+
+/* Стили для readonly поля даты завершения */
+.auto-calculated-field[readonly] {
+    cursor: not-allowed;
+    user-select: none;
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 768px) {
+    .auto-calculated-field::after {
+        right: 8px;
+        font-size: 10px;
+    }
+    
+    .calculation-success {
+        font-size: 0.85rem;
+    }
+}

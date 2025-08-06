@@ -182,7 +182,7 @@ public function saveAnswers(Request $request, $id, $page)
                 'preferences' => 'nullable|array',
                 'preferences.*.answer' => 'nullable|string|max:1000',
                 'documents'  => 'nullable|array',
-                'documents.*' => 'file|max:51200|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
+                'documents.*' => 'file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
             ]);
             
             // Достаём из БД текущие preferences

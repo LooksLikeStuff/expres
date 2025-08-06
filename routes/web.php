@@ -3,22 +3,19 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\BrifsController;
-use App\Http\Controllers\DealFeedController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CommonController;
-use App\Http\Controllers\CommercialController;
-use App\Http\Controllers\DealModalController;
+use App\Http\Controllers\DealsController;
 use App\Http\Controllers\ClientDealsController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\SmetsController;
-use App\Http\Controllers\DealsController;
 use App\Http\Controllers\AccountController;
-
-
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BrifsController;
+use App\Http\Controllers\CommonController;
+use App\Http\Controllers\CommercialController;
+use App\Http\Controllers\DealFeedController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
@@ -31,13 +28,6 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return redirect('login/password');
 });
-// Маршруты для поиска и привязки брифов
-Route::post('/find-briefs-by-client-phone', [DealModalController::class, 'findBriefsByClientPhone'])
-    ->name('find.briefs.by.client.phone');
-Route::post('/link-brief-to-deal', [DealModalController::class, 'linkBriefToDeal'])
-    ->name('link.brief.to.deal');
-Route::post('/unlink-brief-from-deal', [DealModalController::class, 'unlinkBriefFromDeal'])
-    ->name('unlink.brief.from.deal');
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
@@ -60,7 +50,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/brifs', [BrifsController::class, 'index'])->name('brifs.index');
     Route::post('/brifs/store', [BrifsController::class, 'store'])->name('brifs.store');
     Route::delete('/brifs/{brif}', [BrifsController::class, 'destroy'])->name('brifs.destroy');
-    Route::post('/brifs/dismiss-modal', [BrifsController::class, 'dismissBriefModal'])->name('brifs.dismiss-modal');
     
     Route::get('/common/questions/{id}/{page}', [CommonController::class, 'questions'])->name('common.questions');
     Route::post('/common/questions/{id}/{page}', [CommonController::class, 'saveAnswers'])->name('common.saveAnswers');
@@ -110,51 +99,6 @@ Route::prefix('ratings')->middleware(['auth'])->group(function () {
     Route::get('/demo', function () {
         return view('demo.rating-test');
     })->name('ratings.demo');
-    
-    // Тестовая страница для диагностики системы рейтингов
-    Route::get('/test', function () {
-        return view('test-rating');
-    })->name('ratings.test');
-    
-    // Отладочные роуты для тестирования
-    Route::get('/debug/{dealId}', function ($dealId) {
-        $deal = Deal::findOrFail($dealId);
-        $currentUser = Auth::user();
-        
-        $debugInfo = [
-            'deal_info' => [
-                'id' => $deal->id,
-                'status' => $deal->status,
-                'office_partner_id' => $deal->office_partner_id,
-                'coordinator_id' => $deal->coordinator_id,
-                'architect_id' => $deal->architect_id,
-                'designer_id' => $deal->designer_id,
-                'visualizer_id' => $deal->visualizer_id,
-            ],
-            'current_user' => [
-                'id' => $currentUser->id,
-                'name' => $currentUser->name,
-                'status' => $currentUser->status,
-            ],
-            'connections' => [
-                'pivot_connection' => $deal->users()->where('user_id', $currentUser->id)->exists(),
-                'is_office_partner' => $deal->office_partner_id == $currentUser->id,
-                'is_coordinator' => $deal->coordinator_id == $currentUser->id,
-                'is_architect' => $deal->architect_id == $currentUser->id,
-                'is_designer' => $deal->designer_id == $currentUser->id,
-                'is_visualizer' => $deal->visualizer_id == $currentUser->id,
-            ],
-            'deal_users' => $deal->users()->get()->map(function($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'status' => $user->status
-                ];
-            })
-        ];
-        
-        return response()->json($debugInfo, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('ratings.debug');
 });
 
 Route::middleware(['auth', 'status:partner'])->group(function () {
@@ -175,8 +119,12 @@ Route::middleware(['auth', 'status:partner'])->group(function () {
 
 Route::middleware(['auth', 'status:coordinator,admin,partner,visualizer,architect,designer'])->group(function () {
     Route::get('/deal-cardinator', [DealsController::class, 'dealCardinator'])->name('deal.cardinator');
-    Route::get('/deal/{deal}/modal', [DealModalController::class, 'getDealModal'])->name('deal.modal');
-    Route::get('/deal/{deal}/data', [DealModalController::class, 'getDealModalData'])->name('deal.data');
+    Route::get('/deal/{id}/data', [DealsController::class, 'getDealData'])->name('deal.data');
+});
+
+// Отдельная страница редактирования сделки - только для coordinator, admin, partner
+Route::middleware(['auth', 'status:coordinator,admin,partner'])->group(function () {
+    Route::get('/deal/{deal}/edit-page', [DealsController::class, 'editDealPage'])->name('deal.edit-page');
 });
 
 
@@ -187,14 +135,6 @@ Route::middleware(['auth', 'status:coordinator,admin,partner'])->group(function 
     // Единый маршрут для обновления сделки, поддерживающий и PUT и POST
     Route::match(['put', 'post'], '/deal/update/{id}', [DealsController::class, 'updateDeal'])->name('deal.update');
     
-    // Роут для проверки существования сделки
-    Route::get('/deal/{id}/exists', function($id) {
-        $deal = \App\Models\Deal::find($id);
-        return response()->json(['exists' => $deal !== null]);
-    })->name('deal.exists');
-    
-    // Изменить маршрут так, чтобы он использовал DealModalController вместо удаленного метода
-    Route::get('/deals/{deal}/edit', [DealModalController::class, 'getDealModal'])->name('deal.edit');
     Route::post('/deal/create-from-brief', [DealsController::class, 'createDealFromBrief'])->name('deals.create-from-brief');
     
     // Маршруты для поиска и привязки брифов
@@ -213,12 +153,6 @@ Route::middleware(['auth', 'status:coordinator,admin,partner'])->group(function 
 Route::middleware(['auth', 'status:coordinator,admin'])->group(function () {
     Route::get('/deal/change-logs', [DealsController::class, 'changeLogs'])->name('deal.change_logs');
     Route::get('/deal/{deal}/change-logs', [DealsController::class, 'changeLogsForDeal'])->name('deal.change_logs.deal');
-});
-
-Route::middleware(['auth', 'status:admin'])->group(function () {
-    Route::get('/deal/global-logs', [DealsController::class, 'globalLogs'])->name('deal.global_logs');
-    Route::get('/deals/global-change-logs', [DealsController::class, 'globalLogs'])->name('deals.global_change_logs');
-    Route::post('/deal/{dealId}/restore', [DealsController::class, 'restoreDeal'])->name('deal.restore');
 });
 
 Route::post('/deal/{deal}/feed', [DealFeedController::class, 'store'])
@@ -382,6 +316,9 @@ Route::post('/unlink-brief-from-deal', [App\Http\Controllers\DealsController::cl
 
 Route::post('/deal/{id}/upload-documents', [App\Http\Controllers\DealsController::class, 'uploadDocuments'])->name('deal.upload.documents')->middleware('auth');
 
+// Роут для быстрой загрузки на Яндекс.Диск
+Route::post('/upload/fast-yandex', [App\Http\Controllers\DealsController::class, 'fastYandexUpload'])->name('upload.fast.yandex')->middleware('auth');
+
 // Публичные маршруты для удаления аккаунта (убрана страница delete-info)
 Route::get('/account/delete', [AccountController::class, 'showDeleteAccountForm'])->name('account.delete');
 Route::post('/account/delete/send-code', [AccountController::class, 'sendDeleteAccountCode'])->name('account.delete.send-code');
@@ -398,15 +335,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Тестовые страницы для отладки
-Route::get('/test/large-file-upload', function () {
-    return view('test.large-file-upload-test');
-})->name('test.large.file.upload')->middleware('auth');
-
 Route::get('/test/document-system', function () {
     return view('test.document-test');
 })->name('test.document.system')->middleware('auth');
-
-Route::get('/test/csrf-protection', function () {
-    return view('test.csrf-protection-test');
-})->name('test.csrf.protection')->middleware('auth');
 

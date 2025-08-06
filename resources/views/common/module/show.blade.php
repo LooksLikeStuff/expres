@@ -56,7 +56,7 @@
                     </tr>
                     <tr>
                         <th>Статус</th>
-                        <td><span class="badge {{ in_array($brif->status, ['Завершенный', 'Отредактированный']) ? 'bg-success' : 'bg-warning' }}">{{ $brif->status }}</span></td>
+                        <td><span class="badge {{ $brif->status == 'Завершенный' ? 'bg-success' : 'bg-warning' }}">{{ $brif->status }}</span></td>
                     </tr>
                     <tr>
                         <th>Бюджет</th>
@@ -303,7 +303,7 @@
             </div>
         </div>
     @endif
-        @if(in_array($brif->status, ['Завершенный', 'Отредактированный']) && $brif->user_id === auth()->id() && !$brif->edit_status && auth()->user()->status !== 'user')
+        @if($brif->status === 'Завершенный' && $brif->user_id === auth()->id() && !$brif->edit_status && auth()->user()->status !== 'user')
             <a href="{{ route('common.startEdit', $brif->id) }}" class="btn btn-warning">
                 Редактировать бриф
             </a>

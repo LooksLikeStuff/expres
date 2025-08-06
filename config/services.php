@@ -35,12 +35,12 @@ return [
     */
     'yandex_disk' => [
         'token' => env('YANDEX_DISK_TOKEN', 'y0__xD-1-GlqveAAhjblgMgy8zl_BIVhC5iLWbQTnJiXBfnjmS39_7EUA'), 
-        'base_folder' => env('YANDEX_DISK_BASE_FOLDER', 'dlk_deals'), // Базовая папка
+        'base_folder' => env('YANDEX_DISK_BASE_FOLDER', 'lk_deals'), // Базовая папка
         'timeout' => env('YANDEX_DISK_TIMEOUT', 0), // Убираем ограичения времени
+        'chunk_size' => env('YANDEX_DISK_CHUNK_SIZE', 2097152), // 2MB для новой системы v3.0
+        'max_retries' => env('YANDEX_DISK_MAX_RETRIES', 3), // Количество повторных попыток
         'min_speed' => env('YANDEX_DISK_MIN_SPEED', 1048576), // Минимальная скорость 1MB/s
         'low_speed_time' => env('YANDEX_DISK_LOW_SPEED_TIME', 1800), // 30 минут низкой скорости
-        'chunk_size' => env('YANDEX_DISK_CHUNK_SIZE', 33554432), // 32MB chunks для больших файлов
-        'max_retries' => env('YANDEX_DISK_MAX_RETRIES', 3), // Количество повторных попыток
         'retry_delay' => env('YANDEX_DISK_RETRY_DELAY', 2000), // Задержка между попытками (мс)
         'buffer_size' => env('YANDEX_DISK_BUFFER_SIZE', 33554432), // 32MB буфер
         'tcp_keepalive' => env('YANDEX_DISK_TCP_KEEPALIVE', true), // TCP Keep-Alive

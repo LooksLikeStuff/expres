@@ -33,7 +33,6 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\UpdateUserLastSeen::class, // Добавляем обновление статуса пользователя
-            \App\Http\Middleware\DealActionLogger::class, // Логирование действий со сделками
         ],
         'api' => [
             \App\Http\Middleware\EncryptCookies::class,
@@ -56,7 +55,6 @@ class Kernel extends HttpKernel
         'status' => \App\Http\Middleware\CheckUserStatus::class,
         'check.chat.access' => \App\Http\Middleware\CheckChatAccess::class,
         'update.last.seen' => \App\Http\Middleware\UpdateUserLastSeen::class,
-        'deal.logger' => \App\Http\Middleware\DealActionLogger::class,
     ];
     
     

@@ -1,0 +1,442 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use App\Models\Deal;
+use App\Models\Common;
+use App\Models\Commercial;
+
+class BriefSearchController extends Controller
+{    /**
+     * Поиск брифов по номеру телефона клиента
+     *
+     * @param Request $request
+     * @param int $deal ID сделки из маршрута
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function findBriefsByClientPhone(Request $request, $deal)
+    {
+        try {
+            $clientPhone = $request->input('client_phone');
+            $dealId = $deal; // Используем ID из URL маршрута
+            
+            Log::info('Поиск брифов по номеру телефона', [
+                'phone' => $clientPhone,
+                'deal_id' => $dealId
+            ]);
+            
+            if (empty($clientPhone)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Номер телефона клиента не указан'
+                ]);
+            }
+            
+            // Нормализация номера телефона (удаление всех нецифровых символов)
+            $normalizedPhone = preg_replace('/[^0-9]/', '', $clientPhone);
+            
+            Log::info('Нормализованный телефон: ' . $normalizedPhone);
+            
+            // Поиск пользователей по номеру телефона
+            $users = User::where(function($query) use ($normalizedPhone, $clientPhone) {
+                // Поиск по оригинальному формату телефона
+                $query->where('phone', 'like', '%' . $clientPhone . '%');
+                
+                // Поиск по нормализованному номеру
+                if ($normalizedPhone !== $clientPhone) {
+                    $query->orWhere('phone', 'like', '%' . $normalizedPhone . '%');
+                }
+                
+                // Поиск по последним 10 цифрам (без кода страны)
+                if (strlen($normalizedPhone) >= 10) {
+                    $lastTenDigits = substr($normalizedPhone, -10);
+                    $query->orWhere('phone', 'like', '%' . $lastTenDigits . '%');
+                }
+            })->get();
+            
+            Log::info('Найдено пользователей: ' . $users->count(), [
+                'user_ids' => $users->pluck('id')->toArray()
+            ]);
+            
+            if ($users->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Пользователь с указанным номером телефона не найден'
+                ]);
+            }
+            
+            // Получаем ID пользователей для поиска брифов
+            $userIds = $users->pluck('id')->toArray();
+            
+            // Проверяем наличие моделей Common и Commercial
+            if (!class_exists('App\Models\Common')) {
+                Log::error('Класс App\Models\Common не существует');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ошибка конфигурации системы: модель брифа не найдена'
+                ]);
+            }
+            
+            if (!class_exists('App\Models\Commercial')) {
+                Log::error('Класс App\Models\Commercial не существует');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ошибка конфигурации системы: модель коммерческого брифа не найдена'
+                ]);
+            }
+            
+            // Проверяем, привязан ли уже бриф к сделке
+            $deal = Deal::find($dealId);
+            $hasAttachedBrief = false;
+            $attachedBriefType = null;
+            
+            if ($deal) {
+                if ($deal->common_id) {
+                    $hasAttachedBrief = true;
+                    $attachedBriefType = 'common';
+                } elseif ($deal->commercial_id) {
+                    $hasAttachedBrief = true;
+                    $attachedBriefType = 'commercial';
+                }
+            }
+            
+            try {
+                // Ищем общие брифы по ID пользователей
+                $commonBriefs = Common::whereIn('user_id', $userIds)
+                    ->with('user')
+                    ->get()
+                    ->map(function($brief) use ($dealId) {
+                        // Проверяем, привязан ли бриф к данной сделке
+                        $alreadyLinked = Deal::where('id', $dealId)
+                            ->where('common_id', $brief->id)
+                            ->exists();
+                        
+                        return [
+                            'id' => $brief->id,
+                            'title' => $brief->name ?? ('Общий бриф #' . $brief->id),
+                            'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
+                            'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
+                            'already_linked' => $alreadyLinked
+                        ];
+                    });
+                
+                Log::info('Найдено общих брифов: ' . $commonBriefs->count());
+            } catch (\Exception $e) {
+                Log::error('Ошибка при поиске общих брифов: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $commonBriefs = collect([]);
+            }
+            
+            try {
+                // Ищем коммерческие брифы по ID пользователей
+                $commercialBriefs = Commercial::whereIn('user_id', $userIds)
+                    ->with('user')
+                    ->get()
+                    ->map(function($brief) use ($dealId) {
+                        // Проверяем, привязан ли бриф к данной сделке
+                        $alreadyLinked = Deal::where('id', $dealId)
+                            ->where('commercial_id', $brief->id)
+                            ->exists();
+                        
+                        return [
+                            'id' => $brief->id,
+                            'title' => $brief->name ?? ('Коммерческий бриф #' . $brief->id),
+                            'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
+                            'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
+                            'already_linked' => $alreadyLinked
+                        ];
+                    });
+                
+                Log::info('Найдено коммерческих брифов: ' . $commercialBriefs->count());
+            } catch (\Exception $e) {
+                Log::error('Ошибка при поиске коммерческих брифов: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $commercialBriefs = collect([]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'users' => $users->map(function($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone
+                    ];
+                }),
+                'briefs' => $commonBriefs,
+                'commercials' => $commercialBriefs,
+                'has_attached_brief' => $hasAttachedBrief,
+                'attached_brief_type' => $attachedBriefType,
+                'message' => 'Найдено брифов: ' . ($commonBriefs->count() + $commercialBriefs->count())
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Ошибка в методе findBriefsByClientPhone: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при поиске брифов: ' . $e->getMessage()
+            ], 500);
+        }
+    }    /**
+     * Привязка брифа к сделке
+     *
+     * @param Request $request
+     * @param int $deal ID сделки из маршрута
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function linkBriefToDeal(Request $request, $deal)
+    {
+        try {
+            $dealId = $deal; // Используем ID из URL маршрута
+            $briefId = $request->input('brief_id');
+            $briefType = $request->input('brief_type');
+            
+            Log::info('Запрос на привязку брифа', [
+                'deal_id' => $dealId,
+                'brief_id' => $briefId,
+                'brief_type' => $briefType,
+                'all_params' => $request->all()
+            ]);
+            
+            if (!$dealId || !$briefId || !$briefType) {
+                Log::warning('Отсутствуют обязательные параметры для привязки брифа', [
+                    'deal_id' => $dealId,
+                    'brief_id' => $briefId,
+                    'brief_type' => $briefType
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Не указаны обязательные параметры',
+                    'missing_params' => [
+                        'deal_id' => empty($dealId),
+                        'brief_id' => empty($briefId),
+                        'brief_type' => empty($briefType)
+                    ]
+                ]);
+            }
+            
+            $deal = Deal::find($dealId);
+            
+            if (!$deal) {
+                Log::warning('Сделка не найдена при привязке брифа', ['deal_id' => $dealId]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Сделка не найдена'
+                ]);
+            }
+            
+            // Проверяем тип брифа
+            if (!in_array($briefType, ['common', 'commercial'])) {
+                Log::warning('Неверный тип брифа', ['brief_type' => $briefType]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Неверный тип брифа. Допустимые значения: common, commercial'
+                ]);
+            }
+            
+            // Привязываем бриф к сделке в зависимости от типа
+            if ($briefType === 'common') {
+                $brief = Common::find($briefId);
+                if (!$brief) {
+                    Log::warning('Общий бриф не найден', ['brief_id' => $briefId]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Общий бриф не найден'
+                    ]);
+                }
+                
+                $deal->common_id = $briefId;
+                $deal->has_brief = true; // Устанавливаем флаг наличия брифа
+                $deal->save();
+                
+                Log::info('Общий бриф успешно привязан', [
+                    'deal_id' => $dealId,
+                    'brief_id' => $briefId
+                ]);
+                
+            } elseif ($briefType === 'commercial') {
+                $brief = Commercial::find($briefId);
+                if (!$brief) {
+                    Log::warning('Коммерческий бриф не найден', ['brief_id' => $briefId]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Коммерческий бриф не найден'
+                    ]);
+                }
+                
+                $deal->commercial_id = $briefId;
+                $deal->has_brief = true; // Устанавливаем флаг наличия брифа
+                $deal->save();
+                
+                Log::info('Коммерческий бриф успешно привязан', [
+                    'deal_id' => $dealId,
+                    'brief_id' => $briefId
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Бриф успешно привязан к сделке',
+                'reload_required' => true,
+                'deal' => [
+                    'id' => $deal->id,
+                    'common_id' => $deal->common_id,
+                    'commercial_id' => $deal->commercial_id,
+                    'has_brief' => $deal->has_brief
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Ошибка при привязке брифа: ' . $e->getMessage(), [
+                'deal_id' => $deal ?? null,
+                'brief_id' => $request->input('brief_id'),
+                'brief_type' => $request->input('brief_type'),
+                'stack_trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при привязке брифа: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            ], 500);
+        }
+    }
+      /**
+     * Отвязка брифа от сделки
+     *
+     * @param Request $request
+     * @param int $deal ID сделки из маршрута
+     * @return \Illuminate\Http\JsonResponse
+     */    
+    public function unlinkBriefFromDeal(Request $request, $deal)
+    {
+        try {
+            $dealId = $deal; // Используем ID из URL маршрута
+            $briefType = $request->input('brief_type');
+            
+            Log::info('Запрос на отвязку брифа', [
+                'deal_id' => $dealId,
+                'brief_type' => $briefType,
+                'all_params' => $request->all()
+            ]);
+            
+            // Находим сделку
+            $deal = Deal::find($dealId);
+            
+            if (!$deal) {
+                Log::warning('Сделка не найдена при отвязке брифа', ['deal_id' => $dealId]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Сделка не найдена'
+                ]);
+            }
+            
+            // Автоматически определяем тип брифа, если не указан
+            if (!$briefType) {
+                // Проверяем, какой тип брифа привязан к сделке
+                if ($deal->common_id) {
+                    $briefType = 'common';
+                    Log::info('Автоопределен тип брифа: common');
+                } elseif ($deal->commercial_id) {
+                    $briefType = 'commercial';
+                    Log::info('Автоопределен тип брифа: commercial');
+                } else {
+                    Log::warning('К сделке не привязан ни один бриф', ['deal_id' => $dealId]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'К сделке не привязан ни один бриф'
+                    ]);
+                }
+            }
+            
+            // Проверяем тип брифа
+            if (!in_array($briefType, ['common', 'commercial'])) {
+                Log::warning('Неверный тип брифа при отвязке', ['brief_type' => $briefType]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Неверный тип брифа. Допустимые значения: common, commercial'
+                ]);
+            }
+            
+            // Отвязываем бриф от сделки в зависимости от типа
+            if ($briefType === 'common') {
+                // Логируем текущее состояние
+                Log::info('Отвязка общего брифа', [
+                    'deal_id' => $deal->id,
+                    'common_id_before' => $deal->common_id
+                ]);
+                
+                $deal->common_id = null;
+                // Проверяем, есть ли еще привязанный коммерческий бриф
+                $deal->has_brief = $deal->commercial_id ? true : false;
+                $deal->save();
+                
+                Log::info('Общий бриф успешно отвязан', [
+                    'deal_id' => $deal->id,
+                    'has_brief' => $deal->has_brief
+                ]);
+                
+            } elseif ($briefType === 'commercial') {
+                // Логируем текущее состояние
+                Log::info('Отвязка коммерческого брифа', [
+                    'deal_id' => $deal->id,
+                    'commercial_id_before' => $deal->commercial_id
+                ]);
+                
+                $deal->commercial_id = null;
+                // Проверяем, есть ли еще привязанный общий бриф
+                $deal->has_brief = $deal->common_id ? true : false;
+                $deal->save();
+                
+                Log::info('Коммерческий бриф успешно отвязан', [
+                    'deal_id' => $deal->id,
+                    'has_brief' => $deal->has_brief
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Бриф успешно отвязан от сделки',
+                'deal' => [
+                    'id' => $deal->id,
+                    'common_id' => $deal->common_id,
+                    'commercial_id' => $deal->commercial_id,
+                    'has_brief' => $deal->has_brief
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Ошибка при отвязке брифа: ' . $e->getMessage(), [
+                'deal_id' => $deal ?? null,
+                'brief_type' => $request->input('brief_type'),
+                'stack_trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при отвязке брифа: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            ], 500);
+        }
+    }
+}

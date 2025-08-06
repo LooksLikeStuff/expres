@@ -1,0 +1,256 @@
+/**
+ * Стили для системы загрузки файлов на Яндекс.Диск v3.0
+ * Совместимость с Bootstrap и системой редактирования сделок
+ */
+
+/* Анимации */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Контейнеры для ссылок на файлы */
+.yandex-file-links-container {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    min-height: 20px;
+}
+
+/* Обертка для ссылки на файл */
+.yandex-file-link-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 5px 0;
+    padding: 8px 12px;
+    background: linear-gradient(45deg, #e8f5e8, #f0f8f0);
+    border: 1px solid #28a745;
+    border-radius: 6px;
+    animation: slideInUp 0.5s ease-out;
+}
+
+/* Ссылки на файлы */
+.yandex-file-link {
+    color: #28a745 !important;
+    text-decoration: none;
+    font-weight: 500;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.yandex-file-link:hover {
+    color: #1e7e34 !important;
+    text-decoration: none;
+    transform: translateX(2px);
+}
+
+.yandex-file-link i {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Кнопка удаления файла */
+.delete-file-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.delete-file-btn:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Индикатор загрузки */
+.yandex-upload-progress {
+    margin: 8px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.yandex-upload-progress .upload-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.yandex-upload-progress .upload-icon {
+    color: #007bff;
+    animation: pulse 1.5s infinite;
+}
+
+.yandex-upload-progress .progress {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.yandex-upload-progress .progress-bar {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    transition: width 0.3s ease;
+}
+
+/* Сообщения об успехе */
+.upload-success-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    color: #155724;
+    margin: 5px 0;
+    animation: slideInUp 0.5s ease-out;
+}
+
+.upload-success-message i {
+    font-size: 16px;
+}
+
+/* Сообщения об ошибке */
+.upload-error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #721c24;
+    margin: 5px 0;
+    animation: slideInUp 0.5s ease-out;
+}
+
+.upload-error-message i {
+    font-size: 16px;
+}
+
+/* Стили для полей ввода файлов */
+.yandex-upload {
+    transition: all 0.2s ease;
+}
+
+.yandex-upload:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Стили для скриншот-контейнеров */
+.yandex-upload-container {
+    position: relative;
+}
+
+.yandex-upload-container .form-control {
+    border: 2px dashed #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.yandex-upload-container .form-control:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.yandex-upload-container .form-control:focus {
+    border-color: #007bff;
+    border-style: solid;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Адаптивность */
+@media (max-width: 576px) {
+    .yandex-file-link-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .delete-file-btn {
+        align-self: flex-end;
+    }
+    
+    .yandex-upload-progress .upload-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+/* Улучшенные стили для успешных ссылок */
+.file-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+    position: relative;
+}
+
+.file-success::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.file-success:hover::before {
+    transform: scaleX(1);
+}
+
+/* Дополнительные состояния */
+.yandex-file-link.uploading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.yandex-file-link.error {
+    color: #dc3545 !important;
+    border-color: #dc3545;
+    background: #f8d7da;
+}
+
+/* Совместимость с существующими стилями */
+.form-group .yandex-file-links-container {
+    margin-top: 0.5rem;
+}
+
+/* Стили для интеграции с формой */
+.deal-edit-form .yandex-file-links-container {
+    border-left: 3px solid #007bff;
+    padding-left: 12px;
+    margin-left: 8px;
+}

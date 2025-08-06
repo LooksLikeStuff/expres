@@ -26,6 +26,10 @@ Route::middleware(['auth', 'status:admin'])->group(function () {
     // Управление сделками
     Route::get('/deals', [DashboardController::class, 'dealsList'])->name('admin.deals');
     Route::get('/deals/stats', [DashboardController::class, 'dealsStats'])->name('admin.deals.stats');
+    // Перенаправляем на основную страницу редактирования сделки
+    Route::get('/deals/{deal}/edit', function($deal) {
+        return redirect()->route('deal.edit-page', $deal);
+    })->name('admin.deals.edit');
     
     // Управление сметами
     Route::get('/estimates', [DashboardController::class, 'estimatesList'])->name('admin.estimates');

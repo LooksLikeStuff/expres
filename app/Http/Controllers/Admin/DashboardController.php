@@ -631,4 +631,30 @@ class DashboardController extends BaseAdminController
         // Реализация метода управления сметами
         return view('admin.estimates');
     }
+    
+    /**
+     * Редактирование сделки (отдельная страница)
+     */
+    public function editDeal(Deal $deal)
+    {
+        $title_site = "Редактирование сделки #{$deal->project_number} | Админ-панель";
+        
+        // Получаем поля сделки (аналогично модальному окну)
+        $dealFields = [
+            'project_number' => 'Номер проекта',
+            'client_name' => 'Имя клиента',
+            'client_phone' => 'Телефон клиента',
+            'client_email' => 'Email клиента',
+            'status' => 'Статус',
+            'address' => 'Адрес объекта',
+            'specialist_id' => 'Специалист',
+            'coordinator_id' => 'Координатор',
+            'partner_id' => 'Партнер',
+        ];
+        
+        // Получаем документы сделки
+        $documents = method_exists($deal, 'getDocuments') ? $deal->getDocuments() : [];
+        
+        return view('admin.deals.edit', compact('deal', 'dealFields', 'documents', 'title_site'));
+    }
 }

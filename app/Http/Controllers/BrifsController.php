@@ -48,28 +48,18 @@ class BrifsController extends Controller
     
         // Получаем брифы пользователя
         $activeCommon = Common::where('user_id', auth()->id())->where('status', 'Активный')->get();
-        $inactiveCommon = Common::where('user_id', auth()->id())->whereIn('status', ['Завершенный', 'Отредактированный'])->get();
+        $inactiveCommon = Common::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
         $activeCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Активный')->get();
-        $inactiveCommercial = Commercial::where('user_id', auth()->id())->whereIn('status', ['Завершенный', 'Отредактированный'])->get();
+        $inactiveCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
     
         // Объединяем активные брифы в один массив и сортируем по дате создания (новые сверху)
         $activeBrifs = $activeCommon->merge($activeCommercial)->sortByDesc('created_at');
     
         // Объединяем неактивные брифы и сортируем аналогично
         $inactiveBrifs = $inactiveCommon->merge($inactiveCommercial)->sortByDesc('created_at');
-
-        // Проверяем, есть ли активный бриф для показа модального окна
-        $showActiveBriefModal = false;
-        $activeBrief = null;
-        
-        if ($activeBrifs->count() === 1) {
-            $activeBrief = $activeBrifs->first();
-            $showActiveBriefModal = !session('brief_modal_dismissed_' . $activeBrief->id);
-        }
     
         return view('brifs', compact(
-            'activeBrifs', 'inactiveBrifs', 'pageTitlesCommercial', 'pageTitlesCommon', 
-            'user', 'title_site', 'showActiveBriefModal', 'activeBrief'
+            'activeBrifs', 'inactiveBrifs', 'pageTitlesCommercial', 'pageTitlesCommon', 'user', 'title_site'
         ));
     }
     
@@ -258,7 +248,10 @@ class BrifsController extends Controller
         $deal = Deal::find($brif->deal_id);
        
     
-        
+        // Если бриф активен, перенаправляем на страницу с вопросами
+        if ($brif->status === 'Активный') {
+            return redirect()->route('common.questions', $brif->current_page);
+        }
         // Получение документов и фотографий
         $documentsPath = storage_path("app/public/brifs/{$id}/documents");
         $photosPath = storage_path("app/public/brifs/{$id}/photos");
@@ -444,13 +437,6 @@ class BrifsController extends Controller
         // Увеличиваем лимит времени выполнения скрипта
         set_time_limit(300);
     
-        // Добавляем отладочную информацию
-        Log::info('BrifsController::store вызван', [
-            'request_data' => $request->all(),
-            'brif_type' => $request->input('brif_type'),
-            'user_id' => auth()->id()
-        ]);
-    
         $type = $request->input('brif_type');
     
         if ($type === 'common') {
@@ -465,7 +451,7 @@ class BrifsController extends Controller
     
             return redirect()->route('common.questions', [
                 'id'   => $brif->id,
-                'page' => 0
+                'page' => 0 // изменено: перенаправление на страницу выбора комнат
             ]);
         } elseif ($type === 'commercial') {
             // Создание коммерческого брифа
@@ -774,17 +760,4 @@ public function commonHistory($id)
     
     return view('common.history', compact('brif', 'histories', 'user', 'title_site'));
 }
-
-    /**
-     * Закрыть модальное окно активного брифа для пользователя
-     */
-    public function dismissBriefModal(Request $request)
-    {
-        $briefId = $request->input('brief_id');
-        
-        // Сохраняем в сессии, что пользователь закрыл модальное окно для данного брифа
-        session(['brief_modal_dismissed_' . $briefId => true]);
-        
-        return response()->json(['success' => true]);
-    }
 }

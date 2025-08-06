@@ -125,49 +125,16 @@ class RatingController extends Controller
                 return response()->json(['pending_ratings' => []]);
             }
             
-        // Проверяем, может ли текущий пользователь оценивать исполнителей в этой сделке
-        if (!in_array($currentUser->status, ['coordinator', 'partner', 'client', 'user'])) {
-            Log::info('Пользователь не может оценивать других в сделках', [
-                'user_id' => $currentUser->id,
-                'status' => $currentUser->status
-            ]);
-            return response()->json(['pending_ratings' => []]);
-        }
-        
-        // Проверяем связь пользователя со сделкой
-        $userConnectedToDeal = false;
-        
-        // Проверяем через pivot-таблицу
-        $pivotConnection = $deal->users()->where('user_id', $currentUser->id)->exists();
-        
-        // Проверяем прямые связи
-        $directConnection = (
-            $deal->office_partner_id == $currentUser->id ||
-            $deal->coordinator_id == $currentUser->id ||
-            $deal->architect_id == $currentUser->id ||
-            $deal->designer_id == $currentUser->id ||
-            $deal->visualizer_id == $currentUser->id
-        );
-        
-        $userConnectedToDeal = $pivotConnection || $directConnection;
-        
-        Log::info('Проверка связи пользователя со сделкой', [
-            'user_id' => $currentUser->id,
-            'deal_id' => $dealId,
-            'pivot_connection' => $pivotConnection,
-            'direct_connection' => $directConnection,
-            'total_connected' => $userConnectedToDeal,
-            'office_partner_id' => $deal->office_partner_id,
-            'coordinator_id' => $deal->coordinator_id
-        ]);
-        
-        if (!$userConnectedToDeal) {
-            Log::warning('Пользователь не связан со сделкой', [
-                'user_id' => $currentUser->id,
-                'deal_id' => $dealId
-            ]);
-            return response()->json(['pending_ratings' => []]);
-        }            // Получаем всех пользователей, связанных со сделкой
+            // Проверяем, может ли текущий пользователь оценивать исполнителей в этой сделке
+            if (!in_array($currentUser->status, ['coordinator', 'partner', 'client', 'user'])) {
+                Log::info('Пользователь не может оценивать других в сделках', [
+                    'user_id' => $currentUser->id,
+                    'status' => $currentUser->status
+                ]);
+                return response()->json(['pending_ratings' => []]);
+            }
+            
+            // Получаем всех пользователей, связанных со сделкой
             $dealUsers = $deal->users()->get();
             
             // Также проверяем coordinator_id и office_partner_id
@@ -319,7 +286,7 @@ class RatingController extends Controller
      * Проверка, все ли оценки для сделки выставлены
      *
      * @param  Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Response
      */
     public function checkAllRatingsComplete(Request $request)
     {
@@ -365,7 +332,7 @@ class RatingController extends Controller
      * Получить список всех завершенных сделок пользователя, требующих оценки
      *
      * @param  Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Response
      */
     public function findCompletedDealsNeedingRatings(Request $request)
     {
@@ -393,16 +360,8 @@ class RatingController extends Controller
             
             // Находим все сделки пользователя со статусом "Проект завершен"
             $deals = Deal::where('status', 'Проект завершен')
-                ->where(function($query) use ($currentUser) {
-                    $query->whereHas('users', function($q) use ($currentUser) {
-                        $q->where('user_id', $currentUser->id);
-                    })
-                    // Также проверяем прямые связи для партнеров и координаторов
-                    ->orWhere('office_partner_id', $currentUser->id)
-                    ->orWhere('coordinator_id', $currentUser->id)
-                    ->orWhere('architect_id', $currentUser->id)
-                    ->orWhere('designer_id', $currentUser->id)
-                    ->orWhere('visualizer_id', $currentUser->id);
+                ->whereHas('users', function($q) use ($currentUser) {
+                    $q->where('user_id', $currentUser->id);
                 })
                 ->get();
             

@@ -2,100 +2,101 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-
-    <meta charset="utf-8">
-    <meta name="user-id" content="{{ Auth::id() }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title_site ?? 'Личный кабинет' }}</title>
-    <link rel="stylesheet" href="{{ asset('/css/animate.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/introjs.min.css') }}">
+<meta charset="utf-8">
+<meta name="user-id" content="{{ Auth::id() }}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>{{ $title_site ?? 'Личный кабинет' }}</title>
+<link rel="stylesheet" href="{{ asset('/css/animate.css') }}">
+<link rel="stylesheet" href="{{ asset('/css/introjs.min.css') }}">
 
   
-    <script src="{{ asset('/js/wow.js') }}"></script>
-    <!-- Подключаем стили Intro.js -->
+<script src="{{ asset('/js/wow.js') }}"></script>
+<!-- Подключаем стили Intro.js -->
 
 
-    <script src="{{ asset('/js/intro.min.js') }}"></script>
+<script src="{{ asset('/js/intro.min.js') }}"></script>
 
  
-    <!-- CSS стили (загружаем сначала) -->
-    <link rel="stylesheet" href="{{ asset('/css/p/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/5.15.4/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/bootstrap-select.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin-briefs.css') }}">
-    
-    <!-- JavaScript (основные библиотеки) -->
-    <script src="{{ asset('/js/p/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('/js/p/popper.min.js') }}"></script>
-    <script src="{{ asset('/js/p/bootstrap.min.js') }}"></script>
-    
-    <!-- JavaScript (дополнительные плагины) -->
-    <script src="{{ asset('/js/p/bootstrap-select.min.js') }}"></script>
-    <script src="{{ asset('/js/p/defaults-ru_RU.min.js') }}"></script>
-    <script src="{{ asset('/js/p/axios.min.js') }}"></script>
-    <script src="{{ asset('/js/p/jquery.dataTables.min.js') }}"></script>
-    
-    <!-- Исправленный путь к Select2 -->
-    <script src="{{ asset('/js/p/select2.min.js') }}"></script>
-    
-    <script src="{{ asset('/js/p/jquery.simplePagination.min.js') }}"></script>
-    
-    <!-- Подключаем систему загрузки больших файлов -->
-    <script src="{{ asset('js/large-file-upload.js') }}"></script>
-    
-    <!-- Подключаем CSS для загрузки больших файлов -->
-    <link rel="stylesheet" href="{{ asset('css/large-file-upload.css') }}"></script>
-    
+<!-- CSS стили (загружаем сначала) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="{{ asset('/css/p/all.min.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
-    @vite(['resources/css/font.css', 'resources/js/ratings.js','resources/css/animation.css', 'resources/css/style.css', 'resources/css/element.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js', 'resources/js/modal.js', 'resources/js/success.js', 'resources/js/mask.js'])
-    
-    <!-- Обязательный (и достаточный) тег для браузеров -->
-    <link type="image/x-icon" rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
+<!-- JavaScript (основные библиотеки) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 
-    <!-- Дополнительные иконки для десктопных браузеров -->
-    <link type="image/png" sizes="16x16" rel="icon" href="{{ asset('/icons/favicon-16x16.png') }}">
-    <link type="image/png" sizes="32x32" rel="icon" href="{{ asset('/icons/favicon-32x32.png') }}">
-    <link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/favicon-96x96.png') }}">
-    <link type="image/png" sizes="120x120" rel="icon" href="{{ asset('/icons/favicon-120x120.png') }}">
+<!-- JavaScript (дополнительные плагины) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/i18n/defaults-ru_RU.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    <!-- Иконки для Android -->
-    <link type="image/png" sizes="72x72" rel="icon" href="{{ asset('/icons/android-icon-72x72.png') }}">
-    <link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/android-icon-96x96.png') }}">
-    <link type="image/png" sizes="144x144" rel="icon" href="{{ asset('/icons/android-icon-144x144.png') }}">
-    <link type="image/png" sizes="192x192" rel="icon" href="{{ asset('/icons/android-icon-192x192.png') }}">
-    <link type="image/png" sizes="512x512" rel="icon" href="{{ asset('/icons/android-icon-512x512.png') }}">
-    <link rel="manifest" href="{{ asset('/manifest.json') }}">
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <!-- Иконки для iOS (Apple) -->
-    <link sizes="57x57" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-57x57.png') }} ">
-    <link sizes="60x60" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-60x60.png') }} ">
-    <link sizes="72x72" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-72x72.png') }} ">
-    <link sizes="76x76" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-76x76.png') }} ">
-    <link sizes="114x114" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-114x114.png') }} ">
-    <link sizes="120x120" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-120x120.png') }} ">
-    <link sizes="144x144" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-144x144.png') }} ">
-    <link sizes="152x152" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-152x152.png') }} ">
-    <link sizes="180x180" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-180x180.png') }} ">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/simplePagination.js/1.6/jquery.simplePagination.min.js"></script>
 
-    <!-- Иконки для MacOS (Apple) -->
-    <link color="#e52037" rel="mask-icon" href="./safari-pinned-tab.svg">
+<!-- Подключаем новую систему загрузки файлов на Яндекс.Диск v3.0 -->
+<script src="{{ asset('js/yandex-disk-uploader-v3.js') }}"></script>
 
-    <!-- Иконки и цвета для плиток Windows -->
-    <meta name="msapplication-TileColor" content="#2b5797">
-    <meta name="msapplication-TileImage" content="./mstile-144x144.png">
-    <meta name="msapplication-square70x70logo" content="./mstile-70x70.png">
-    <meta name="msapplication-square150x150logo" content="./mstile-150x150.png">
-    <meta name="msapplication-wide310x150logo" content="./mstile-310x310.png">
-    <meta name="msapplication-square310x310logo" content="./mstile-310x150.png">
-    <meta name="application-name" content="My Application">
-    <meta name="msapplication-config" content="./browserconfig.xml">
+<!-- Подключаем систему исправления ссылок Яндекс.Диска -->
+<script src="{{ asset('js/yandex-links-fix-final.js') }}"></script>
 
-    <!-- FontAwesome для звезд рейтинга -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- Подключаем CSS для новой системы загрузки файлов -->
+<link rel="stylesheet" href="{{ asset('css/yandex-disk-uploader-v3.css') }}">
+
+
+@vite(['resources/css/font.css', 'resources/js/ratings.js','resources/css/animation.css', 'resources/css/style.css', 'resources/css/element.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js', 'resources/js/modal.js', 'resources/js/success.js', 'resources/js/mask.js'])
+
+<!-- Обязательный (и достаточный) тег для браузеров -->
+<link type="image/x-icon" rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
+
+<!-- Дополнительные иконки для десктопных браузеров -->
+<link type="image/png" sizes="16x16" rel="icon" href="{{ asset('/icons/favicon-16x16.png') }}">
+<link type="image/png" sizes="32x32" rel="icon" href="{{ asset('/icons/favicon-32x32.png') }}">
+<link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/favicon-96x96.png') }}">
+<link type="image/png" sizes="120x120" rel="icon" href="{{ asset('/icons/favicon-120x120.png') }}">
+
+<!-- Иконки для Android -->
+<link type="image/png" sizes="72x72" rel="icon" href="{{ asset('/icons/android-icon-72x72.png') }}">
+<link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/android-icon-96x96.png') }}">
+<link type="image/png" sizes="144x144" rel="icon" href="{{ asset('/icons/android-icon-144x144.png') }}">
+<link type="image/png" sizes="192x192" rel="icon" href="{{ asset('/icons/android-icon-192x192.png') }}">
+<link type="image/png" sizes="512x512" rel="icon" href="{{ asset('/icons/android-icon-512x512.png') }}">
+<link rel="manifest" href="{{ asset('/manifest.json') }}">
+
+<!-- Иконки для iOS (Apple) -->
+<link sizes="57x57" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-57x57.png') }} ">
+<link sizes="60x60" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-60x60.png') }} ">
+<link sizes="72x72" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-72x72.png') }} ">
+<link sizes="76x76" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-76x76.png') }} ">
+<link sizes="114x114" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-114x114.png') }} ">
+<link sizes="120x120" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-120x120.png') }} ">
+<link sizes="144x144" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-144x144.png') }} ">
+<link sizes="152x152" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-152x152.png') }} ">
+<link sizes="180x180" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-180x180.png') }} ">
+
+<!-- Иконки для MacOS (Apple) -->
+<link color="#e52037" rel="mask-icon" href="./safari-pinned-tab.svg">
+
+<!-- Иконки и цвета для плиток Windows -->
+<meta name="msapplication-TileColor" content="#2b5797">
+<meta name="msapplication-TileImage" content="./mstile-144x144.png">
+<meta name="msapplication-square70x70logo" content="./mstile-70x70.png">
+<meta name="msapplication-square150x150logo" content="./mstile-150x150.png">
+<meta name="msapplication-wide310x150logo" content="./mstile-310x310.png">
+<meta name="msapplication-square310x310logo" content="./mstile-310x150.png">
+<meta name="application-name" content="My Application">
+<meta name="msapplication-config" content="./browserconfig.xml">
+
+<!-- FontAwesome для звезд рейтинга -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <!-- PWA скрипты -->
     <script>
@@ -187,16 +188,7 @@
         }
     </script>
 
-    <script>
-        wow = new WOW({
-            boxClass: 'wow', // default
-            animateClass: 'animated', // default
-            offset: 0, // default
-            mobile: true, // default
-            live: true // default  
-        })
-        wow.init();
-    </script>
+  
     <script>
         function refreshCsrfToken() {
             fetch('{{ route('refresh-csrf') }}')
@@ -900,88 +892,78 @@
         });
     </script>
 
-    <!-- Упрощенное модальное окно для оценки специалистов -->
+    <!-- Улучшенное модальное окно для отображения рейтингов -->
     <div id="rating-modal" class="rating-modal" style="display:none;">
         <div class="rating-modal-backdrop" id="rating-modal-backdrop"></div>
         <div class="rating-modal-content">
             <div class="rating-modal-header">
-                <h3>Оценка работы по проекту</h3>
+                <h2>Оцените работу специалиста</h2>
                 <button type="button" class="rating-modal-close" id="rating-modal-close" title="Закрыть">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <!-- Информация о сделке -->
-            <div class="deal-info-block">
-                <div class="deal-info-row">
-                    <span class="info-label">Проект:</span>
-                    <span id="deal-project-number" class="info-value">№ не указан</span>
+            <div class="rating-progress">
+                <div class="progress-text">
+                    <span id="current-rating-index">1</span> из <span id="total-ratings">1</span>
                 </div>
-                <div class="deal-info-row">
-                    <span class="info-label">Клиент:</span>
-                    <span id="deal-client-info" class="info-value">не указан</span>
-                </div>
-                <div class="deal-info-row">
-                    <span class="info-label">Телефон:</span>
-                    <span id="deal-client-phone" class="info-value">не указан</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="rating-progress-fill" style="width: 0%"></div>
                 </div>
             </div>
             
-            <!-- Прогресс оценки -->
-            <div class="rating-progress-simple">
-                <span id="current-rating-index">1</span> из <span id="total-ratings">1</span> специалистов
+            <div class="rating-alert" id="rating-alert">
+                Для продолжения работы необходимо оценить всех специалистов по данной сделке
             </div>
             
-            <!-- Информация о специалисте (упрощенная) -->
-            <div class="specialist-block">
-                <div class="specialist-avatar">
-                    <img id="rating-user-avatar" src="/storage/icon/profile.svg" alt="Аватар">
+            <div class="rating-user-info">
+                <div class="rating-avatar-container">
+                    <img id="rating-user-avatar" src="/storage/icon/profile.svg" class="rating-avatar" alt="Аватар специалиста">
+                    <div class="rating-user-status" id="rating-user-status"></div>
                 </div>
-                <div class="specialist-info">
-                    <div class="specialist-name" id="rating-user-name">Имя специалиста</div>
-                    <div class="specialist-role" id="rating-user-role">Должность</div>
-                </div>
-            </div>
-            
-            <!-- Звезды для оценки -->
-            <div class="rating-section">
-                <div class="rating-label">Ваша оценка:</div>
-                <div class="rating-stars">
-                    <span class="star" data-value="1" title="1 звезда">
-                        <i class="fas fa-star"></i>
-                    </span>
-                    <span class="star" data-value="2" title="2 звезды">
-                        <i class="fas fa-star"></i>
-                    </span>
-                    <span class="star" data-value="3" title="3 звезды">
-                        <i class="fas fa-star"></i>
-                    </span>
-                    <span class="star" data-value="4" title="4 звезды">
-                        <i class="fas fa-star"></i>
-                    </span>
-                    <span class="star" data-value="5" title="5 звезд">
-                        <i class="fas fa-star"></i>
-                    </span>
+                <div class="rating-user-details">
+                    <div id="rating-user-name" class="rating-name">Имя специалиста</div>
+                    <div id="rating-user-role" class="rating-role">Должность</div>
                 </div>
             </div>
+           
             
-            <!-- Комментарий (упрощенный) -->
-            <div class="comment-section">
-                <textarea id="rating-comment" placeholder="Комментарий (необязательно)" maxlength="300"></textarea>
-                <div class="char-counter">
-                    <span id="comment-char-count">0</span>/300
+            <div class="rating-stars">
+                <span class="star" data-value="1" title="Очень плохо">
+                    <i class="fas fa-star"></i>
+                </span>
+                <span class="star" data-value="2" title="Плохо">
+                    <i class="fas fa-star"></i>
+                </span>
+                <span class="star" data-value="3" title="Нормально">
+                    <i class="fas fa-star"></i>
+                </span>
+                <span class="star" data-value="4" title="Хорошо">
+                    <i class="fas fa-star"></i>
+                </span>
+                <span class="star" data-value="5" title="Отлично">
+                    <i class="fas fa-star"></i>
+                </span>
+            </div>
+            
+            <div class="rating-comment">
+                <label for="rating-comment">
+                    <i class="fas fa-comment"></i> Комментарий (необязательно):
+                </label>
+                <textarea id="rating-comment" placeholder="Расскажите о своем опыте сотрудничества..." maxlength="500"></textarea>
+                <div class="character-count">
+                    <span id="comment-char-count">0</span>/500
                 </div>
             </div>
             
-            <!-- Действия -->
-            <div class="rating-actions">
-                <button id="submit-rating" class="btn btn-primary" disabled>
-                    <i class="fas fa-check"></i> Оценить
+            <div class="rating-modal-actions">
+                <button id="submit-rating" class="btn btn-primary" disabled title="Сохранить оценку">
+                    <i class="fas fa-star"></i> Оценить
                 </button>
-                <button id="skip-rating" class="btn btn-secondary">
-                    <i class="fas fa-arrow-right"></i> Пропустить
+                <button id="skip-rating" class="btn btn-outline-secondary" title="Пропустить оценку этого специалиста">
+                    <i class="fas fa-forward"></i> Пропустить
                 </button>
-                <button id="close-all-ratings" class="btn btn-outline-danger">
+                <button id="close-all-ratings" class="btn btn-outline-danger" title="Закрыть все оценки (несохраненные данные будут потеряны)">
                     <i class="fas fa-times"></i> Закрыть все
                 </button>
             </div>
@@ -1072,9 +1054,5 @@
 </style>
 <!-- Скрипт для проверки и загрузки Select2 при необходимости -->
 <script src="{{ asset('/js/select2-checker.js') }}"></script>
-
-<!-- CSRF защита -->
-<script src="{{ asset('/js/csrf-protection.js') }}"></script>
-
 </body>
 </html>

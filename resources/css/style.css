@@ -1372,7 +1372,7 @@ li.logo_flex.flex {
     display: flex;
     inset: 0px;
     position: fixed;
-    background-image: url("/public/img/auth/authFon.png");
+    background-image: url("http://127.0.0.1:5173/public/img/auth/authFon.png");
     background-position: center center;
     background-size: 100%;
     background-repeat: no-repeat;
@@ -4170,7 +4170,7 @@ ul.auth__form__link a {
 }
 
 .auth__fon {
-    background-image: url("/public/img/auth/authFon.png");
+    background-image: url("http://127.0.0.1:5173/public/img/auth/authFon.png");
     background-position: left center;
     height: 100%;
     background-size: contain;
@@ -4404,7 +4404,7 @@ table.dataTable tbody th, table.dataTable tbody td {
 }
 
 .div__create_form-commercian {
-    background-image: url("/public/img/brifs/formFONbrif-commercian.jpg");
+    background-image: url("http://127.0.0.1:5173/public/img/brifs/formFONbrif-commercian.jpg");
     background-position: 100% center;
     border-radius: var(--radius);
     background-size: cover;
@@ -4412,7 +4412,7 @@ table.dataTable tbody th, table.dataTable tbody td {
 }
 
 .div__create_form-commons {
-    background-image: url("/public/img/brifs/formFONbrif-common.jpg");
+    background-image: url("http://127.0.0.1:5173/public/img/brifs/formFONbrif-common.jpg");
     background-position: 100% center;
     border-radius: var(--radius);
     background-size: cover;
@@ -4420,7 +4420,7 @@ table.dataTable tbody th, table.dataTable tbody td {
 }
 
 .div__create_form {
-    background-image: url("/public/img/brifs/formFONbrif.png");
+    background-image: url("http://127.0.0.1:5173/public/img/brifs/formFONbrif.png");
     background-position: 100% center;
     border-radius: var(--radius);
     background-size: cover;
@@ -14041,172 +14041,4 @@ div#all-deals-pagination ul {
 #editModal .modal-content {
     z-index: 1050 !important;
     overflow: visible !important;
-}
-
-/* Стили для упрощенного модального окна рейтингов */
-.deal-info-block {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-    border-left: 4px solid #007bff;
-}
-
-.deal-info-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-}
-
-.deal-info-row:last-child {
-    margin-bottom: 0;
-}
-
-.info-label {
-    font-weight: 500;
-    color: #666;
-    min-width: 60px;
-}
-
-.info-value {
-    font-weight: 600;
-    color: #333;
-    text-align: right;
-}
-
-.rating-progress-simple {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-    margin: 15px 0;
-    padding: 8px;
-    background: #e9ecef;
-    border-radius: 6px;
-}
-
-.specialist-block {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin: 15px 0;
-}
-
-.specialist-avatar {
-    margin-right: 15px;
-}
-
-.specialist-avatar img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #dee2e6;
-}
-
-.specialist-info {
-    flex: 1;
-}
-
-.specialist-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 4px;
-}
-
-.specialist-role {
-    font-size: 14px;
-    color: #666;
-    text-transform: capitalize;
-}
-
-.rating-section {
-    text-align: center;
-    margin: 20px 0;
-}
-
-.rating-label {
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.comment-section {
-    margin: 20px 0;
-}
-
-.comment-section textarea {
-    width: 100%;
-    min-height: 80px;
-    padding: 12px;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    resize: vertical;
-    font-family: inherit;
-    font-size: 14px;
-}
-
-.comment-section textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.char-counter {
-    text-align: right;
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
-
-.rating-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 25px;
-}
-
-.rating-actions .btn {
-    min-width: 100px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.rating-actions .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-    .rating-modal-content {
-        padding: 20px;
-        margin: 10px;
-    }
-    
-    .deal-info-row {
-        flex-direction: column;
-        gap: 4px;
-    }
-    
-    .info-value {
-        text-align: left;
-    }
-    
-    .rating-actions {
-        flex-direction: column;
-    }
-    
-    .rating-actions .btn {
-        width: 100%;
-    }
 }

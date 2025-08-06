@@ -106,26 +106,29 @@ class BriefSearchController extends Controller
             }
             
             try {
-                // Ищем общие брифы по ID пользователей
+                // Ищем общие брифы по ID пользователей (только завершенные и отредактированные)
                 $commonBriefs = Common::whereIn('user_id', $userIds)
+                    ->whereIn('status', ['Завершенный', 'Отредактированный'])
                     ->with('user')
                     ->get()
                     ->map(function($brief) use ($dealId) {
-                        // Проверяем, привязан ли бриф к данной сделке
-                        $alreadyLinked = Deal::where('id', $dealId)
-                            ->where('common_id', $brief->id)
-                            ->exists();
+                        // Проверяем, привязан ли бриф к любой сделке
+                        $alreadyLinked = Deal::where('common_id', $brief->id)->exists();
                         
                         return [
                             'id' => $brief->id,
-                            'title' => $brief->name ?? ('Общий бриф #' . $brief->id),
+                            'title' => $brief->name ?? $brief->title ?? ('Общий бриф #' . $brief->id),
                             'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
                             'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
-                            'already_linked' => $alreadyLinked
+                            'already_linked' => $alreadyLinked,
+                            'status' => $brief->status ?? 'Не указан',
+                            'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
                         ];
                     });
                 
-                Log::info('Найдено общих брифов: ' . $commonBriefs->count());
+                Log::info('Найдено общих брифов (завершенные и отредактированные): ' . $commonBriefs->count(), [
+                    'briefs' => $commonBriefs->toArray()
+                ]);
             } catch (Exception $e) {
                 Log::error('Ошибка при поиске общих брифов: ' . $e->getMessage(), [
                     'trace' => $e->getTraceAsString()
@@ -134,26 +137,29 @@ class BriefSearchController extends Controller
             }
             
             try {
-                // Ищем коммерческие брифы по ID пользователей
+                // Ищем коммерческие брифы по ID пользователей (только завершенные и отредактированные)
                 $commercialBriefs = Commercial::whereIn('user_id', $userIds)
+                    ->whereIn('status', ['Завершенный', 'Отредактированный'])
                     ->with('user')
                     ->get()
                     ->map(function($brief) use ($dealId) {
-                        // Проверяем, привязан ли бриф к данной сделке
-                        $alreadyLinked = Deal::where('id', $dealId)
-                            ->where('commercial_id', $brief->id)
-                            ->exists();
+                        // Проверяем, привязан ли бриф к любой сделке
+                        $alreadyLinked = Deal::where('commercial_id', $brief->id)->exists();
                         
                         return [
                             'id' => $brief->id,
-                            'title' => $brief->name ?? ('Коммерческий бриф #' . $brief->id),
+                            'title' => $brief->name ?? $brief->title ?? ('Коммерческий бриф #' . $brief->id),
                             'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
                             'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
-                            'already_linked' => $alreadyLinked
+                            'already_linked' => $alreadyLinked,
+                            'status' => $brief->status ?? 'Не указан',
+                            'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
                         ];
                     });
                 
-                Log::info('Найдено коммерческих брифов: ' . $commercialBriefs->count());
+                Log::info('Найдено коммерческих брифов (завершенные и отредактированные): ' . $commercialBriefs->count(), [
+                    'briefs' => $commercialBriefs->toArray()
+                ]);
             } catch (Exception $e) {
                 Log::error('Ошибка при поиске коммерческих брифов: ' . $e->getMessage(), [
                     'trace' => $e->getTraceAsString()
@@ -175,7 +181,8 @@ class BriefSearchController extends Controller
                 'commercials' => $commercialBriefs,
                 'has_attached_brief' => $hasAttachedBrief,
                 'attached_brief_type' => $attachedBriefType,
-                'message' => 'Найдено брифов: ' . ($commonBriefs->count() + $commercialBriefs->count())
+                'total_found' => $commonBriefs->count() + $commercialBriefs->count(),
+                'message' => 'Найдено доступных для привязки брифов: ' . ($commonBriefs->count() + $commercialBriefs->count())
             ]);
             
         } catch (Exception $e) {

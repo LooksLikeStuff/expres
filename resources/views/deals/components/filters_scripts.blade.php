@@ -218,12 +218,6 @@
                         'min-width': parentWidth + 'px',
                         'max-width': parentWidth + 'px'
                     });
-                    
-                    // Автоматически ставим фокус на поле поиска при открытии Select2
-                    var searchField = $('.select2-container--open .select2-search__field');
-                    if (searchField.length) {
-                        searchField.focus();
-                    }
                 }, 0);
             });
 

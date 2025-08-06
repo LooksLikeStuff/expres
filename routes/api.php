@@ -3,7 +3,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\DealsController;
 use App\Http\Middleware\CheckChatAccess;
 
 /*
@@ -21,9 +20,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// API для подсчета логов (доступно только админам)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/deals/logs-count', [DealsController::class, 'getLogsCount']);
+// Простые утилитарные эндпоинты для оптимизации соединений
+Route::match(['GET', 'HEAD'], '/ping', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => time()]);
+});
+
+Route::match(['GET', 'HEAD'], '/keepalive', function () {
+    return response()->json(['status' => 'alive', 'timestamp' => time()]);
 });
 
 // Маршруты для чата с защитой аутентификации 
@@ -66,6 +69,20 @@ Route::middleware('auth:web')->group(function () {
     
     // Загрузка документов
     Route::post('/upload-documents', 'App\Http\Controllers\DocumentUploadController@uploadDocuments');
+});
+
+// Новая система загрузки файлов на Яндекс.Диск v3.0 (без дополнительной аутентификации)
+Route::middleware('auth:web')->group(function () {
+    Route::post('/yandex-disk/upload', 'App\Http\Controllers\Api\YandexDiskController@upload');
+    Route::post('/yandex-disk/delete', 'App\Http\Controllers\Api\YandexDiskController@delete');
+    Route::get('/yandex-disk/info', 'App\Http\Controllers\Api\YandexDiskController@info');
+    Route::get('/yandex-disk/health', 'App\Http\Controllers\Api\YandexDiskController@health');
+    
+    // Специальный маршрут для загрузки файлов сделок
+    Route::post('/deals/upload-yandex', 'App\Http\Controllers\DealsController@uploadFileToYandex');
+    
+    // API для получения данных сделки
+    Route::get('/deals/{deal}/data', 'App\Http\Controllers\DealsController@getDealData');
 });
 // });
 

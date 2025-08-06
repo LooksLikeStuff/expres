@@ -93,15 +93,6 @@
                                 <option value="360 градусов"
                                     {{ request('price_service_option') == '360 градусов' ? 'selected' : '' }}>360
                                     градусов</option>
-                                <option value="Ландшафт"
-                                    {{ request('price_service_option') == 'Ландшафт' ? 'selected' : '' }}>
-                                    Ландшафт</option>
-                                <option value="экспресс экстерьер"
-                                    {{ request('price_service_option') == 'экспресс экстерьер' ? 'selected' : '' }}>
-                                    Экспресс экстерьер</option>
-                                <option value="экспресс эскизный экстерьер"
-                                    {{ request('price_service_option') == 'экспресс эскизный экстерьер' ? 'selected' : '' }}>
-                                    Экспресс эскизный экстерьер</option>
                             </select>
                             <i class="fas fa-chevron-down select-icon"></i>
                         </div>
@@ -191,26 +182,3 @@
         </div>
     </form>
 </div>
-  @if (Auth::check() && Auth::user()->status === 'admin')
-        <!-- Блок для админа - переход к логам сделок -->
-        <div class="admin-logs-block mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 1px solid #dee2e6; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h5 class="mb-2" style="color: #495057; font-weight: 600;">
-                        <i class="fas fa-clipboard-list me-2" style="color: #007bff;"></i>
-                        Логи действий со сделками
-                    </h5>
-                    <p class="text-muted mb-0" style="font-size: 14px;">
-                        Просмотр всех действий пользователей со сделками (создание, изменение, удаление)
-                    </p>
-                </div>
-                <div>
-                    <a href="{{ route('deals.global_change_logs') }}" class="btn btn-primary btn-lg" style="border-radius: 8px; padding: 12px 24px;">
-                        <i class="fas fa-external-link-alt me-2"></i>
-                        Перейти к логам
-                    </a>
-                </div>
-            </div>
-        </div>
-    @endif
-   
