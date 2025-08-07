@@ -71,4 +71,14 @@ class Chat extends Model
     {
         return asset('img/chats/group/placeholder.png');
     }
+
+    public function unreadCountForUser(int $userId): int
+    {
+        return $this->messages()
+            ->whereDoesntHave('readReceipts', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->where('sender_id', '!=', $userId)
+            ->count();
+    }
 }

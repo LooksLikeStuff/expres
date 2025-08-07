@@ -147,9 +147,10 @@
                         <!-- Message input -->
                         <div class="message-input-container">
                             <div class="message-input-wrapper">
-                                <button class="btn-icon attach-btn" title="Прикрепить файл">
+                                <button id="attach-btn" class="btn-icon attach-btn" title="Прикрепить файл">
                                     <i class="bi bi-paperclip"></i>
                                 </button>
+                                <input class="d-none" type="file" accept="image/*" id="attach-input" multiple>
                                 <div class="input-wrapper">
                         <textarea
                             id="messageInput"

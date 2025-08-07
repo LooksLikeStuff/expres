@@ -13,11 +13,15 @@ export default class ChatInterface {
 
         //Файлы вложения
         this.attachPreviewContainer = document.getElementById('attach__container')
-        this.attachInput = document.getElementById('file-input');
-        this.attachInputButton = document.getElementById('attachment-button');
+        this.attachInput = $('#attach-input');
+        this.attachInputButton = $('#attach-btn');
 
         this.userListContainer = document.getElementById('chats_userlist');
         this.currentUserId = $('#user_id').val();
+
+        this.currentPage = 1;
+        this.isLoadingMessages = false;
+        this.hasMoreMessages = true;
 
         $.ajaxSetup({
             headers: {
@@ -31,8 +35,8 @@ export default class ChatInterface {
     }
 
     bindEvents() {
-        // this.attachInputButton.addEventListener('click', () => this.attachFile());
-        // this.attachInput.addEventListener('change', () => this.displayAttachmentFiles());
+        this.attachInputButton.click(() => this.attachFile());
+        this.attachInput.change(() => this.displayAttachmentFiles());
         //
         this.chatElements.on('click', (e) => {
             const chatItem = e.currentTarget;
@@ -40,10 +44,15 @@ export default class ChatInterface {
             this.activateChat(chatId);
         });
 
+        this.messagesContainer.on('scroll', () => {
+            if (this.messagesContainer.scrollTop() <= 100) {
+                this.loadMoreMessages(this.chatClient.currentChatId);
+            }
+        });
         $('#sendBtn').click(async () => {
             const content = this.getMessageContent();
             if (content) {
-                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.attachInput?.files);
+                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.attachInput[0]?.files);
                 this.messageInput.val('');
                 this.hideAttachments();
             }
@@ -73,6 +82,42 @@ export default class ChatInterface {
                 const userId = event.target.getAttribute('data-user-id');
 
                 await this.chatClient.removeUserFromCurrentChat(userId);
+            }
+        });
+    }
+
+    loadMoreMessages(chatId) {
+        if (this.isLoadingMessages || !this.hasMoreMessages) return;
+
+        this.isLoadingMessages = true;
+
+        $.ajax({
+            url: `/chats/${chatId}/messages?page=${this.currentPage + 1}`,
+            method: 'POST',
+            success: (data) => {
+                const messages = data.messages.data.reverse();
+
+                if (messages.length === 0) {
+                    this.hasMoreMessages = false;
+                    return;
+                }
+
+                const scrollPositionBefore = this.messagesList[0].scrollHeight;
+                const scrollTarget = this.messagesList[0].scrollTop;
+
+                this.renderMessages(messages, { prepend: true });
+                this.chatClient.observeReadReceipts(this.messagesList);
+
+                const scrollPositionAfter = this.messagesList[0].scrollHeight;
+                this.messagesList[0].scrollTop = scrollPositionAfter - scrollPositionBefore + scrollTarget;
+
+                this.currentPage++;
+            },
+            complete: () => {
+                this.isLoadingMessages = false;
+            },
+            error: () => {
+                console.error('Failed to load more messages');
             }
         });
     }
@@ -157,13 +202,17 @@ export default class ChatInterface {
     }
 
     loadMessages(chatId) {
+        this.currentPage = 1;
+        this.hasMoreMessages = true;
+        this.isLoadingMessages = false;
+
         $.ajax({
             url: `/chats/${chatId}/messages`,
             method: 'POST',
             success: (data)=> {
                 this.renderMessages(data.messages.data.reverse());
-                this.chatClient.observeReadReceipts(this.messagesList);
                 this.scrollToBottom();
+                this.chatClient.observeReadReceipts(this.messagesList);
             },
             error: function() {
                 console.error('Failed to load messages');
@@ -171,13 +220,15 @@ export default class ChatInterface {
         });
     }
 
-    renderMessages(messages) {
-        const messagesList = $('#messagesList');
-        messagesList.empty();
+    renderMessages(messages, options = {}) {
 
         messages.forEach(message => {
             const messageElement = this.createMessageElement(message);
-            messagesList.append(messageElement);
+            if (options.prepend) {
+                this.messagesList.prepend(messageElement);
+            } else {
+                this.messagesList.append(messageElement);
+            }
         });
     }
 
@@ -419,4 +470,13 @@ export default class ChatInterface {
     isGroupChat() {
         return $(`.chat-item[data-chat-id="${this.chatClient.currentChatId}"]`).attr('data-chat-type') === 'group';
     }
+
+    updateChatInfo(data) {
+        const $chatItem = $(`.chat-item[data-chat-id="${data.chat_id}"]`)
+
+        $chatItem.find('.chat-item-message').text(data.last_message);
+        $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${data.unread_count}</span>`);
+        $chatItem.find('.chat-item-time').text(data.time);
+    }
+
 }

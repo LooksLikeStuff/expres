@@ -44,6 +44,7 @@ export default class ChatClient {
                 }).then((currentToken) => {
                     if (currentToken) {
                         this.registerFirebaseToken(currentToken);
+                        console.log(currentToken);
                     } else {
                         console.warn('Нет токена. Запроси разрешение на уведомления.');
                     }
@@ -57,7 +58,7 @@ export default class ChatClient {
 
 
         onMessage(messaging, (payload) => {
-            // Покажи что-то в UI (например, notification badge)
+            this.onFirebaseMessage(payload);
         });
 
     }
@@ -136,6 +137,10 @@ export default class ChatClient {
         this.onOnlineUsersChange = callback;
     }
 
+    setFirebaseMessageHandler(callback) {
+        this.onFirebaseMessage = callback;
+    }
+
 
     leaveCurrentChat() {
         if (!this.echo || !this.currentChatId) return;
@@ -146,25 +151,36 @@ export default class ChatClient {
 
 
     async sendMessage(chatId, content, attachments) {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const formData = new FormData();
 
         formData.append('chat_id', chatId);
         formData.append('content', content);
 
-        if (attachments && attachments.length) {
-            Array.from(attachments).forEach((file) => {
-                formData.append('attachments[]', file);
-            });
+        if (attachments) {
+            for (let i = 0; i < attachments.length; i++) {
+                formData.append('attachments[]', attachments[i]);
+            }
         }
 
-        return await fetch('/messages', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': token,
-            },
-            body: formData,
-        });
+
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+
+        try {
+            const response = await $.ajax({
+                url: '/messages',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Ошибка при отправке сообщения:', error);
+            throw error;
+        }
     }
 
     getUserId() {

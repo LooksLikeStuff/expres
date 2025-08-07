@@ -26,6 +26,10 @@ $(document).ready(function() {
         chatInterface.updateOnlineStatus();
     });
 
+  chatClient.setFirebaseMessageHandler((payload) => {
+        chatInterface.updateChatInfo(payload.data);
+    });
+
     // Global variables
     let currentFilter = 'all';
     let onlineUsers = [1, 2]; // Simulate online users

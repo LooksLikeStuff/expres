@@ -19,7 +19,7 @@ messaging.onBackgroundMessage(function(payload) {
         body: payload.notification.body,
         // icon: '/img/chats/private/placeholder.png', // желательно иконку указать!
         data: {
-            url: 'https://localhost/chats' // можно использовать для перехода по клику
+            url: '/' // можно использовать для перехода по клику
         }
     };
 
