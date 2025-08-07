@@ -4,6 +4,7 @@ namespace App\Services\Chats;
 
 use App\DTO\ChatDTO;
 use App\Models\Chats\Chat;
+use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
@@ -21,4 +22,27 @@ class ChatService
             ->first('id')
             ?->id;
     }
+
+    public function getUserChats(int $userId)
+    {
+
+        $chats = Chat::with(['users:id,name'])
+            ->withCount([
+                'messages as unread_count' => function ($query) use ($userId) {
+                    $query->whereDoesntHave('readReceipts', function ($q) use ($userId) {
+                        $q->where('user_id', $userId);
+                    })->where('sender_id', '!=', $userId);
+                }
+            ])
+            ->with(['messages' => function ($query) {
+                $query->latest()->limit(1); // только последнее сообщение
+            }])
+            ->whereHas('users', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->get();
+
+        return $chats;
+    }
+
 }

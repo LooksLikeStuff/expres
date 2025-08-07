@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Message extends Model
 {
@@ -31,7 +32,7 @@ class Message extends Model
         'type' => MessageType::class,
     ];
 
-    protected $appends = ['time', 'sender_name', 'read_at'];
+    protected $appends = ['time', 'sender_name', 'read_at', 'formatted_time'];
 
     public function getTimeAttribute(): string
     {
@@ -48,6 +49,24 @@ class Message extends Model
         return $this->readReceipt?->read_at;
     }
 
+    public function getFormattedTimeAttribute(): string
+    {
+        if (!$this->created_at) return '';
+
+        $created = $this->created_at->copy();
+        $now = Carbon::now();
+
+        if ($created->isToday()) {
+            return $created->format('H:i');
+        }
+
+        if ($created->isYesterday()) {
+            return 'вчера';
+        }
+
+        return $created->format('d.m.Y');
+    }
+
     public function chat()
     {
         return $this->belongsTo(Chat::class);
@@ -58,6 +77,11 @@ class Message extends Model
     {
         return $this->hasOne(ReadReceipt::class)
             ->where('user_id', auth()->id());
+    }
+
+    public function readReceipts()
+    {
+        return $this->hasMany(ReadReceipt::class);
     }
 
 
