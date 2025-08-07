@@ -12,7 +12,9 @@
 @endsection
 
 @section('content')
-    <input type="hidden" id="user_id" value="{{auth()->id()}}">
+    <input type="hidden" id="user_id" value="{{$user->id}}">
+    <input type="hidden" id="user_name" value="{{$user->name}}">
+
     <div class="main__flex gap-0">
         <div class="main__ponel">
             @include('layouts/ponel')
@@ -113,7 +115,8 @@
                                 <div class="chat-details">
                                     <h6 class="chat-name" id="chatName"></h6>
                                     <span class="chat-status" id="chatStatus">был(а) недавно</span>
-                                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                                    <div class="typing-indicator d-none" id="typingIndicator">
+                                        <span class="user-name"></span>
                                         <span>печатает</span>
                                         <div class="typing-dots">
                                             <span></span>

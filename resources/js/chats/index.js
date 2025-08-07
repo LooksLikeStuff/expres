@@ -3,12 +3,20 @@ import ChatInterface from './ChatInterface';
 import $ from 'jquery';
 
 $(document).ready(function() {
-    const userId = document.getElementById('user_id')?.value;
+    const userId = $('#user_id')?.val();
     if (!userId) {
         console.warn('User ID not found.');
         return;
     }
-    const chatClient = new ChatClient(userId);
+
+    const userName = $('#user_name')?.val();
+    if (!userName) {
+        console.warn('User name not found.');
+        return;
+    }
+
+
+    const chatClient = new ChatClient(userId, userName);
     chatClient.init();
 
     const chatInterface = new ChatInterface(chatClient);
@@ -19,17 +27,13 @@ $(document).ready(function() {
     });
 
     // Global variables
-    let currentChatId = null;
     let currentFilter = 'all';
-    let typingTimeout = null;
-    let isTyping = false;
     let onlineUsers = [1, 2]; // Simulate online users
 
     // Initialize app
     init();
 
     function init() {
-        loadChats();
         bindEvents();
         autoResizeTextarea();
     }
@@ -40,13 +44,6 @@ $(document).ready(function() {
         $('.filter-btn').on('click', function() {
             const filter = $(this).data('filter');
             setActiveFilter(filter);
-        });
-
-        // Send message
-
-        // Typing indicator
-        $('#messageInput').on('input', function() {
-            handleTyping();
         });
 
         // Search functionality
@@ -162,30 +159,6 @@ $(document).ready(function() {
     }
 
     // Handle typing indicator
-    function handleTyping() {
-        if (!isTyping) {
-            isTyping = true;
-            // In real app, send typing status to server
-        }
-
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            isTyping = false;
-            // In real app, send stop typing status to server
-        }, 1000);
-    }
-
-    // Simulate typing indicator from other user
-    function simulateTyping(duration = 2000) {
-        $('#typingIndicator').show();
-        $('#chatStatus').hide();
-
-        setTimeout(() => {
-            $('#typingIndicator').hide();
-            $('#chatStatus').show();
-        }, duration);
-    }
-
     // Auto-resize textarea
     function autoResizeTextarea() {
         $('#messageInput').on('input', function() {

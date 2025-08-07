@@ -6448,18 +6448,18 @@ u {
     overflow: hidden;
 }
 
-.typing-indicator {
-    padding: 10px 15px;
-    display: none;
-    font-style: italic;
-    color: rgb(108, 117, 125);
-    background-color: rgb(249, 249, 249);
-    border-radius: 20px;
-    margin: 0px 15px 15px;
-    font-size: 0.9rem;
-    -webkit-animation: 0.3s ease 0s 1 normal none running fadeInUp;
-            animation: 0.3s ease 0s 1 normal none running fadeInUp;
-}
+/*.typing-indicator {*/
+/*    padding: 10px 15px;*/
+/*    display: none;*/
+/*    font-style: italic;*/
+/*    color: rgb(108, 117, 125);*/
+/*    background-color: rgb(249, 249, 249);*/
+/*    border-radius: 20px;*/
+/*    margin: 0px 15px 15px;*/
+/*    font-size: 0.9rem;*/
+/*    -webkit-animation: 0.3s ease 0s 1 normal none running fadeInUp;*/
+/*            animation: 0.3s ease 0s 1 normal none running fadeInUp;*/
+/*}*/
 
 @-webkit-keyframes fadeInUp {
     0% {

@@ -653,7 +653,7 @@ body {
             .typing-indicator {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 4px;
                 font-size: 13px;
                 color: $primary-color;
 
@@ -747,7 +747,7 @@ body {
         }
 
         .message-content {
-            background-color: $message-bg;
+            background-color: $chat-bg;
             padding: 12px 16px;
             @include border-radius(18px);
             @include shadow(1);

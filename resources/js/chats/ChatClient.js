@@ -5,8 +5,9 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import $ from "jquery";
 
 export default class ChatClient {
-    constructor(userId) {
+    constructor(userId, userName) {
         this.userId = userId;
+        this.userName = userName;
         this.currentChatId = null;
         this.onlineUsers = null;
         this.echo = null;
@@ -105,6 +106,7 @@ export default class ChatClient {
                 callback('read', e);
             })
             .listenForWhisper('typing', (e) => {
+                console.log(e);
                 if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('typing', e);
             });
@@ -246,11 +248,14 @@ export default class ChatClient {
 
         this.lastTyping = Date.now();
 
+
         this.echo.private(`chat.${this.currentChatId}`)
             .whisper('typing', {
                 user_id: this.userId,
+                username: this.userName,
                 timestamp: new Date().toISOString(),
             });
     }
+
 
 }

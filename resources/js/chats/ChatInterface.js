@@ -5,7 +5,6 @@ export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
         this.chatElements = $('.chat-item');
-        this.messageContainer = document.getElementById('messages_container');
         this.messageInput = $('#messageInput');
         this.messageForm = document.getElementById('message-form');
         this.messagesLoader = document.getElementById('messages-loading');
@@ -47,6 +46,8 @@ export default class ChatInterface {
                 this.hideAttachments();
             }
         });
+
+        this.messageInput.on('input', () => this.chatClient.sendTypingEvent());
 
         this.messageInput.on('keypress', async (e) => {
             if (e.which === 13 && !e.shiftKey) {
@@ -128,8 +129,7 @@ export default class ChatInterface {
                     this.markAsRead(data);
                     break;
                 case 'typing':
-                    console.log(data);
-                    // this.handleTypingIndicator(data);
+                    this.handleTypingIndicator(data.username);
                     break;
             }
         });
@@ -181,39 +181,6 @@ export default class ChatInterface {
     markAsRead(data) {
         console.log(data);
     }
-
-    async getChatData(chatId) {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        const response = await fetch(`/chats/${chatId}/messages`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token,
-            },
-        });
-
-        if (response.ok) {
-            return await response.json(); // ← тут получаем JSON-ответ
-        } else {
-            console.log('Ошибка: ' + response.status);
-            return []; // безопасно вернуть пустой массив, чтобы не ломать фронт
-        }
-    }
-    displayChatMessages(messages) {
-        messages.forEach((message) => this.appendMessage(message, false));
-
-        this.messagesLoader.classList.add('d-none');
-
-        //Прячем форму ввода сообщений
-        this.messageForm.classList.remove('d-none');
-    }
-
-    highlightActiveChat(chatId) {
-        this.chatElements.forEach((el) => el.classList.remove('active'));
-        document.querySelector(`[data-chat-id="${chatId}"]`)?.classList.add('active');
-    }
-
 
     appendMessage(message) {
         // Add message to chat
@@ -341,42 +308,6 @@ export default class ChatInterface {
         // this.attachInput.value = null;
     }
 
-    addUserItem(user) {
-        const li = document.createElement('li');
-        li.classList.add('chats__userlist-item');
-        li.setAttribute('data-user-id', user.id); // можно будет потом легко удалить
-
-        li.innerHTML = `
-            ${user.name}
-            <span class="chats__userlist-remove">
-                <button class="btn btn-danger remove__btn" data-user-id="${user.id}">x</button>
-            </span>
-        `;
-
-        this.userListContainer.appendChild(li);
-    }
-
-    displayChatUsers(users) {
-        this.userListContainer.innerHTML = '';
-
-        Array.from(users).forEach((user) => this.addUserItem(user));
-    }
-
-
-    renderOnlineUsers() {
-        console.log(this.onlineUsers.length, this.onlineUsers);
-        const container = document.getElementById('online-users');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        this.onlineUsers.forEach(user => {
-            const li = document.createElement('li');
-            li.textContent = user.name;
-            container.appendChild(li);
-        });
-    }
-
     // Scroll to bottom of messages
     scrollToBottom() {
         const container = $('#messagesContainer');
@@ -435,5 +366,28 @@ export default class ChatInterface {
                 chatStatus.text('был(а) недавно');
             }
         });
+    }
+
+    handleTypingIndicator(username) {
+        const $typingIndicator = $('#typingIndicator');
+
+        if (this.isGroupChat()) {
+            $typingIndicator.find('.user-name').text(username);
+        }
+
+        // Показываем индикатор
+        $typingIndicator.removeClass('d-none');
+        $('#chatStatus').addClass('d-none');
+
+        // Скрываем через 2 секунды после последнего "typing"
+        clearTimeout(this._typingTimeout);
+        this._typingTimeout = setTimeout(() => {
+            $typingIndicator.addClass('d-none');
+            $('#chatStatus').removeClass('d-none');
+        }, 2000);
+    }
+
+    isGroupChat() {
+        return $(`.chat-item[data-chat-id="${this.chatClient.currentChatId}"]`).attr('data-chat-type') === 'group';
     }
 }
