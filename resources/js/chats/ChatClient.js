@@ -106,7 +106,6 @@ export default class ChatClient {
                 callback('read', e);
             })
             .listenForWhisper('typing', (e) => {
-                console.log(e);
                 if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('typing', e);
             });
@@ -203,7 +202,7 @@ export default class ChatClient {
             });
         }
 
-        container.querySelectorAll('[data-read-status="0"]').forEach(el => {
+        $(container).find('.message:not(.own)').each((_, el) => {
             this.observer.observe(el);
         });
     }
@@ -211,30 +210,30 @@ export default class ChatClient {
     async handleIntersection(entries) {
         for (const entry of entries) {
             if (entry.isIntersecting) {
-                const el = entry.target;
-                const messageId = el.dataset.messageId;
+                const $el = $(entry.target);
+                const messageId = $el.data('message-id');
                 const userId = this.getUserId();
 
-                if (!messageId || el.dataset.readStatus !== '0') continue;
+                console.log($el);
+                if (!messageId || $el.data('read-status') !== 0) continue;
 
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                try {
+                    const response = await $.ajax({
+                        url: '/readReceipts/read',
+                        method: 'PATCH',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            message_id: messageId,
+                            user_id: userId,
+                            read_at: new Date().toISOString(),
+                        }),
+                    });
 
-                const response = await fetch('/readReceipts/read', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                    },
-                    body: JSON.stringify({
-                        message_id: messageId,
-                        user_id: userId,
-                        read_at: new Date().toISOString(),
-                    }),
-                });
+                    $el.data('read-status', 1);
+                    this.observer.unobserve(entry.target);
 
-                if (response.ok) {
-                    el.dataset.readStatus = '1';
-                    this.observer.unobserve(el);
+                } catch (error) {
+                    console.error('Ошибка при отправке readReceipt:', error);
                 }
             }
         }

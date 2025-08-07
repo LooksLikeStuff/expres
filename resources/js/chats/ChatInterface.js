@@ -5,6 +5,9 @@ export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
         this.chatElements = $('.chat-item');
+
+        this.messagesContainer = $('.messages-container');
+        this.messagesList = $('#messagesList');
         this.messageInput = $('#messageInput');
         this.messageForm = document.getElementById('message-form');
         this.messagesLoader = document.getElementById('messages-loading');
@@ -126,7 +129,7 @@ export default class ChatInterface {
                     this.appendMessage(data);
                     break;
                 case 'read':
-                    this.markAsRead(data);
+                    this.markAsRead(data.message_id);
                     break;
                 case 'typing':
                     this.handleTypingIndicator(data.username);
@@ -160,6 +163,7 @@ export default class ChatInterface {
             method: 'POST',
             success: (data)=> {
                 this.renderMessages(data.messages.data.reverse());
+                this.chatClient.observeReadReceipts(this.messagesList);
                 this.scrollToBottom();
             },
             error: function() {
@@ -178,8 +182,11 @@ export default class ChatInterface {
         });
     }
 
-    markAsRead(data) {
-        console.log(data);
+    markAsRead(messageId) {
+        const $message = $(`.message[data-message-id="${messageId}"]`);
+        $message.attr('data-read-status', '1');
+        $message.find('.message-status').addClass('read');
+
     }
 
     appendMessage(message) {
@@ -257,13 +264,36 @@ export default class ChatInterface {
         // }
     }
     createMessageElement(message) {
-
+        console.log(message);
         const template = $('#messageTemplate').html();
         const $message = $(template);
+        $message.attr('data-message-id', message.id);
 
-        if ((message.hasOwnProperty('is_own') && message?.is_own) || this.isMessageOwn(message.sender_id)) {
-            $message.addClass('own');
+        const isOwn = (message.hasOwnProperty('is_own') && message?.is_own) || this.isMessageOwn(message.sender_id);
+        const currentUserId = this.chatClient.userId;
+
+        let isMessageRead = false;
+
+        const readReceipts = message.read_receipts;
+
+        if (Array.isArray(readReceipts)) {
+            if (isOwn) {
+                // Ищем хотя бы одну запись с read_at, но не от самого себя
+                isMessageRead = readReceipts.some(r => r.user_id != currentUserId && r.read_at);
+            } else {
+                // Ищем read_receipt от самого себя
+                const selfReceipt =readReceipts.find(r => r.user_id == currentUserId);
+                isMessageRead = Boolean(selfReceipt?.read_at);
+            }
         }
+
+        $message.attr('data-read-status', isMessageRead ? '1' : '0');
+
+        if (isOwn) {
+            $message.addClass('own');
+            $message.find('.message-status').removeClass('d-none').addClass(isMessageRead ? 'read' : '');
+        }
+
 
 
         $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
@@ -282,6 +312,8 @@ export default class ChatInterface {
 
         // Move chat to top
         chatItem.prependTo('#chatList');
+
+        this.chatClient.observeReadReceipts(this.messagesList);
     }
 
     attachFile() {
@@ -310,8 +342,7 @@ export default class ChatInterface {
 
     // Scroll to bottom of messages
     scrollToBottom() {
-        const container = $('#messagesContainer');
-        container.scrollTop(container[0].scrollHeight);
+        this.messagesContainer.scrollTop(this.messagesContainer[0].scrollHeight);
     }
 
     closeMobileMenu() {

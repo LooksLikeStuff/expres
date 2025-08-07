@@ -775,12 +775,46 @@ body {
                 }
             }
 
+            .message-body {
+                display: flex;
+                justify-content: space-between;
+                align-items: end;
+                gap: 12px;
+
+                .message-status {
+                    color: #ffffff;
+
+                    .bi-check {
+                        display: block;
+                    }
+
+                    .bi-check2-all {
+                        display: none;
+                    }
+
+                    &.read {
+                        i {
+                            color: #16ffb7;
+                        }
+
+                        .bi-check {
+                            display: none;
+                        }
+
+                        .bi-check2-all {
+                            display: block;
+                        }
+                    }
+                }
+            }
+
             .message-text {
                 font-size: 14px;
                 line-height: 1.4;
                 word-wrap: break-word;
             }
         }
+
     }
 }
 

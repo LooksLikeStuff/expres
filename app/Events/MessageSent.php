@@ -40,6 +40,7 @@ class MessageSent implements ShouldBroadcast
         $sender = $this->message->sender()->first(['name']);
 
         return [
+            'id' => $this->message->id,
             'content' => $this->message->content,
             'attachments' => $this->message->attachments,
             'type' => $this->message->type->value,

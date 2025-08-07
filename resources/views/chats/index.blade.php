@@ -199,7 +199,13 @@
                             <span class="message-author"></span>
                             <span class="message-time"></span>
                         </div>
-                        <div class="message-text"></div>
+                        <div class="message-body">
+                            <div class="message-text"></div>
+                            <span class="message-status d-none">
+                                <i class="bi bi-check"></i>
+                                <i class="bi bi-check2-all"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </template>

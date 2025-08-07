@@ -40,7 +40,7 @@ class MessageRead implements ShouldBroadcast
     {
         return [
             'message_id' => $this->readReceipt->message_id,
-            'user_id' => $this->readReceipt->user_id,
+            'user_ids' => $this->readReceipt->user_id,
             'read_at' => $this->readReceipt->read_at,
         ];
     }
