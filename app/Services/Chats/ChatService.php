@@ -26,7 +26,10 @@ class ChatService
     public function getUserChats(int $userId)
     {
 
-        $chats = Chat::with(['users:id,name'])
+        $chats = Chat::with([
+            'users:id,name',
+            'lastMessage',
+        ])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($userId) {
                     $query->whereDoesntHave('readReceipts', function ($q) use ($userId) {
@@ -34,9 +37,6 @@ class ChatService
                     })->where('sender_id', '!=', $userId);
                 }
             ])
-            ->with(['messages' => function ($query) {
-                $query->orderByDesc('created_at')->limit(1); // только последнее сообщение
-            }])
             ->whereHas('users', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })

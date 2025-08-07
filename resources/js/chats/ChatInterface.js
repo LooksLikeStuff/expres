@@ -149,22 +149,9 @@ export default class ChatInterface {
         const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
         const chatName = chatItem.find('.chat-item-name').text();
         const avatarSrc = chatItem.find('img').attr('src');
-        // const isOnline = onlineUsers.includes(parseInt(chatId));
-        const isOnline = true;
 
         $('#chatName').text(chatName);
         $('#chatAvatar').attr('src', avatarSrc);
-
-        const onlineIndicator = $('#onlineIndicator');
-        const chatStatus = $('#chatStatus');
-
-        if (isOnline) {
-            onlineIndicator.removeClass('offline');
-            chatStatus.text('онлайн');
-        } else {
-            onlineIndicator.addClass('offline');
-            chatStatus.text('был(а) недавно');
-        }
     }
 
     loadMessages(chatId) {
@@ -428,6 +415,7 @@ export default class ChatInterface {
     updateOnlineStatus() {
         const onlineUserIds = this.chatClient.onlineUsers || new Set();
         const chatStatus = $('#chatStatus');
+        const onlineIndicator = $('#onlineIndicator');
 
         $('.chat-item').each(function () {
             const $chatItem = $(this);
@@ -435,14 +423,15 @@ export default class ChatInterface {
             const userIds = userIdsStr.toString().split(',').map(id => parseInt(id));
 
             const isAnyUserOnline = userIds.some(id => onlineUserIds.has(id));
-
             const indicator = $chatItem.find('.online-indicator');
 
             if (isAnyUserOnline) {
                 indicator.removeClass('offline');
+                onlineIndicator.removeClass('offline');
                 chatStatus.text('Онлайн');
             } else {
                 indicator.addClass('offline');
+                onlineIndicator.addClass('offline');
                 chatStatus.text('был(а) недавно');
             }
         });

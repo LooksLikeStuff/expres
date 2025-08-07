@@ -73,10 +73,10 @@
                                 <div class="chat-item-content">
                                     <div class="chat-item-header">
                                         <h6 class="chat-item-name">{{ $chat->getTitleForUser($user->id) }}</h6>
-                                        <span class="chat-item-time">{{ $chat->messages->first()?->formatted_time }}</span>
+                                        <span class="chat-item-time">{{ $chat->lastMessage?->formatted_time }}</span>
                                     </div>
                                     <div class="chat-item-footer">
-                                        <p class="chat-item-message">{{ $chat->messages->first()?->content }}</p>
+                                        <p class="chat-item-message">{{ $chat->lastMessage?->content }}</p>
                                         <div class="chat-item-badges">
                                             @if ($chat->unread_count > 0)
                                                 <span class="unread-count">{{ $chat->unread_count }}</span>
