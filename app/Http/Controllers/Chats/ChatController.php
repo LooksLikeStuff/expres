@@ -29,7 +29,10 @@ class ChatController extends Controller
 
     public function index()
     {
-        $user = \auth()->user()->load('chats.users');
+        $user = auth()->user();
+
+        $chats = $this->chatService->getUserChats($user->id);
+        $user->setRelation('chats', $chats);
 
         return view('chats.index', compact('user'));
     }

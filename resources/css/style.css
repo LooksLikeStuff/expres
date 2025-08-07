@@ -1986,7 +1986,7 @@ input {
 
 button {
     display: block;
-    width: 100%;
+    /*width: 100%;*/
     border: none;
     min-height: 40px;
     font-weight: 600;
@@ -2682,21 +2682,21 @@ div#modal3 .modal-content {
         flex-flow: wrap;
 }
 
-.unread-count {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    color: rgb(255, 255, 255);
-    font-size: 12px;
-    border-radius: 12px;
-    margin-left: 5px;
-    vertical-align: middle;
-    display: inline-block;
-    min-width: var(--p20);
-    text-align: center;
-    padding: 2px 6px;
-    background: rgb(255, 59, 59);
-}
+/*.unread-count {*/
+/*    position: absolute;*/
+/*    top: 0px;*/
+/*    right: 0px;*/
+/*    color: rgb(255, 255, 255);*/
+/*    font-size: 12px;*/
+/*    border-radius: 12px;*/
+/*    margin-left: 5px;*/
+/*    vertical-align: middle;*/
+/*    display: inline-block;*/
+/*    min-width: var(--p20);*/
+/*    text-align: center;*/
+/*    padding: 2px 6px;*/
+/*    background: rgb(255, 59, 59);*/
+/*}*/
 
 .home__module.news h2 {
     display: -webkit-box;
@@ -2774,8 +2774,8 @@ p {
     font-family: var (--onest);
     font-weight: 400;
     line-height: 21.6px;
-    text-align: center;
-    font-size: 20px !important;
+    /*text-align: center;*/
+    /*font-size: 20px !important;*/
 }
 
 a {

@@ -190,6 +190,11 @@ class User extends Authenticatable
         return asset('storage/icon/profile.svg');
     }
 
+    public function getProfileAvatar()
+    {
+        return $this->getRawOriginal('avatar_url') ?? asset('img/chats/profile/placeholder.png');
+    }
+
     /**
      * Аксессор для получения URL аватара с дефолтным значением
      *

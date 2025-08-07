@@ -24,10 +24,10 @@ select {
 
 button {
     min-height: 62px;
-    
+
     font-weight: 600;
     max-width: 350px;
-  
+
     -o-transition: .5s;
     transition: .5s;
     color: var(--fff);
@@ -46,7 +46,7 @@ button {
 
 a {
     color: #01acff;
-   
+
 }
 
 .wrap {
@@ -428,16 +428,16 @@ div#dynamic-chat-container {
     background: var(--fff);
 }
 
-.unread-count {
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: white;
-    border-radius: 50%;
-    font-size: .8em;
-    padding: .2em .5em;
-    background: red;
-}
+/*.unread-count {*/
+/*    position: absolute;*/
+/*    top: 0;*/
+/*    right: 0;*/
+/*    color: white;*/
+/*    border-radius: 50%;*/
+/*    font-size: .8em;*/
+/*    padding: .2em .5em;*/
+/*    background: red;*/
+/*}*/
 
 #unread-messages-counter {
     font-size: 13px;
@@ -980,7 +980,7 @@ button.remove-button {
     content: "-";
     }
 .completed {
-     
+
     color: var(--blue) !important;
 }
 .completed::before {
@@ -1138,14 +1138,14 @@ button.remove-button {
     from { opacity: 1; }
     to { opacity: 0; }
 }
-.unread-count {
-    background-color: red;
-    color: white;
-    border-radius: 12px;
-    padding: 2px 6px;
-    font-size: 0.8em;
-    margin-left: 8px;
-}
+/*.unread-count {*/
+/*    background-color: red;*/
+/*    color: white;*/
+/*    border-radius: 12px;*/
+/*    padding: 2px 6px;*/
+/*    font-size: 0.8em;*/
+/*    margin-left: 8px;*/
+/*}*/
 .read-status {
     font-size: 0.8em;
     color: green;

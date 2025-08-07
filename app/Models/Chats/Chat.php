@@ -34,7 +34,12 @@ class Chat extends Model
             return $this->title;
         }
 
-        return $this->users->firstWhere('id', '!=', $userId)->name;
+        return $this->getOpportunityFor($userId)?->name;
+    }
+
+    public function getOpportunityFor(int $userId): ?User
+    {
+        return $this->users->firstWhere('id', '!=', $userId);
     }
 
     public function lastMessage()
@@ -56,5 +61,24 @@ class Chat extends Model
     public function messages()
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function getAvatar()
+    {
+        if ($this->type == ChatType::PRIVATE) {
+            return $this->getOpportunityFor(auth()->id())->getRawOriginal('avatar_url') ?? $this->getPrivateBaseImage();
+        }
+
+        return $this->avatar ?? $this->getGroupBaseImage();
+    }
+
+    public function getPrivateBaseImage()
+    {
+        return asset('img/chats/private/placeholder.png');
+    }
+
+    public function getGroupBaseImage()
+    {
+        return asset('img/chats/group/placeholder.png');
     }
 }
