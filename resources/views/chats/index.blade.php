@@ -23,7 +23,7 @@
         <div class="main__module p-0">
             <div class="telegram-container">
                 <!-- Sidebar with chats -->
-                <div class="sidebar">
+                <div class="sidebar active">
                     <!-- Header -->
                     <div class="sidebar-header">
                         <div class="user-info">
@@ -128,10 +128,13 @@
                                 </div>
                             </div>
                             <div class="chat-actions">
-                                <button class="btn-icon" title="Поиск">
+                                <button class="btn-icon mobile-menu-btn">
+                                    <i class="bi bi-list"></i>
+                                </button>
+                                <button class="btn-icon">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                <button class="btn-icon" title="Меню">
+                                <button class="btn-icon">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                             </div>
@@ -146,11 +149,23 @@
 
                         <!-- Message input -->
                         <div class="message-input-container">
+                            <div class="file-preview-container" id="filePreviewContainer" style="display: none;">
+                                <div class="file-preview-header">
+                                    <span class="file-preview-title">Выбранные файлы:</span>
+                                    <button class="btn-icon clear-files-btn" id="clearFilesBtn" title="Очистить все файлы">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                <div class="file-preview-list" id="filePreviewList">
+                                    <!-- File previews will be added here -->
+                                </div>
+                            </div>
+
                             <div class="message-input-wrapper">
-                                <button id="attach-btn" class="btn-icon attach-btn" title="Прикрепить файл">
+                                <input type="file" id="fileInput" multiple accept="*/*" style="display: none;">
+                                <button class="btn-icon attach-btn" id="attachBtn" title="Прикрепить файл">
                                     <i class="bi bi-paperclip"></i>
                                 </button>
-                                <input class="d-none" type="file" accept="image/*" id="attach-input" multiple>
                                 <div class="input-wrapper">
                         <textarea
                             id="messageInput"
@@ -207,8 +222,71 @@
                                 <i class="bi bi-check"></i>
                                 <i class="bi bi-check2-all"></i>
                             </span>
+
+                            <div class="message-attachments" style="display: none;">
+                                <!-- Attachments will be added here -->
+                            </div>
                         </div>
                     </div>
+                </div>
+            </template>
+
+            <!-- File preview template -->
+            <template id="filePreviewTemplate">
+                <div class="file-preview-item" data-file-index="">
+                    <div class="file-preview-icon">
+                        <i class="bi bi-file-earmark"></i>
+                    </div>
+                    <div class="file-preview-info">
+                        <div class="file-preview-name"></div>
+                        <div class="file-preview-size"></div>
+                    </div>
+                    <button class="btn-icon remove-file-btn" title="Удалить файл">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </template>
+
+            <!-- Image preview template -->
+            <template id="imagePreviewTemplate">
+                <div class="file-preview-item image-preview" data-file-index="">
+                    <div class="image-preview-thumbnail">
+                        <img src="" alt="Preview">
+                    </div>
+                    <div class="file-preview-info">
+                        <div class="file-preview-name"></div>
+                        <div class="file-preview-size"></div>
+                    </div>
+                    <button class="btn-icon remove-file-btn" title="Удалить файл">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </template>
+
+            <!-- Message attachment templates -->
+            <template id="messageImageTemplate">
+                <div class="message-image">
+                    <img src="" alt="Image" loading="lazy">
+                    <div class="image-overlay">
+                        <button class="btn-icon download-btn" title="Скачать">
+                            <i class="bi bi-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <template id="messageFileTemplate">
+                <div class="message-file">
+                    <div class="file-icon">
+                        <i class="bi bi-file-earmark"></i>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name"></div>
+                        <div class="file-size"></div>
+                    </div>
+                    <button class="btn-icon download-btn" title="Скачать">
+                        <i class="bi bi-download"></i>
+                    </button>
                 </div>
             </template>
             <!-- Левая панель: список контактов -->

@@ -4,6 +4,7 @@ export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
         this.chatElements = $('.chat-item');
+        this.showSidebarButton = $('.mobile-menu-btn');
 
         this.messagesContainer = $('.messages-container');
         this.messagesList = $('#messagesList');
@@ -13,8 +14,13 @@ export default class ChatInterface {
 
         //Файлы вложения
         this.attachPreviewContainer = document.getElementById('attach__container')
-        this.attachInput = $('#attach-input');
-        this.attachInputButton = $('#attach-btn');
+        this.attachInput = $('#fileInput');
+        this.attachInputButton = $('#attachBtn');
+
+        this.selectedFiles = [];
+
+        this.MAX_FILES = 10;
+        this.MAX_IMAGES = 5;
 
         this.userListContainer = document.getElementById('chats_userlist');
         this.currentUserId = $('#user_id').val();
@@ -35,8 +41,9 @@ export default class ChatInterface {
     }
 
     bindEvents() {
-        this.attachInputButton.click(() => this.attachFile());
-        this.attachInput.change(() => this.displayAttachmentFiles());
+        this.initFileAttachment();
+        // this.attachInputButton.click(() => this.attachFile());
+        // this.attachInput.change(() => this.displayAttachmentFiles());
         //
         this.chatElements.on('click', (e) => {
             const chatItem = e.currentTarget;
@@ -59,6 +66,8 @@ export default class ChatInterface {
         });
 
         this.messageInput.on('input', () => this.chatClient.sendTypingEvent());
+
+        this.showSidebarButton.click(() => this.showSidebar());
 
         this.messageInput.on('keypress', async (e) => {
             if (e.which === 13 && !e.shiftKey) {
@@ -122,7 +131,12 @@ export default class ChatInterface {
         });
     }
 
+    showSidebar() {
+        $('.sidebar').addClass('active');
+    }
     async activateChat(chatId) {
+        $('.sidebar').removeClass('active');
+        $('.mobile__ponel').addClass('d-none');
         $('.chat-item').removeClass('active');
         $(`.chat-item[data-chat-id="${chatId}"]`).addClass('active');
 
@@ -343,6 +357,27 @@ export default class ChatInterface {
             $message.find('.message-status').removeClass('d-none').addClass(isMessageRead ? 'read' : '');
         }
 
+        // Add attachments if present
+        if (message.attachments && message.attachments.length > 0) {
+            const attachmentsContainer = $message.find('.message-attachments');
+            attachmentsContainer.show();
+
+            const images = message.attachments.filter(att => att.type === 'image');
+            const files = message.attachments.filter(att => att.type === 'file');
+
+            // Add images
+            if (images.length > 0) {
+                const imagesContainer = this.createImagesContainer(images);
+                attachmentsContainer.append(imagesContainer);
+            }
+
+            // Add files
+            if (files.length > 0) {
+                const filesContainer = this.createFilesContainer(files);
+                attachmentsContainer.append(filesContainer);
+            }
+        }
+
 
 
         $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
@@ -477,6 +512,287 @@ export default class ChatInterface {
         $chatItem.find('.chat-item-message').text(data.last_message);
         $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${data.unread_count}</span>`);
         $chatItem.find('.chat-item-time').text(data.time);
+    }
+
+
+    // Initialize file attachment functionality
+    initFileAttachment() {
+        // Attach button click
+        this.attachInputButton.on('click', function() {
+            $('#fileInput').click();
+        });
+
+        // File input change
+        this.attachInput.on('change', (e)=> {
+            const files = Array.from(e.currentTarget.files);
+            this.addFiles(files);
+            // Clear input to allow selecting same file again
+            $(e.currentTarget).val('');
+        });
+
+        // Clear all files button
+        $('#clearFilesBtn').on('click', () => this.clearAllFiles())
+
+        // Remove individual file
+        $(document).on('click', '.remove-file-btn', (e) => {
+            const fileIndex = parseInt($(e.currentTarget).closest('.file-preview-item').data('file-index'));
+            this.removeFile(fileIndex);
+        });
+
+        // Drag and drop functionality
+        const messageInputContainer = $('.message-input-container');
+
+        messageInputContainer.on('dragover', function(e) {
+            e.preventDefault();
+            $(this).addClass('drag-over');
+        });
+
+        messageInputContainer.on('dragleave', function(e) {
+            e.preventDefault();
+            $(this).removeClass('drag-over');
+        });
+
+        messageInputContainer.on('drop', (e)=>  {
+            e.preventDefault();
+            $(e.currentTarget).removeClass('drag-over');
+
+            const files = Array.from(e.originalEvent.dataTransfer.files);
+            this.addFiles(files);
+        });
+    }
+
+// Add files to selection
+     addFiles(files) {
+        files.forEach(file => {
+            if (this.selectedFiles.length >= this.MAX_FILES) {
+                this.showNotification('Максимальное количество файлов: ' + this.MAX_FILES, 'warning');
+                return;
+            }
+
+            // Check if file already selected
+            const existingFile = this.selectedFiles.find(f =>
+                f.name === file.name &&
+                f.size === file.size &&
+                f.lastModified === file.lastModified
+            );
+
+            if (existingFile) {
+                this.showNotification('Файл "' + file.name + '" уже выбран', 'warning');
+                return;
+            }
+
+            this.selectedFiles.push(file);
+        });
+
+        this.updateFilePreview();
+    }
+
+// Remove file from selection
+    removeFile(index) {
+        this.selectedFiles.splice(index, 1);
+        this.updateFilePreview();
+    }
+
+    // Clear all files
+   clearAllFiles() {
+        this.selectedFiles = [];
+        this.updateFilePreview();
+    }
+
+    // Update file preview display
+    updateFilePreview() {
+        const container = $('#filePreviewContainer');
+        const list = $('#filePreviewList');
+
+        if (this.selectedFiles.length === 0) {
+            container.hide();
+            return;
+        }
+
+        container.show();
+        list.empty();
+
+        this.selectedFiles.forEach((file, index) => {
+            const previewItem = this.createFilePreviewItem(file, index);
+            list.append(previewItem);
+        });
+    }
+
+    // Create file preview item
+    createFilePreviewItem(file, index) {
+        const isImage = file.type.startsWith('image/');
+        const template = isImage ? $('#imagePreviewTemplate').html() : $('#filePreviewTemplate').html();
+        const $item = $(template);
+
+        $item.attr('data-file-index', index);
+        $item.find('.file-preview-name').text(file.name);
+        $item.find('.file-preview-size').text(this.formatFileSize(file.size));
+
+        if (isImage) {
+            // Create image preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $item.find('img').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Set file type icon
+            const extension = this.getFileExtension(file.name);
+            const icon = $item.find('.file-preview-icon i');
+            this.setFileIcon(icon, extension);
+        }
+
+        return $item;
+    }
+
+// Format file size
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+// Get file extension
+    getFileExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
+    }
+
+// Set file icon based on extension
+    setFileIcon(iconElement, extension) {
+        const iconMap = {
+            // Documents
+            'pdf': 'bi-file-earmark-pdf',
+            'doc': 'bi-file-earmark-word',
+            'docx': 'bi-file-earmark-word',
+            'xls': 'bi-file-earmark-excel',
+            'xlsx': 'bi-file-earmark-excel',
+            'ppt': 'bi-file-earmark-ppt',
+            'pptx': 'bi-file-earmark-ppt',
+            'txt': 'bi-file-earmark-text',
+
+            // Archives
+            'zip': 'bi-file-earmark-zip',
+            'rar': 'bi-file-earmark-zip',
+            '7z': 'bi-file-earmark-zip',
+            'tar': 'bi-file-earmark-zip',
+            'gz': 'bi-file-earmark-zip',
+
+            // Media
+            'mp3': 'bi-file-earmark-music',
+            'wav': 'bi-file-earmark-music',
+            'flac': 'bi-file-earmark-music',
+            'mp4': 'bi-file-earmark-play',
+            'avi': 'bi-file-earmark-play',
+            'mkv': 'bi-file-earmark-play',
+            'mov': 'bi-file-earmark-play',
+
+            // Images
+            'jpg': 'bi-file-earmark-image',
+            'jpeg': 'bi-file-earmark-image',
+            'png': 'bi-file-earmark-image',
+            'gif': 'bi-file-earmark-image',
+            'svg': 'bi-file-earmark-image',
+            'webp': 'bi-file-earmark-image',
+
+            // Code
+            'js': 'bi-file-earmark-code',
+            'html': 'bi-file-earmark-code',
+            'css': 'bi-file-earmark-code',
+            'php': 'bi-file-earmark-code',
+            'py': 'bi-file-earmark-code',
+            'java': 'bi-file-earmark-code',
+            'cpp': 'bi-file-earmark-code',
+            'c': 'bi-file-earmark-code'
+        };
+
+        const iconClass = iconMap[extension] || 'bi-file-earmark';
+        iconElement.removeClass().addClass('bi ' + iconClass);
+    }
+    showNotification(message, type = 'info') {
+        const notification = $(`
+            <div class="notification ${type}">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `);
+
+        $('body').append(notification);
+
+        setTimeout(() => {
+            notification.addClass('show');
+        }, 100);
+
+        setTimeout(() => {
+            notification.removeClass('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    createImagesContainer(images) {
+        const container = $('<div class="message-images"></div>');
+
+        // Set grid class based on image count
+        const count = Math.min(images.length, this.MAX_IMAGES);
+        const gridClasses = {
+            1: 'single-image',
+            2: 'two-images',
+            3: 'three-images',
+            4: 'four-images',
+            5: 'five-images'
+        };
+
+        container.addClass(gridClasses[count] || 'single-image');
+
+        images.slice(0, this.MAX_IMAGES).forEach(image => {
+            const imageElement = this.createMessageImageElement(image);
+            container.append(imageElement);
+        });
+
+        return container;
+    }
+
+    createMessageImageElement(image) {
+        const template = $('#messageImageTemplate').html();
+        const $element = $(template);
+
+        $element.find('img').attr('src', image.url);
+        $element.find('.download-btn').attr('data-download-url', image.download_url);
+
+        return $element;
+    }
+
+    createFilesContainer(files) {
+        const container = $('<div class="message-files"></div>');
+
+        files.forEach(file => {
+            const fileElement = this.createMessageFileElement(file);
+            container.append(fileElement);
+        });
+
+        return container;
+    }
+// Create message file element
+    createMessageFileElement(file) {
+        const template = $('#messageFileTemplate').html();
+        const $element = $(template);
+
+        $element.find('.file-name').text(file.name);
+        $element.find('.file-size').text(this.formatFileSize(file.size));
+        $element.find('.download-btn').attr('data-download-url', file.download_url);
+
+        // Set file icon
+        const extension = this.getFileExtension(file.name);
+        const icon = $element.find('.file-icon');
+        icon.attr('data-file-type', extension);
+        this.setFileIcon(icon.find('i'), extension);
+
+        return $element;
     }
 
 }

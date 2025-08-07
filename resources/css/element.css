@@ -848,15 +848,15 @@ div#modal3 .modal-content .brifs__button__create.flex {
 }
 
 
-.file-preview-container {
-    margin-top: 10px;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+/*.file-preview-container {*/
+/*    margin-top: 10px;*/
+/*    display: -webkit-box;*/
+/*    display: -ms-flexbox;*/
+/*    display: flex;*/
+/*    -ms-flex-wrap: wrap;*/
+/*    flex-wrap: wrap;*/
+/*    gap: 10px;*/
+/*}*/
 
 .file-preview {
     display: inline-block;

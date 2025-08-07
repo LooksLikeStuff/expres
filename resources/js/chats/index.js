@@ -266,15 +266,6 @@ $(document).ready(function() {
             minute: '2-digit'
         });
     }
-
-    // Add mobile menu button to chat header
-    if ($(window).width() <= 768) {
-        $('.chat-actions').prepend(`
-            <button class="btn-icon mobile-menu-btn" title="Меню">
-                <i class="bi bi-list"></i>
-            </button>
-        `);
-    }
 });
 
 
