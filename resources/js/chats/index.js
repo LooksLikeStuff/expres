@@ -1,58 +1,6 @@
 import ChatClient from './ChatClient';
 import ChatInterface from './ChatInterface';
 import $ from 'jquery';
-// document.addEventListener('DOMContentLoaded', function () {
-//     const userId = document.getElementById('user_id')?.value;
-//
-//     if (!userId) {
-//         console.warn('User ID not found.');
-//         return;
-//     }
-//     const chatClient = new ChatClient(userId);
-//     chatClient.init();
-//
-//     const chatInterface = new ChatInterface(chatClient);
-//     chatInterface.init();
-//
-//
-//     document.querySelectorAll('.chats__option').forEach((elem) => {
-//         elem.addEventListener('click', async function () {
-//             const chatId = this.getAttribute('data-chat-id');
-//
-//
-//             if (!openedChannels.has(chatId)) {
-//                 echo.private(`chat.${chatId}`)
-//                     .listen('MessageSent', (e) => {
-//                         console.log('Новое сообщение:', e.message);
-//                     });
-//
-//                 openedChannels.add(chatId);
-//             }
-//
-//
-//             const content = 'ya tvou mamky ebal';
-//             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-//
-//             const response = await fetch('/messages', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                     'X-CSRF-TOKEN': token,
-//                 },
-//                 body: JSON.stringify({ chat_id: chatId, content })
-//             });
-//
-//             if (response.ok) {
-//                 console.log(response.body);
-//                 document.getElementById('message_input').value = '';
-//             } else {
-//                 console.error('Ошибка при отправке сообщения');
-//             }
-//         })
-//
-//     })
-//
-// });
 
 $(document).ready(function() {
     const userId = document.getElementById('user_id')?.value;
@@ -66,6 +14,9 @@ $(document).ready(function() {
     const chatInterface = new ChatInterface(chatClient);
     chatInterface.init();
 
+    chatClient.setOnlineUsersChangeHandler(() => {
+        chatInterface.updateOnlineStatus();
+    });
 
     // Global variables
     let currentChatId = null;
@@ -80,7 +31,6 @@ $(document).ready(function() {
     function init() {
         loadChats();
         bindEvents();
-        simulateOnlineStatus();
         autoResizeTextarea();
     }
 
@@ -187,36 +137,6 @@ $(document).ready(function() {
         return $item;
     }
 
-    // Select chat and load messages
-    function selectChat(chatId) {
-        chatInterface.chatClient.currentChatId = chatId;
-
-        // Update active chat
-        $('.chat-item').removeClass('active');
-        $(`.chat-item[data-chat-id="${chatId}"]`).addClass('active');
-
-        // Hide welcome screen and show chat window
-        $('#welcomeScreen').hide();
-        $('#chatWindow').show();
-
-        // Load chat info
-        loadChatInfo(chatId);
-
-        // Load messages
-        loadMessages(chatId);
-
-        // Clear unread count
-        $(`.chat-item[data-chat-id="${chatId}"] .unread-count`).hide();
-
-        // Focus message input
-        $('#messageInput').focus();
-
-        // Hide sidebar on mobile
-        if ($(window).width() <= 768) {
-            closeMobileMenu();
-        }
-    }
-
     // Mobile menu functions
     function toggleMobileMenu() {
         const sidebar = $('#sidebar');
@@ -239,99 +159,6 @@ $(document).ready(function() {
         $('#sidebar').removeClass('active');
         $('#mobileOverlay').removeClass('active');
         $('body').removeClass('menu-open');
-    }
-
-    // Load chat information
-    function loadChatInfo(chatId) {
-        // Find chat in current list
-        const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
-        const chatName = chatItem.find('.chat-item-name').text();
-        const avatarSrc = chatItem.find('img').attr('src');
-        const isOnline = onlineUsers.includes(parseInt(chatId));
-
-        $('#chatName').text(chatName);
-        $('#chatAvatar').attr('src', avatarSrc);
-
-        const onlineIndicator = $('#onlineIndicator');
-        const chatStatus = $('#chatStatus');
-
-        if (isOnline) {
-            onlineIndicator.removeClass('offline');
-            chatStatus.text('онлайн');
-        } else {
-            onlineIndicator.addClass('offline');
-            chatStatus.text('был(а) недавно');
-        }
-    }
-
-    // Load messages for chat
-    function loadMessages(chatId) {
-        $.ajax({
-            url: `/chats/${chatId}/messages`,
-            method: 'POST',
-            success: function(data) {
-                renderMessages(data.messages.data.reverse());
-                chatInterface.scrollToBottom();
-            },
-            error: function() {
-                console.error('Failed to load messages');
-            }
-        });
-    }
-
-    // Render messages
-    function renderMessages(messages) {
-        const messagesList = $('#messagesList');
-        messagesList.empty();
-
-        messages.forEach(message => {
-            const messageElement = chatInterface.createMessageElement(message);
-            messagesList.append(messageElement);
-        });
-    }
-
-    // Create message element
-
-
-    // Send message
-    function sendMessage() {
-        const messageText = $('#messageInput').val().trim();
-
-        if (!messageText || !currentChatId) {
-            return;
-        }
-
-        // Clear input
-        $('#messageInput').val('').trigger('input');
-
-        // Send to API
-        $.ajax({
-            url: '/messages',
-            method: 'POST',
-            data: {
-                chat_id: currentChatId,
-                content: messageText,
-            },
-            success: function(message) {
-                // // Add message to chat
-                // const messageElement = createMessageElement(message);
-                // $('#messagesList').append(messageElement);
-                // scrollToBottom();
-                //
-                // // Update last message in sidebar
-                // updateLastMessage(currentChatId, messageText);
-                //
-                // // Simulate response after delay
-                // setTimeout(() => {
-                //     simulateResponse();
-                // }, 1000 + Math.random() * 2000);
-            },
-            error: function() {
-                console.error('Failed to send message');
-                // Re-add message to input on error
-                $('#messageInput').val(messageText);
-            }
-        });
     }
 
     // Handle typing indicator
@@ -431,30 +258,6 @@ $(document).ready(function() {
     }
 
     // Update online status in UI
-    function updateOnlineStatus(chatId, isOnline) {
-        const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
-        const onlineIndicator = chatItem.find('.online-indicator');
-
-        if (isOnline) {
-            onlineIndicator.removeClass('offline');
-        } else {
-            onlineIndicator.addClass('offline');
-        }
-
-        // Update current chat header if it's the active chat
-        if (currentChatId === chatId) {
-            const headerIndicator = $('#onlineIndicator');
-            const chatStatus = $('#chatStatus');
-
-            if (isOnline) {
-                headerIndicator.removeClass('offline');
-                chatStatus.text('онлайн');
-            } else {
-                headerIndicator.addClass('offline');
-                chatStatus.text('был(а) недавно');
-            }
-        }
-    }
 
     // Handle window resize
     function handleResize() {

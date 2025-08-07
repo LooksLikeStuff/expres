@@ -19,19 +19,9 @@ Broadcast::channel('chat.{chat}', function ($user, Chat $chat) {
     return Gate::allows('access', $chat);
 });
 
-Broadcast::channel('presence-chat.{chatId}', function ($user, $chatId) {
-    $chat = Chat::find($chatId);
-
-    if (!$chat) {
-        return false;
-    }
-
-    if (Gate::allows('access', $chat)) {
+Broadcast::channel('presence.global', function ($user) {
         return [
             'id' => $user->id,
             'name' => $user->name,
         ];
-    }
-
-    return false;
 });

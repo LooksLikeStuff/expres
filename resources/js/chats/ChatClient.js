@@ -2,13 +2,15 @@ import Echo from 'laravel-echo';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import $ from "jquery";
 
 export default class ChatClient {
     constructor(userId) {
         this.userId = userId;
         this.currentChatId = null;
+        this.onlineUsers = null;
         this.echo = null;
-        this.currentPresenceChannel = null;
+        this.globalPresenceChannel = null;
         this.lastTyping = null;
         this.observer = null;
     }
@@ -16,6 +18,7 @@ export default class ChatClient {
     init() {
         this.initEcho();
         this.initFirebase();
+        this.joinGlobalPresenceChannel();
     }
 
     initFirebase() {
@@ -107,14 +110,40 @@ export default class ChatClient {
             });
     }
 
+    joinGlobalPresenceChannel() {
+        if (!this.echo) return;
+
+        const channelName = 'presence.global';
+
+        this.onlineUsers = new Set();
+
+        this.globalPresenceChannel = this.echo.join(channelName)
+            .here((users) => {
+                this.onlineUsers = new Set(users.map(user => user.id));
+                this.onOnlineUsersChange?.(this.onlineUsers);
+            })
+            .joining((user) => {
+                this.onlineUsers.add(user.id);
+                this.onOnlineUsersChange?.(this.onlineUsers);
+            })
+            .leaving((user) => {
+                this.onlineUsers.delete(user.id);
+                this.onOnlineUsersChange?.(this.onlineUsers);
+            });
+    }
+
+    setOnlineUsersChangeHandler(callback) {
+        this.onOnlineUsersChange = callback;
+    }
+
+
     leaveCurrentChat() {
         if (!this.echo || !this.currentChatId) return;
 
         this.echo.leave(`chat.${this.currentChatId}`);
-        this.echo.leave(`presence-chat.${this.currentChatId}`);
         this.currentChatId = null;
-        this.currentPresenceChannel = null;
     }
+
 
     async sendMessage(chatId, content, attachments) {
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -207,23 +236,6 @@ export default class ChatClient {
                 }
             }
         }
-    }
-
-    joinPresenceChannel(chatId, onUsersChange) {
-        if (!this.echo) return;
-
-        const channelName = `presence-chat.${chatId}`;
-
-        this.currentPresenceChannel = this.echo.join(channelName)
-            .here((users) => {
-                onUsersChange(users);
-            })
-            .joining((user) => {
-                onUsersChange(null, { type: 'joined', user });
-            })
-            .leaving((user) => {
-                onUsersChange(null, { type: 'left', user });
-            });
     }
 
     sendTypingEvent() {

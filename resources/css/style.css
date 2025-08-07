@@ -6289,27 +6289,27 @@ u {
             box-shadow: rgba(255, 51, 102, 0.3) 0px 2px 5px;
 }
 
-.online-indicator {
-    width: 10px;
-    height: 10px;
-    background-color: rgb(40, 167, 69);
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
-    position: relative;
-}
+/*.online-indicator {*/
+/*    width: 10px;*/
+/*    height: 10px;*/
+/*    background-color: rgb(40, 167, 69);*/
+/*    border-radius: 50%;*/
+/*    display: inline-block;*/
+/*    margin-right: 5px;*/
+/*    position: relative;*/
+/*}*/
 
-.online-indicator::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(40, 167, 69);
-    border-radius: 50%;
-    -webkit-animation: 1.5s ease 0s infinite normal none running pulse;
-            animation: 1.5s ease 0s infinite normal none running pulse;
-    opacity: 0.5;
-}
+/*.online-indicator::after {*/
+/*    content: "";*/
+/*    position: absolute;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*    background-color: rgb(40, 167, 69);*/
+/*    border-radius: 50%;*/
+/*    -webkit-animation: 1.5s ease 0s infinite normal none running pulse;*/
+/*            animation: 1.5s ease 0s infinite normal none running pulse;*/
+/*    opacity: 0.5;*/
+/*}*/
 
 @-webkit-keyframes pulse {
     0% {

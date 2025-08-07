@@ -134,8 +134,6 @@ export default class ChatInterface {
             }
         });
 
-        this.initPresenceHandlers(chatId);
-
 // Удаляем предыдущий обработчик и добавляем новый
 //         this.messageInput.removeEventListener('_typing', this._typingListener);
 //         this._typingListener = () => {
@@ -312,7 +310,7 @@ export default class ChatInterface {
         if ((message.hasOwnProperty('is_own') && message?.is_own) || this.isMessageOwn(message.sender_id)) {
             $message.addClass('own');
         }
-        
+
 
         $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
         $message.find('.message-author').text(message.sender_name);
@@ -377,27 +375,6 @@ export default class ChatInterface {
         Array.from(users).forEach((user) => this.addUserItem(user));
     }
 
-    initPresenceHandlers(chatId) {
-        this.onlineUsers = [];
-
-        this.chatClient.joinPresenceChannel(chatId, (users, event) => {
-            if (users) {
-                // При инициализации
-                this.onlineUsers = users;
-            }
-
-            if (event) {
-                if (event.type === 'joined') {
-                    this.onlineUsers.push(event.user);
-                } else if (event.type === 'left') {
-                    this.onlineUsers = this.onlineUsers.filter(u => u.id !== event.user.id);
-                }
-            }
-
-            // обновляем UI
-            this.renderOnlineUsers();
-        });
-    }
 
     renderOnlineUsers() {
         console.log(this.onlineUsers.length, this.onlineUsers);
@@ -446,5 +423,28 @@ export default class ChatInterface {
 
     isMessageOwn(sender_id) {
         return parseInt(sender_id) === parseInt(this.currentUserId);
+    }
+
+    updateOnlineStatus() {
+        const onlineUserIds = this.chatClient.onlineUsers || new Set();
+        const chatStatus = $('#chatStatus');
+
+        $('.chat-item').each(function () {
+            const $chatItem = $(this);
+            const userIdsStr = $chatItem.data('user-ids');
+            const userIds = userIdsStr.toString().split(',').map(id => parseInt(id));
+
+            const isAnyUserOnline = userIds.some(id => onlineUserIds.has(id));
+
+            const indicator = $chatItem.find('.online-indicator');
+
+            if (isAnyUserOnline) {
+                indicator.removeClass('offline');
+                chatStatus.text('Онлайн');
+            } else {
+                indicator.addClass('offline');
+                chatStatus.text('был(а) недавно');
+            }
+        });
     }
 }

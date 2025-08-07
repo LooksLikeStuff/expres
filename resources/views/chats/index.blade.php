@@ -57,7 +57,15 @@
                     <!-- Chat list -->
                     <div class="chat-list" id="chatList">
                         @foreach ($user->chats as $chat)
-                            <div class="chat-item" data-chat-id="{{ $chat->id }}" data-chat-type="{{$chat->type->value}}">
+                            @php
+                                $participantIds = $chat->users->except(['id' => $user->id])->pluck('id')->join(',');
+                            @endphp
+
+                            <div class="chat-item"
+                                 data-chat-id="{{ $chat->id }}"
+                                 data-chat-type="{{ $chat->type->value }}"
+                                 data-user-ids="{{ $participantIds }}">
+
                                 <div class="chat-item-avatar">
                                     <img src="{{ $chat->getAvatar() }}" alt="Avatar">
                                     <div class="online-indicator {{ in_array($chat->id, $onlineUsers ?? []) ? '' : 'offline' }}"></div>
