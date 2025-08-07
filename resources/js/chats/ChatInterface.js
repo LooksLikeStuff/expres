@@ -1,4 +1,3 @@
-import {read} from "@popperjs/core";
 import $ from "jquery";
 
 export default class ChatInterface {
@@ -264,7 +263,6 @@ export default class ChatInterface {
         // }
     }
     createMessageElement(message) {
-        console.log(message);
         const template = $('#messageTemplate').html();
         const $message = $(template);
         $message.attr('data-message-id', message.id);

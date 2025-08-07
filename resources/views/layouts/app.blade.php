@@ -52,8 +52,6 @@
     <!-- Подключаем CSS для загрузки больших файлов -->
     <link rel="stylesheet" href="{{ asset('css/large-file-upload.css') }}"></script>
 
-    @yield('scripts')
-
     @vite(['resources/css/font.css', 'resources/js/ratings.js','resources/css/animation.css', 'resources/css/style.css', 'resources/css/element.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js', 'resources/js/modal.js', 'resources/js/success.js', 'resources/js/mask.js'])
 
     <!-- Обязательный (и достаточный) тег для браузеров -->

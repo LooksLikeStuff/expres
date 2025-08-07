@@ -1007,7 +1007,7 @@ function showNewMessageNotification(data) {
         type: 'new-message',
         title: 'Новое сообщение',
         icon: 'bi-chat-dots',
-        avatar: data.senderAvatar,
+        avatar: '/img/chats/private/placeholder.png',
         content: `<strong class="sender-name">${data.senderName}</strong> в чате <strong class="chat-name">${data.chatName}</strong><br><span class="message-preview">${data.messagePreview}</span>`,
         actions: [
             {
@@ -1300,8 +1300,4 @@ function generateDemoNotifications() {
 window.dismissNotification = dismissNotification;
 window.handleNotificationAction = handleNotificationAction;
 
-// Initialize notifications when document is ready
-$(document).ready(function() {
-    initPushNotifications();
-});
 

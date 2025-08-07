@@ -11,16 +11,15 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-
 messaging.onBackgroundMessage(function(payload) {
     console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
 
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: '/icon.png', // желательно иконку указать!
+        // icon: '/img/chats/private/placeholder.png', // желательно иконку указать!
         data: {
-            url: '/' // можно использовать для перехода по клику
+            url: 'https://localhost/chats' // можно использовать для перехода по клику
         }
     };
 

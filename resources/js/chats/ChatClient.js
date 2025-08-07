@@ -40,7 +40,7 @@ export default class ChatClient {
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
                 getToken(messaging, {
-                    vapidKey: 'BBeAohFVaOp0MWRUU4qx0BEufspsdUtnyJvwFbwbfqnmps25IzHtQFRGkmrvqnpmrQo9YaxP96NnP7a-uSxMZ9g'
+                    vapidKey: 'BEgwA4ZZgZw5TABmL4ndYRgcXHpdvs0eAfQviId0ZzTVFVgE57T5UNCNPOxy-v60YlOjakP3XEUl6PwlWt9ovTI'
                 }).then((currentToken) => {
                     if (currentToken) {
                         this.registerFirebaseToken(currentToken);
@@ -56,13 +56,12 @@ export default class ChatClient {
         });
 
 
-// 🎯 Обработка сообщений когда пользователь на сайте
         onMessage(messaging, (payload) => {
-            console.log('Сообщение получено в фокусе:', payload);
             // Покажи что-то в UI (например, notification badge)
         });
 
     }
+
 
     async registerFirebaseToken(fcmToken) {
         await fetch('/fcm/register', {
@@ -214,7 +213,6 @@ export default class ChatClient {
                 const messageId = $el.data('message-id');
                 const userId = this.getUserId();
 
-                console.log($el);
                 if (!messageId || $el.data('read-status') !== 0) continue;
 
                 try {
