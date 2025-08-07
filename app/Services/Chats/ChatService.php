@@ -35,7 +35,7 @@ class ChatService
                 }
             ])
             ->with(['messages' => function ($query) {
-                $query->latest()->limit(1); // только последнее сообщение
+                $query->orderByDesc('created_at')->limit(1); // только последнее сообщение
             }])
             ->whereHas('users', function ($q) use ($userId) {
                 $q->where('user_id', $userId);

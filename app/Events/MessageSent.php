@@ -14,6 +14,7 @@ class MessageSent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     private Message $message;
+    private int $authUserId;
     /**
      * Create a new event instance.
      */
@@ -44,7 +45,7 @@ class MessageSent implements ShouldBroadcast
             'type' => $this->message->type->value,
             'sender_id' => $this->message->sender_id,
             'sender_name' => $sender->name,
-            'time' => $this->message->created_at->toTimeString('minute'),
+            'formatted_time' => $this->message->formatted_time,
         ];
     }
 

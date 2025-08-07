@@ -1,9 +1,61 @@
 import ChatClient from './ChatClient';
 import ChatInterface from './ChatInterface';
 import $ from 'jquery';
-document.addEventListener('DOMContentLoaded', function () {
-    const userId = document.getElementById('user_id')?.value;
+// document.addEventListener('DOMContentLoaded', function () {
+//     const userId = document.getElementById('user_id')?.value;
+//
+//     if (!userId) {
+//         console.warn('User ID not found.');
+//         return;
+//     }
+//     const chatClient = new ChatClient(userId);
+//     chatClient.init();
+//
+//     const chatInterface = new ChatInterface(chatClient);
+//     chatInterface.init();
+//
+//
+//     document.querySelectorAll('.chats__option').forEach((elem) => {
+//         elem.addEventListener('click', async function () {
+//             const chatId = this.getAttribute('data-chat-id');
+//
+//
+//             if (!openedChannels.has(chatId)) {
+//                 echo.private(`chat.${chatId}`)
+//                     .listen('MessageSent', (e) => {
+//                         console.log('Новое сообщение:', e.message);
+//                     });
+//
+//                 openedChannels.add(chatId);
+//             }
+//
+//
+//             const content = 'ya tvou mamky ebal';
+//             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+//
+//             const response = await fetch('/messages', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     'X-CSRF-TOKEN': token,
+//                 },
+//                 body: JSON.stringify({ chat_id: chatId, content })
+//             });
+//
+//             if (response.ok) {
+//                 console.log(response.body);
+//                 document.getElementById('message_input').value = '';
+//             } else {
+//                 console.error('Ошибка при отправке сообщения');
+//             }
+//         })
+//
+//     })
+//
+// });
 
+$(document).ready(function() {
+    const userId = document.getElementById('user_id')?.value;
     if (!userId) {
         console.warn('User ID not found.');
         return;
@@ -15,47 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
     chatInterface.init();
 
 
-    document.querySelectorAll('.chats__option').forEach((elem) => {
-        elem.addEventListener('click', async function () {
-            const chatId = this.getAttribute('data-chat-id');
-
-
-            if (!openedChannels.has(chatId)) {
-                echo.private(`chat.${chatId}`)
-                    .listen('MessageSent', (e) => {
-                        console.log('Новое сообщение:', e.message);
-                    });
-
-                openedChannels.add(chatId);
-            }
-
-
-            const content = 'ya tvou mamky ebal';
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            const response = await fetch('/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                },
-                body: JSON.stringify({ chat_id: chatId, content })
-            });
-
-            if (response.ok) {
-                console.log(response.body);
-                document.getElementById('message_input').value = '';
-            } else {
-                console.error('Ошибка при отправке сообщения');
-            }
-        })
-
-    })
-
-});
-
-
-$(document).ready(function() {
     // Global variables
     let currentChatId = null;
     let currentFilter = 'all';
@@ -79,23 +90,9 @@ $(document).ready(function() {
         $('.filter-btn').on('click', function() {
             const filter = $(this).data('filter');
             setActiveFilter(filter);
-            loadChats(filter);
-        });
-
-        // Chat item click
-        $(document).on('click', '.chat-item', function() {
-            const chatId = $(this).data('chat-id');
-            selectChat(chatId);
         });
 
         // Send message
-        $('#sendBtn').on('click', sendMessage);
-        $('#messageInput').on('keypress', function(e) {
-            if (e.which === 13 && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
 
         // Typing indicator
         $('#messageInput').on('input', function() {
@@ -192,7 +189,7 @@ $(document).ready(function() {
 
     // Select chat and load messages
     function selectChat(chatId) {
-        currentChatId = chatId;
+        chatInterface.chatClient.currentChatId = chatId;
 
         // Update active chat
         $('.chat-item').removeClass('active');
@@ -270,11 +267,11 @@ $(document).ready(function() {
     // Load messages for chat
     function loadMessages(chatId) {
         $.ajax({
-            url: `/api/messages/${chatId}`,
-            method: 'GET',
-            success: function(messages) {
-                renderMessages(messages);
-                scrollToBottom();
+            url: `/chats/${chatId}/messages`,
+            method: 'POST',
+            success: function(data) {
+                renderMessages(data.messages.data.reverse());
+                chatInterface.scrollToBottom();
             },
             error: function() {
                 console.error('Failed to load messages');
@@ -288,27 +285,13 @@ $(document).ready(function() {
         messagesList.empty();
 
         messages.forEach(message => {
-            const messageElement = createMessageElement(message);
+            const messageElement = chatInterface.createMessageElement(message);
             messagesList.append(messageElement);
         });
     }
 
     // Create message element
-    function createMessageElement(message) {
-        const template = $('#messageTemplate').html();
-        const $message = $(template);
 
-        if (message.is_own) {
-            $message.addClass('own');
-        }
-
-        $message.find('img').attr('src', getAvatarUrl(message.user_avatar, message.user_name));
-        $message.find('.message-author').text(message.user_name);
-        $message.find('.message-time').text(message.time);
-        $message.find('.message-text').text(message.message);
-
-        return $message;
-    }
 
     // Send message
     function sendMessage() {
@@ -323,26 +306,25 @@ $(document).ready(function() {
 
         // Send to API
         $.ajax({
-            url: '/api/messages',
+            url: '/messages',
             method: 'POST',
             data: {
                 chat_id: currentChatId,
-                message: messageText,
-                _token: $('meta[name="csrf-token"]').attr('content')
+                content: messageText,
             },
             success: function(message) {
-                // Add message to chat
-                const messageElement = createMessageElement(message);
-                $('#messagesList').append(messageElement);
-                scrollToBottom();
-
-                // Update last message in sidebar
-                updateLastMessage(currentChatId, messageText);
-
-                // Simulate response after delay
-                setTimeout(() => {
-                    simulateResponse();
-                }, 1000 + Math.random() * 2000);
+                // // Add message to chat
+                // const messageElement = createMessageElement(message);
+                // $('#messagesList').append(messageElement);
+                // scrollToBottom();
+                //
+                // // Update last message in sidebar
+                // updateLastMessage(currentChatId, messageText);
+                //
+                // // Simulate response after delay
+                // setTimeout(() => {
+                //     simulateResponse();
+                // }, 1000 + Math.random() * 2000);
             },
             error: function() {
                 console.error('Failed to send message');
@@ -375,62 +357,6 @@ $(document).ready(function() {
             $('#typingIndicator').hide();
             $('#chatStatus').show();
         }, duration);
-    }
-
-    // Simulate response message
-    function simulateResponse() {
-        if (!currentChatId) return;
-
-        simulateTyping();
-
-        setTimeout(() => {
-            const responses = [
-                'Понятно!',
-                'Хорошо, спасибо!',
-                'Согласен',
-                'Отлично!',
-                'Да, конечно',
-                'Интересно...',
-                'Спасибо за информацию',
-                'Буду иметь в виду'
-            ];
-
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-            const responseMessage = {
-                id: Date.now(),
-                user_id: currentChatId,
-                user_name: $('#chatName').text(),
-                user_avatar: $('#chatAvatar').attr('src'),
-                message: randomResponse,
-                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                is_own: false
-            };
-
-            const messageElement = createMessageElement(responseMessage);
-            $('#messagesList').append(messageElement);
-            scrollToBottom();
-
-            // Update last message in sidebar
-            updateLastMessage(currentChatId, randomResponse);
-
-        }, 2000);
-    }
-
-    // Update last message in sidebar
-    function updateLastMessage(chatId, message) {
-        const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
-        chatItem.find('.chat-item-message').text(message);
-        chatItem.find('.chat-item-time').text('сейчас');
-
-        // Move chat to top
-        chatItem.prependTo('#chatList');
-    }
-
-    // Scroll to bottom of messages
-    function scrollToBottom() {
-        const container = $('#messagesContainer');
-        container.scrollTop(container[0].scrollHeight);
     }
 
     // Auto-resize textarea
@@ -539,6 +465,7 @@ $(document).ready(function() {
 
     // Get avatar URL (fallback to placeholder)
     function getAvatarUrl(avatar, name) {
+        return '/img/chats/private/placeholder.png';
         if (avatar && avatar.startsWith('http')) {
             return avatar;
         }

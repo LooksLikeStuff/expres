@@ -32,13 +32,17 @@ class Message extends Model
         'type' => MessageType::class,
     ];
 
-    protected $appends = ['time', 'sender_name', 'read_at', 'formatted_time'];
+    protected $appends = ['time', 'sender_name', 'read_at', 'formatted_time', 'is_own'];
 
     public function getTimeAttribute(): string
     {
         return $this->created_at?->toTimeString('minute');
     }
 
+    public function getIsOwnAttribute()
+    {
+        return $this->sender_id == auth()->id();
+    }
     public function getSenderNameAttribute(): string
     {
         return $this->sender()->first(['name'])->name;

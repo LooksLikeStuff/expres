@@ -1077,12 +1077,12 @@ button.remove-button {
     border-radius: 5px;
     margin-bottom: 8px;
 }
-.message-time {
-    display: block;
-    font-size: 0.85em;
-    color: #ffffff;
-    margin-top: 4px;
-}
+/*.message-time {*/
+/*    display: block;*/
+/*    font-size: 0.85em;*/
+/*    color: #ffffff;*/
+/*    margin-top: 4px;*/
+/*}*/
 .chat-input {
     display: -webkit-box;
     display: -ms-flexbox;

@@ -25,70 +25,70 @@
     }
 }
 
-.message {
-    padding: 10px;
-    border-radius: 8px;
-    align-self: end;
-    background: #1059b7;
-    color: #eeeeee;
-
-    //.message__body
-    &__body {
-        display: flex;
-        gap: 12px;
-    }
-
-
-    //.message__opportunity
-    &__opportunity {
-        align-self: start;
-        background: #cccccc;
-        color: #232323;
-
-        //.message__opportunity  > .message__sender
-        > .message__sender {
-            color: #6c6c6c;
-        }
-
-        //.message__opportunity  > .message__time
-        .message__time {
-            color: #6c6c6c;
-        }
-
-    }
-
-    //.message__sender
-    &__sender {
-        font-size: 11px;
-        margin-bottom: 6px;
-        color: #c9c7c7;
-    }
-
-
-    //.message__time
-    &__time {
-        font-size: 10px;
-        color: #c9c7c7;
-        align-self: end
-
-    }
-
-    //.message__files
-    &__files {
-        display: grid;
-        gap: 4px;
-
-        //.message__files-item
-        &-item {
-            border-radius: 4px;
-            border: 1px solid #a8a8a8;
-
-        }
-        img {
-            border-radius: 4px;
-            max-width: 300px;
-            max-height: 400px;
-        }
-    }
-
-}
+//.message {
+//    padding: 10px;
+//    border-radius: 8px;
+//    align-self: end;
+//    background: #1059b7;
+//    color: #eeeeee;
+//
+//    //.message__body
+//    &__body {
+//        display: flex;
+//        gap: 12px;
+//    }
+//
+//
+//    //.message__opportunity
+//    &__opportunity {
+//        align-self: start;
+//        background: #cccccc;
+//        color: #232323;
+//
+//        //.message__opportunity  > .message__sender
+//        > .message__sender {
+//            color: #6c6c6c;
+//        }
+//
+//        //.message__opportunity  > .message__time
+//        .message__time {
+//            color: #6c6c6c;
+//        }
+//
+//    }
+//
+//    //.message__sender
+//    &__sender {
+//        font-size: 11px;
+//        margin-bottom: 6px;
+//        color: #c9c7c7;
+//    }
+//
+//
+//    //.message__time
+//    &__time {
+//        font-size: 10px;
+//        color: #c9c7c7;
+//        align-self: end
+//
+//    }
+//
+//    //.message__files
+//    &__files {
+//        display: grid;
+//        gap: 4px;
+//
+//        //.message__files-item
+//        &-item {
+//            border-radius: 4px;
+//            border: 1px solid #a8a8a8;
+//
+//        }
+//        img {
+//            border-radius: 4px;
+//            max-width: 300px;
+//            max-height: 400px;
+//        }
+//    }
+//
+//}

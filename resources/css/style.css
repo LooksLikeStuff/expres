@@ -3360,12 +3360,12 @@ div#chat-message {
     background: rgb(248, 215, 218);
 }
 
-.message-time {
-    font-size: 0.75em;
-    color: rgb(85, 85, 85);
-    margin-top: 5px;
-    text-align: right;
-}
+/*.message-time {*/
+/*    font-size: 0.75em;*/
+/*    color: rgb(85, 85, 85);*/
+/*    margin-top: 5px;*/
+/*    text-align: right;*/
+/*}*/
 
 .chat-input {
     display: -webkit-box;
@@ -6124,19 +6124,19 @@ u {
     background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.7' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-.message {
-    margin-bottom: 15px;
-    max-width: 80%;
-    width: -webkit-max-content;
-    width: -moz-max-content;
-    width: max-content;
-    border-radius: 15px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px;
-            box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px;
-    position: relative;
-    -webkit-animation: 0.3s ease 0s 1 normal none running fadeIn;
-            animation: 0.3s ease 0s 1 normal none running fadeIn;
-}
+/*.message {*/
+/*    margin-bottom: 15px;*/
+/*    max-width: 80%;*/
+/*    width: -webkit-max-content;*/
+/*    width: -moz-max-content;*/
+/*    width: max-content;*/
+/*    border-radius: 15px;*/
+/*    -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px;*/
+/*            box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px;*/
+/*    position: relative;*/
+/*    -webkit-animation: 0.3s ease 0s 1 normal none running fadeIn;*/
+/*            animation: 0.3s ease 0s 1 normal none running fadeIn;*/
+/*}*/
 
 @-webkit-keyframes fadeIn {
     0% {
@@ -6186,12 +6186,12 @@ u {
     font-size: 0.95rem;
 }
 
-.message-time {
-    font-size: 11px;
-    margin-top: 5px;
-    opacity: 0.7;
-    padding: 0px 12px 8px;
-}
+/*.message-time {*/
+/*    font-size: 11px;*/
+/*    margin-top: 5px;*/
+/*    opacity: 0.7;*/
+/*    padding: 0px 12px 8px;*/
+/*}*/
 
 .message-attachment {
     max-width: 200px;

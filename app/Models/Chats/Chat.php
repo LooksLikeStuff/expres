@@ -47,16 +47,6 @@ class Chat extends Model
         return $this->hasOne(Message::class)->latestOfMany();
     }
 
-    public function unreadMessages()
-    {
-        return $this->hasMany(Message::class)
-            ->where('created_at', '>', function ($query) {
-                $query->select('last_read_at')
-                    ->from('chat_user')
-                    ->whereColumn('chat_user.chat_id', 'messages.chat_id')
-                    ->where('chat_user.user_id', auth()->id());
-            });
-    }
 
     public function messages()
     {
