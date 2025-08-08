@@ -357,8 +357,11 @@ export default class ChatInterface {
             $message.addClass('own');
             $message.find('.message-status').removeClass('d-none').addClass(isMessageRead ? 'read' : '');
         }
+        console.log(message);
 
-        $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
+        const avatar = message.sender_avatar ?? message.sender?.profile_avatar;
+
+        $message.find('img').attr('src', this.getAvatarUrl(avatar, message.sender_name));
         $message.find('.message-author').text(message.sender_name);
         $message.find('.message-time').text(message.formatted_time);
         $message.find('.message-text').text(message.content);
@@ -445,7 +448,6 @@ export default class ChatInterface {
     }
 
     getAvatarUrl(avatar, name) {
-        return '/img/chats/private/placeholder.png';
         if (avatar && avatar.startsWith('http')) {
             return avatar;
         }
@@ -456,7 +458,8 @@ export default class ChatInterface {
         const color = colors[colorIndex];
         const initials = name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
 
-        return `https://via.placeholder.com/40x40/${color}/ffffff?text=${initials}`;
+        return '/img/chats/private/placeholder.png';
+        // return `https://via.placeholder.com/40x40/${color}/ffffff?text=${initials}`;
     }
 
     getMessageContent() {
@@ -518,7 +521,7 @@ export default class ChatInterface {
     updateChatInfo(data) {
         const $chatItem = $(`.chat-item[data-chat-id="${data.chat_id}"]`)
 
-        $chatItem.find('.chat-item-message').text(data.last_message);
+        $chatItem.find('.chat-item-message').text(data.body);
         $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${data.unread_count}</span>`);
         $chatItem.find('.chat-item-time').text(data.time);
     }

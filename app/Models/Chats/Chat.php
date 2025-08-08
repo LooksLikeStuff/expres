@@ -56,7 +56,11 @@ class Chat extends Model
     public function getAvatar()
     {
         if ($this->type == ChatType::PRIVATE) {
-            return $this->getOpportunityFor(auth()->id())->getRawOriginal('avatar_url') ?? $this->getPrivateBaseImage();
+            $opportunity = $this->getOpportunityFor(auth()->id());
+
+            return !is_null($opportunity->getRawOriginal('avatar_url')) //Если аватарка есть
+                ? $opportunity->profile_avatar //Получаем полный путь до нее
+                : $this->getPrivateBaseImage(); //Иначе заглушку
         }
 
         return $this->avatar ?? $this->getGroupBaseImage();

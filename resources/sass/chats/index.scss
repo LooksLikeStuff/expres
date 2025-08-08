@@ -2638,3 +2638,147 @@ body.contacts-open {
 }
 
 
+
+// New Chat Modal Styles
+#newChatModal {
+    &.show {
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .modal-content {
+        padding: 0;
+        @include glass-effect(0.2);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 240, 240, 0.9));
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        @include border-radius(20px);
+        @include shadow('xl');
+        overflow: hidden;
+    }
+
+    .modal-header {
+        border-bottom: none;
+        padding: 20px 25px;
+        background: $primary-gradient;
+        color: white;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: -1;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: white;
+            opacity: 0.8;
+            @include transition();
+
+            &:hover {
+                opacity: 1;
+                transform: rotate(90deg);
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 25px;
+
+        .form-label {
+            font-weight: 500;
+            color: $text-color;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba($border-color, 0.5);
+            @include border-radius(12px);
+            padding: 12px 15px;
+            font-size: 15px;
+            color: $text-color;
+            @include transition();
+
+            &:focus {
+                background: white;
+                border-color: $primary-color;
+                @include shadow('md');
+                box-shadow: 0 0 0 0.25rem rgba($primary-color, 0.25);
+            }
+        }
+
+        .form-check-inline {
+            .form-check-input {
+                width: 1.2em;
+                height: 1.2em;
+                border-color: $primary-color;
+
+                &:checked {
+                    background-color: $primary-color;
+                    border-color: $primary-color;
+                }
+            }
+
+            .form-check-label {
+                font-size: 15px;
+                color: $text-color;
+            }
+        }
+    }
+
+    .modal-footer {
+        border-top: none;
+        padding: 20px 25px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(5px);
+
+        .btn {
+            @include button-modern;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: 600;
+
+            &.btn-secondary {
+                background: $border-color;
+                color: $text-muted;
+                border: 1px solid $border-color;
+
+                &:hover {
+                    background: darken($border-color, 5%);
+                    color: $text-color;
+                }
+            }
+
+            &.btn-primary {
+                background: $primary-gradient;
+                color: white;
+                border: none;
+
+                &:hover {
+                    background: linear-gradient(135deg, $primary-light, $primary-color);
+                }
+            }
+        }
+    }
+
+    .form-check-input {
+        min-height: auto;
+        margin-top: 0;
+        margin-left: -1.5rem;
+    }
+}

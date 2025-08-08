@@ -212,7 +212,7 @@ export default class ChatClient {
     observeReadReceipts(container) {
         if (!this.observer) {
             this.observer = new IntersectionObserver(this.handleIntersection.bind(this), {
-                threshold: 1.0,
+                threshold: 0.5,
             });
         }
 

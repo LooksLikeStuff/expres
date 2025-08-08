@@ -27,7 +27,7 @@ class ChatService
     {
 
         $chats = Chat::with([
-            'users:id,name',
+            'users:id,name,avatar_url',
             'lastMessage',
         ])
             ->withCount([

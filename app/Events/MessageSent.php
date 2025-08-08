@@ -37,7 +37,7 @@ class MessageSent implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        $sender = $this->message->sender()->first(['name']);
+        $sender = $this->message->sender()->first(['name', 'avatar_url']);
 
         return [
             'id' => $this->message->id,
@@ -46,6 +46,7 @@ class MessageSent implements ShouldBroadcast
             'type' => $this->message->type->value,
             'sender_id' => $this->message->sender_id,
             'sender_name' => $sender->name,
+            'sender_avatar' => $sender->profile_avatar,
             'formatted_time' => $this->message->formatted_time,
         ];
     }

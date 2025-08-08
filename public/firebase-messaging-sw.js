@@ -14,9 +14,9 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
     console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
 
-    const notificationTitle = payload.notification.title;
+    const notificationTitle = payload.data.title;
     const notificationOptions = {
-        body: payload.notification.body,
+        body: payload.data.body,
         // icon: '/img/chats/private/placeholder.png', // желательно иконку указать!
         data: {
             url: '/' // можно использовать для перехода по клику

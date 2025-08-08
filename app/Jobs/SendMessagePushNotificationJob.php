@@ -31,8 +31,10 @@ class SendMessagePushNotificationJob implements ShouldQueue
     {
         $chat = $this->message->chat()->with('users.fcmTokens')->first();
 
+        $sender = $chat->users->firstWhere('id', $this->message->sender_id);
+
         foreach ($chat->users as $user) {
-            if ($user->id === $this->message->sender_id) {
+            if ($user->id === $sender->id) {
                 continue; // не шлём себе
             }
 
@@ -42,13 +44,28 @@ class SendMessagePushNotificationJob implements ShouldQueue
                 ->post('https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send', [
                     'message' => [
                         'token' => $token->token,
-                            'data' => [
-                                'chat_id' => (string)($chat->id),
-                                'unread_count' => (string)$chat->unreadCountForUser($user->id),
-                                'last_message' => $chat->lastMessage?->content,
-                                'time' => $chat->lastMessage?->formatted_time
+                        'data' => [
+                            'title' => 'Новое сообщение от - ' . $sender->name,
+                            'body' => $this->message->content,
+                            'chat_id' => (string)$chat->id,
+                            'unread_count' => (string)$chat->unreadCountForUser($user->id),
+                            'time' => $chat->lastMessage?->formatted_time,
+                            'message_id' => (string)$this->message->id,
+                        ],
+                        'android' => [
+                            'priority' => 'high',
+                        ],
+                        'apns' => [
+                            'headers' => [
+                                'apns-priority' => '10',
+                            ],
+                            'payload' => [
+                                'aps' => [
+                                    'sound' => 'default',
+                                ],
                             ],
                         ],
+                    ],
                 ]);
 
                 Log::info('FCM RESPONSE', [

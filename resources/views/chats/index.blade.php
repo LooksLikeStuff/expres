@@ -28,7 +28,7 @@
                     <div class="sidebar-header">
                         <div class="user-info">
                             <div class="user-avatar">
-                                <img src="{{$user->getProfileAvatar()}}" alt="User Avatar">
+                                <img src="{{$user->profile_avatar}}" alt="User Avatar">
                             </div>
                             <div class="user-details">
                                 <h6 class="user-name">{{$user->name}}</h6>
@@ -36,6 +36,58 @@
                             </div>
                         </div>
                         <div class="header-actions">
+                            <div class="header-actions">
+                                <!-- Кнопка создать чат -->
+
+                                <i class="bi bi-plus-lg" data-bs-toggle="modal" data-bs-target="#newChatModal"></i>
+
+                                <!-- New Chat Modal -->
+                                <div class="modal fade" id="newChatModal" tabindex="-1" aria-labelledby="newChatModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="newChatModalLabel">Создать новый чат</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="newChatForm">
+                                                    <div class="mb-3">
+                                                        <label for="chatType" class="form-label">Тип чата</label>
+                                                        <div class="d-flex align-items-center justify-content-center gap-3">
+                                                            <div class="form-check d-flex align-items-center">
+                                                                <input class="form-check-input" type="radio" name="chatType" id="personalChat" value="personal" checked>
+                                                                <label class="form-check-label" for="personalChat">Личный</label>
+                                                            </div>
+                                                            <div class="form-check d-flex align-items-center">
+                                                                <input class="form-check-input" type="radio" name="chatType" id="groupChat" value="group">
+                                                                <label class="form-check-label" for="groupChat">Групповой</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="chatName" class="form-label">Название чата</label>
+                                                        <input type="text" class="form-control" id="chatNameInput" name="name" placeholder="Введите название чата">
+                                                    </div>
+                                                    <div class="mb-3" id="participantsField">
+                                                        <label for="chatParticipants" class="form-label">Участники</label>
+                                                        <select class="form-select" id="chatParticipants" name="user_ids[]" multiple aria-label="Выберите участников">
+                                                            <!-- Options will be loaded dynamically -->
+                                                            <option value="user1">Пользователь 1</option>
+                                                            <option value="user2">Пользователь 2</option>
+                                                            <option value="user3">Пользователь 3</option>
+                                                        </select>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                                <button type="button" class="btn btn-primary" id="createChatBtn">Создать</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
 {{--                            <button class="btn-icon" title="Настройки">--}}
 {{--                                <i class="bi bi-gear"></i>--}}
 {{--                            </button>--}}
@@ -71,7 +123,7 @@
 
                                 <div class="chat-item-avatar">
                                     <img src="{{ $chat->getAvatar() }}" alt="Avatar">
-                                    <div class="online-indicator {{ in_array($chat->id, $onlineUsers ?? []) ? '' : 'offline' }}"></div>
+                                    <div class="online-indicator"></div>
                                 </div>
                                 <div class="chat-item-content">
                                     <div class="chat-item-header">
@@ -134,9 +186,9 @@
                                 <button class="btn-icon">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                <button class="btn-icon">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
+{{--                                <button class="btn-icon">--}}
+{{--                                    <i class="bi bi-three-dots-vertical"></i>--}}
+{{--                                </button>--}}
                             </div>
                         </div>
 

@@ -72,6 +72,8 @@ class User extends Authenticatable
         'deleted_at' => 'datetime', // Добавляем приведение типа для мягкого удаления
     ];
 
+    protected $appends = ['profile_avatar'];
+
     /**
      * Метод, вызываемый при загрузке модели
      */
@@ -190,10 +192,14 @@ class User extends Authenticatable
         return asset('storage/icon/profile.svg');
     }
 
-    public function getProfileAvatar()
+    public function getProfileAvatarAttribute(): string
     {
-        return $this->getRawOriginal('avatar_url') ?? asset('img/chats/profile/placeholder.png');
+        $path = $this->getRawOriginal('avatar_url');
+        if ($path) return url($path);
+
+        return asset('img/chats/profile/placeholder.png');
     }
+
 
     /**
      * Аксессор для получения URL аватара с дефолтным значением

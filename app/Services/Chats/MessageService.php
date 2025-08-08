@@ -15,7 +15,7 @@ class MessageService
     public function getPaginatedMessagesByChatId(int $chatId, int $page = 1, int $perPage = 20)
     {
         return Message::select(['id', 'sender_id', 'type', 'content', 'created_at'])
-            ->with(['attachments', 'readReceipts'])
+            ->with(['attachments', 'readReceipts', 'sender'])
             ->where('chat_id', $chatId)
             ->orderByDesc('created_at')
             ->forPage($page)
