@@ -216,16 +216,16 @@
                             <span class="message-author"></span>
                             <span class="message-time"></span>
                         </div>
+                        <div class="message-attachments" style="display: none;">
+                            <!-- Attachments will be added here -->
+                        </div>
+
                         <div class="message-body">
                             <div class="message-text"></div>
                             <span class="message-status d-none">
                                 <i class="bi bi-check"></i>
                                 <i class="bi bi-check2-all"></i>
                             </span>
-
-                            <div class="message-attachments" style="display: none;">
-                                <!-- Attachments will be added here -->
-                            </div>
                         </div>
                     </div>
                 </div>

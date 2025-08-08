@@ -703,6 +703,10 @@ body {
     overflow-y: auto;
     padding: 16px 20px;
     background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+
+    @media screen and (max-width: 768px) {
+        padding: 8px 10px;
+    }
 }
 
 .messages-list {
@@ -938,6 +942,7 @@ body {
         top: 0;
         left: 0;
         height: 100vh;
+        width: 100%;
         transform: translateX(-100%);
         @include transition(transform, 0.3s, cubic-bezier(0.25, 0.46, 0.45, 0.94));
         @include shadow('xl');
@@ -1816,7 +1821,7 @@ body {
 
 // Message attachments styles
 .message-attachments {
-    margin-top: 12px;
+    margin-bottom: 16px;
 
     .message-images {
         display: grid;
@@ -1900,6 +1905,7 @@ body {
             @include transition();
 
             .download-btn {
+                min-height: auto;
                 @include button-modern;
                 background: rgba(255, 255, 255, 0.9);
                 border: none;
@@ -1939,6 +1945,8 @@ body {
             }
 
             .file-icon {
+                margin: 0;
+                padding: 0;
                 width: 40px;
                 height: 40px;
                 display: flex;
@@ -1948,6 +1956,11 @@ body {
                 @include border-radius(8px);
                 color: $primary-color;
                 font-size: 18px;
+
+                //.file-icon::before
+                &::before {
+                    content: unset;
+                }
             }
 
             .file-info {
@@ -1971,6 +1984,7 @@ body {
             }
 
             .download-btn {
+                min-height: auto;
                 @include button-modern;
                 background: rgba($primary-color, 0.1);
                 border: 1px solid rgba($primary-color, 0.2);

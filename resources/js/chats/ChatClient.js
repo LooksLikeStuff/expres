@@ -44,7 +44,6 @@ export default class ChatClient {
                 }).then((currentToken) => {
                     if (currentToken) {
                         this.registerFirebaseToken(currentToken);
-                        console.log(currentToken);
                     } else {
                         console.warn('Нет токена. Запроси разрешение на уведомления.');
                     }

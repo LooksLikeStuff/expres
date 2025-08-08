@@ -39,6 +39,7 @@ class MessageRead implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
+            'chat_id' => $this->readReceipt->message->chat_id,
             'message_id' => $this->readReceipt->message_id,
             'user_ids' => $this->readReceipt->user_id,
             'read_at' => $this->readReceipt->read_at,

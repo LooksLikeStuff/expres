@@ -26,7 +26,7 @@ class MessageRequest extends FormRequest
             'content' => 'required|string',
             'reply_to_id' => 'nullable|integer,exists:messages,id',
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif|max:10240',
+            'attachments.*' => 'file|max:10240',
         ];
     }
 }

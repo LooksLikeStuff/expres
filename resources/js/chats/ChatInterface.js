@@ -9,8 +9,6 @@ export default class ChatInterface {
         this.messagesContainer = $('.messages-container');
         this.messagesList = $('#messagesList');
         this.messageInput = $('#messageInput');
-        this.messageForm = document.getElementById('message-form');
-        this.messagesLoader = document.getElementById('messages-loading');
 
         //Файлы вложения
         this.attachPreviewContainer = document.getElementById('attach__container')
@@ -59,9 +57,9 @@ export default class ChatInterface {
         $('#sendBtn').click(async () => {
             const content = this.getMessageContent();
             if (content) {
-                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.attachInput[0]?.files);
+                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.selectedFiles);
                 this.messageInput.val('');
-                this.hideAttachments();
+                this.clearAllFiles();
             }
         });
 
@@ -75,9 +73,9 @@ export default class ChatInterface {
 
                 const content = this.messageInput.val().trim();
                 if (content) {
-                    await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.attachInput?.files);
+                    await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.selectedFiles);
                     this.messageInput.val('');
-                    this.hideAttachments();
+                    this.clearAllFiles();
                 }
             }
         });
@@ -133,6 +131,7 @@ export default class ChatInterface {
 
     showSidebar() {
         $('.sidebar').addClass('active');
+        $('.mobile__ponel').removeClass('d-none');
     }
     async activateChat(chatId) {
         $('.sidebar').removeClass('active');
@@ -187,7 +186,7 @@ export default class ChatInterface {
                     this.appendMessage(data);
                     break;
                 case 'read':
-                    this.markAsRead(data.message_id);
+                    this.markAsRead(data);
                     break;
                 case 'typing':
                     this.handleTypingIndicator(data.username);
@@ -246,10 +245,12 @@ export default class ChatInterface {
         });
     }
 
-    markAsRead(messageId) {
-        const $message = $(`.message[data-message-id="${messageId}"]`);
+    markAsRead(data) {
+        $(`.chat-item[data-chat-id="${data.chat_id}"]`)?.find('.chat-item-badges')?.html();
+        const $message = $(`.message[data-message-id="${data.message_id}"]`);
         $message.attr('data-read-status', '1');
         $message.find('.message-status').addClass('read');
+
 
     }
 
@@ -357,13 +358,18 @@ export default class ChatInterface {
             $message.find('.message-status').removeClass('d-none').addClass(isMessageRead ? 'read' : '');
         }
 
+        $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
+        $message.find('.message-author').text(message.sender_name);
+        $message.find('.message-time').text(message.formatted_time);
+        $message.find('.message-text').text(message.content);
+
         // Add attachments if present
         if (message.attachments && message.attachments.length > 0) {
             const attachmentsContainer = $message.find('.message-attachments');
             attachmentsContainer.show();
 
-            const images = message.attachments.filter(att => att.type === 'image');
-            const files = message.attachments.filter(att => att.type === 'file');
+            const images = this.getImagesFromMessageAttachments(message.attachments);
+            const files = this.getFilesFromMessageAttachments(message.attachments);
 
             // Add images
             if (images.length > 0) {
@@ -379,14 +385,17 @@ export default class ChatInterface {
         }
 
 
-
-        $message.find('img').attr('src', this.getAvatarUrl(message.user_avatar, message.user_name));
-        $message.find('.message-author').text(message.sender_name);
-        $message.find('.message-time').text(message.formatted_time);
-        $message.find('.message-text').text(message.content);
-
         return $message;
     }
+
+    getImagesFromMessageAttachments(attachments) {
+        return attachments.filter(att => att.mime_type?.startsWith('image/'));
+    }
+
+    getFilesFromMessageAttachments(attachments) {
+        return attachments.filter(att => !att.mime_type?.startsWith('image/'));
+    }
+
 
     // Update last message in sidebar
     updateLastMessage(chatId, message) {
@@ -525,6 +534,7 @@ export default class ChatInterface {
         // File input change
         this.attachInput.on('change', (e)=> {
             const files = Array.from(e.currentTarget.files);
+            console.log(files);
             this.addFiles(files);
             // Clear input to allow selecting same file again
             $(e.currentTarget).val('');
@@ -761,7 +771,7 @@ export default class ChatInterface {
         const template = $('#messageImageTemplate').html();
         const $element = $(template);
 
-        $element.find('img').attr('src', image.url);
+        $element.find('img').attr('src', image.full_path);
         $element.find('.download-btn').attr('data-download-url', image.download_url);
 
         return $element;
@@ -782,12 +792,12 @@ export default class ChatInterface {
         const template = $('#messageFileTemplate').html();
         const $element = $(template);
 
-        $element.find('.file-name').text(file.name);
-        $element.find('.file-size').text(this.formatFileSize(file.size));
+        $element.find('.file-name').text(file.original_name);
+        $element.find('.file-size').text(this.formatFileSize(file.filesize));
         $element.find('.download-btn').attr('data-download-url', file.download_url);
 
         // Set file icon
-        const extension = this.getFileExtension(file.name);
+        const extension = this.getFileExtension(file.original_name);
         const icon = $element.find('.file-icon');
         icon.attr('data-file-type', extension);
         this.setFileIcon(icon.find('i'), extension);
