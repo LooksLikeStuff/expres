@@ -207,7 +207,13 @@ export default class ChatInterface {
 
         $item.attr('data-chat-id', chat.id);
         $item.attr('data-chat-type', chat.type)
-        $item.attr('data-user-ids', chat.users.map(user => user.id).join(','));
+        $item.attr(
+            'data-user-ids',
+            chat.users
+                .filter(user => user.id !== this.chatClient.getUserId()) // исключаем себя
+                .map(user => user.id)
+                .join(',')
+        );
 
         $item.find('img').attr('src', this.getAvatarUrl(chat.avatar, chat.title));
         $item.find('.chat-item-name').text(chat.title);
@@ -596,7 +602,6 @@ export default class ChatInterface {
         const onlineUserIds = this.chatClient.onlineUsers || new Set();
         const currentChatId = parseInt(this.chatClient.currentChatId);
 
-        console.log(currentChatId);
         $('.chat-item').each(function () {
             const $chatItem = $(this);
             const chatId = parseInt($chatItem.data('chat-id'));
