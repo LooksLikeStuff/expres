@@ -1,4 +1,4 @@
-import $ from "jquery";
+import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 
 export default class ChatInterface {
     constructor(chatClient) {
@@ -36,6 +36,7 @@ export default class ChatInterface {
 
     init() {
         this.bindEvents();
+        this.initCreateChatForm();
     }
 
     bindEvents() {
@@ -91,6 +92,68 @@ export default class ChatInterface {
                 await this.chatClient.removeUserFromCurrentChat(userId);
             }
         });
+    }
+
+    initCreateChatForm() {
+        const $chatModalElem = $('#newChatModal');
+        const $chatType = $('input[name="chatType"]');
+        const $chatNameField = $('#chatNameInput').closest('.mb-3');
+        const $participants = $('#chatParticipants');
+        const $chatAvatarField = $('#chatAvatarField'); // блок с инпутом для аватарки
+        const $chatAvatarInput = $('#chatAvatar'); // сам input
+
+        // Инициализация select2 с базовыми настройками
+        $participants.select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Выберите участников',
+            dropdownParent: $chatModalElem,
+            width: '100%',
+            multiple: true // по умолчанию групповая логика
+        });
+
+        function updateForm() {
+            const type = $('input[name="chatType"]:checked').val();
+
+            if (type === 'personal') {
+                // Скрыть поле названия чата через класс d-none
+                $chatNameField.addClass('d-none');
+
+                // Переключить select2 в режим одного выбора
+                $participants.select2('destroy').prop('multiple', false).select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Выберите участника',
+                    dropdownParent: $chatModalElem,
+                    width: '100%',
+                    multiple: false
+                });
+
+                // Скрыть поле аватарки и очистить выбор
+                $chatAvatarField.addClass('d-none');
+                $chatAvatarInput.val('');
+
+            } else {
+                // Показать поле названия чата через удаление класса d-none
+                $chatNameField.removeClass('d-none');
+
+                // Переключить select2 в multiple
+                $participants.select2('destroy').prop('multiple', true).select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Выберите участников',
+                    dropdownParent: $chatModalElem,
+                    width: '100%',
+                    multiple: true
+                });
+
+                // Показать поле аватарки
+                $chatAvatarField.removeClass('d-none');
+            }
+        }
+
+        // При загрузке модалки и при смене типа чата
+        $chatType.on('change', updateForm);
+
+        // Вызываем один раз при инициализации
+        updateForm();
     }
 
     loadMoreMessages(chatId) {
@@ -807,5 +870,6 @@ export default class ChatInterface {
 
         return $element;
     }
+
 
 }

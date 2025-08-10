@@ -64,18 +64,25 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="mb-3">
+                                                    <div class="mb-3" id="chatNameField">
                                                         <label for="chatName" class="form-label">Название чата</label>
-                                                        <input type="text" class="form-control" id="chatNameInput" name="name" placeholder="Введите название чата">
+                                                        <input type="text" class="form-control" id="chatNameInput" name="name" placeholder="Введите название чата" autocomplete="1">
                                                     </div>
                                                     <div class="mb-3" id="participantsField">
-                                                        <label for="chatParticipants" class="form-label">Участники</label>
+                                                        <label for="chatParticipants" class="form-label">Выберите участника</label>
                                                         <select class="form-select" id="chatParticipants" name="user_ids[]" multiple aria-label="Выберите участников">
                                                             <!-- Options will be loaded dynamically -->
                                                             <option value="user1">Пользователь 1</option>
                                                             <option value="user2">Пользователь 2</option>
                                                             <option value="user3">Пользователь 3</option>
                                                         </select>
+                                                    </div>
+
+                                                    <!-- Блок аватарки с классом d-none -->
+                                                    <div class="mb-3 d-none" id="chatAvatarField">
+                                                        <label for="chatAvatar" class="form-label">Аватарка чата</label>
+                                                        <input class="form-control" type="file" id="chatAvatar" name="avatar" accept="image/*" />
+                                                        <div class="form-text">Необязательное поле. Можно загрузить один файл изображения.</div>
                                                     </div>
                                                 </form>
                                             </div>

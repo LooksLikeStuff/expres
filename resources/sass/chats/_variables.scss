@@ -1,0 +1,74 @@
+// Modern Variables
+$primary-color: rgb(16, 89, 183);
+$primary-light: rgb(42, 112, 199);
+$primary-dark: rgb(12, 67, 137);
+$primary-gradient: linear-gradient(135deg, $primary-color, $primary-light);
+$secondary-color: #f8fafc;
+$accent-color: #6366f1;
+$text-color: #1e293b;
+$text-muted: #64748b;
+$text-light: #94a3b8;
+$border-color: #e2e8f0;
+$border-light: #f1f5f9;
+$online-color: #10b981;
+$offline-color: #94a3b8;
+$message-bg: #ffffff;
+$message-own-bg: $primary-gradient;
+$sidebar-bg: #ffffff;
+$chat-bg: #f8fafc;
+$white-border-color: #eeeeee;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Modern Mixins
+@mixin transition($property: all, $duration: 0.2s, $timing: cubic-bezier(0.4, 0, 0.2, 1)) {
+    transition: $property $duration $timing;
+}
+
+@mixin border-radius($radius: 12px) {
+    border-radius: $radius;
+}
+
+@mixin shadow($level: 'sm') {
+    @if $level == 'sm' {
+        box-shadow: $shadow-sm;
+    } @else if $level == 'md' {
+        box-shadow: $shadow-md;
+    } @else if $level == 'lg' {
+        box-shadow: $shadow-lg;
+    } @else if $level == 'xl' {
+        box-shadow: $shadow-xl;
+    }
+}
+
+@mixin glass-effect($opacity: 0.1) {
+    background: rgba(255, 255, 255, $opacity);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@mixin hover-lift {
+    @include transition(transform);
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+@mixin button-modern {
+    border: none;
+    @include border-radius(10px);
+    @include transition();
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+        transform: translateY(-1px);
+        @include shadow('md');
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
