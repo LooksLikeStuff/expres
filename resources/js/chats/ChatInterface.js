@@ -6,6 +6,8 @@ export default class ChatInterface {
 
         this.chatList =  $('#chatList');
         this.chatElements = $('.chat-item');
+        this.newChatModalElem = $('#newChatModal');
+
         this.showSidebarButton = $('.mobile-menu-btn');
 
         this.createChatBtn = $('#createChatBtn');
@@ -100,7 +102,8 @@ export default class ChatInterface {
     }
 
     initCreateChatForm() {
-        const $chatModalElem = $('#newChatModal');
+        const $chatModalElem = this.newChatModalElem;
+
         const $chatType = $('input[name="type"]');
         const $chatNameField = $('#chatNameInput').closest('.mb-3');
         const $participants = $('#chatParticipants');
@@ -172,13 +175,18 @@ export default class ChatInterface {
     }
 
     async dispatchCreateChat() {
+        this.newChatModalElem.hide();
+
         const formElement = this.createChatForm[0]; // нативный элемент формы
 
         // Создаем FormData из формы — включая файлы
         let formData = new FormData(formElement);
 
 
-        return await this.chatClient.createNewChat(formData);
+        let data = await this.chatClient.createNewChat(formData);
+        if (data.status === 'exists') {
+            this.activateChat(data.chat_id);
+        }
     }
 
     createChat(chatId) {
@@ -293,26 +301,6 @@ export default class ChatInterface {
             this.closeMobileMenu();
         }
 
-        // document.querySelectorAll('.message').forEach(el => el.remove());
-        // document.querySelector('.empty-chat').classList.add('d-none');
-        // this.messagesLoader.classList.remove('d-none');
-        //
-        // //Прячем форму ввода сообщений
-        // this.messageForm.classList.add('d-none');
-        //
-        // this.highlightActiveChat(chatId);
-        //
-        // //Получаем сообщения чата
-        // let data = await this.getChatData(chatId);
-        //
-        // let messages = data.messages;
-        // let users = data.users;
-        //
-        //
-        // this.displayChatMessages(messages.data.reverse());
-        // this.chatClient.observeReadReceipts(this.messageContainer);
-        // this.displayChatUsers(users);
-
         this.chatClient.joinChat(chatId, (type, data) => {
             switch (type) {
                 case 'message':
@@ -326,6 +314,8 @@ export default class ChatInterface {
                     break;
             }
         });
+
+        this.updateOnlineStatus();
 
 // Удаляем предыдущий обработчик и добавляем новый
 //         this.messageInput.removeEventListener('_typing', this._typingListener);
@@ -604,25 +594,35 @@ export default class ChatInterface {
 
     updateOnlineStatus() {
         const onlineUserIds = this.chatClient.onlineUsers || new Set();
-        const chatStatus = $('#chatStatus');
-        const onlineIndicator = $('#onlineIndicator');
+        const currentChatId = parseInt(this.chatClient.currentChatId);
 
+        console.log(currentChatId);
         $('.chat-item').each(function () {
             const $chatItem = $(this);
-            const userIdsStr = $chatItem.data('user-ids');
-            const userIds = userIdsStr.toString().split(',').map(id => parseInt(id));
-
+            const chatId = parseInt($chatItem.data('chat-id'));
+            const userIds = $chatItem.data('user-ids').toString().split(',').map(Number);
             const isAnyUserOnline = userIds.some(id => onlineUserIds.has(id));
-            const indicator = $chatItem.find('.online-indicator');
 
+            // Индикатор в списке чатов
+            const listIndicator = $chatItem.find('.online-indicator');
             if (isAnyUserOnline) {
-                indicator.removeClass('offline');
-                onlineIndicator.removeClass('offline');
-                chatStatus.text('Онлайн');
+                listIndicator.removeClass('offline');
             } else {
-                indicator.addClass('offline');
-                onlineIndicator.addClass('offline');
-                chatStatus.text('был(а) недавно');
+                listIndicator.addClass('offline');
+            }
+
+            // Индикатор и статус внутри активного чата
+            if (chatId === currentChatId) {
+                const onlineIndicator = $('#onlineIndicator');
+                const chatStatus = $('#chatStatus');
+
+                if (isAnyUserOnline) {
+                    onlineIndicator.removeClass('offline');
+                    chatStatus.text('Онлайн');
+                } else {
+                    onlineIndicator.addClass('offline');
+                    chatStatus.text('был(а) недавно');
+                }
             }
         });
     }

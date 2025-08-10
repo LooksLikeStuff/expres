@@ -53,13 +53,15 @@ class ChatController extends Controller
         $data['participants'][] = $userId; //Добавляем себя как участника
 
         //проверяем если чат приватный, что он еще не существует
+        $existingChat = $this->chatService->privateChatByParticipants($data['participants']);
         if (
             $data['type'] == ChatType::PRIVATE->value
-            && $this->chatService->isPrivateChatExistsByParticipants($data['participants'])
+            && $existingChat
         ) {
             return response()
                 ->json([
-                    'message' => 'Chat уже существует',
+                    'status' => 'exists',
+                    'chat_id' => $existingChat->id,
                 ]);
         }
 

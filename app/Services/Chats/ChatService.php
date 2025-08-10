@@ -57,7 +57,7 @@ class ChatService
         return $chats;
     }
 
-    public function isPrivateChatExistsByParticipants(array $participantIds): bool
+    public function privateChatByParticipants(array $participantIds): ?Chat
     {
         // Кол-во участников, которых ищем
         $countParticipants = count($participantIds);
@@ -75,7 +75,7 @@ class ChatService
             ->whereDoesntHave('userChats', function ($query) use ($participantIds) {
                 $query->whereNotIn('user_id', $participantIds);
             })
-            ->exists();
+            ->first();
     }
 
 }
