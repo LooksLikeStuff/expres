@@ -53,7 +53,7 @@ class MessageController extends Controller
             $this->attachmentService->saveMessageAttachments($message, $data['attachments']);
         }
 
-        broadcast(new MessageSent($message))->toOthers();
+        broadcast(new MessageSent($message));
 
         return response()->json(['status' => 'Сообщение отправлено']);
     }

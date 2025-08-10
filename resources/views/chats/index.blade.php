@@ -50,38 +50,37 @@
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form id="newChatForm">
+                                                <form id="newChatForm" enctype="multipart/form-data">
                                                     <div class="mb-3">
                                                         <label for="chatType" class="form-label">Тип чата</label>
                                                         <div class="d-flex align-items-center justify-content-center gap-3">
                                                             <div class="form-check d-flex align-items-center">
-                                                                <input class="form-check-input" type="radio" name="chatType" id="personalChat" value="personal" checked>
+                                                                <input class="form-check-input" type="radio" name="type" id="personalChat" value="private" checked>
                                                                 <label class="form-check-label" for="personalChat">Личный</label>
                                                             </div>
                                                             <div class="form-check d-flex align-items-center">
-                                                                <input class="form-check-input" type="radio" name="chatType" id="groupChat" value="group">
+                                                                <input class="form-check-input" type="radio" name="type" id="groupChat" value="group">
                                                                 <label class="form-check-label" for="groupChat">Групповой</label>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="mb-3" id="chatNameField">
                                                         <label for="chatName" class="form-label">Название чата</label>
-                                                        <input type="text" class="form-control" id="chatNameInput" name="name" placeholder="Введите название чата" autocomplete="1">
+                                                        <input type="text" class="form-control" id="chatNameInput" name="title" placeholder="Введите название чата" autocomplete="1">
                                                     </div>
                                                     <div class="mb-3" id="participantsField">
                                                         <label for="chatParticipants" class="form-label">Выберите участника</label>
-                                                        <select class="form-select" id="chatParticipants" name="user_ids[]" multiple aria-label="Выберите участников">
-                                                            <!-- Options will be loaded dynamically -->
-                                                            <option value="user1">Пользователь 1</option>
-                                                            <option value="user2">Пользователь 2</option>
-                                                            <option value="user3">Пользователь 3</option>
+                                                        <select class="form-select" id="chatParticipants" name="participants[]" multiple aria-label="Выберите участников">
+                                                            @foreach($users as $participant)
+                                                                <option value="{{$participant->id}}">{{$participant->name}}</option>
+                                                            @endforeach
                                                         </select>
                                                     </div>
 
                                                     <!-- Блок аватарки с классом d-none -->
                                                     <div class="mb-3 d-none" id="chatAvatarField">
-                                                        <label for="chatAvatar" class="form-label">Аватарка чата</label>
-                                                        <input class="form-control" type="file" id="chatAvatar" name="avatar" accept="image/*" />
+                                                        <label for="newChatAvatar" class="form-label">Аватарка чата</label>
+                                                        <input class="form-control" type="file" id="newChatAvatar" name="avatar" accept="image/*" />
                                                         <div class="form-text">Необязательное поле. Можно загрузить один файл изображения.</div>
                                                     </div>
                                                 </form>

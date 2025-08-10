@@ -9,8 +9,10 @@ class ChatDTO
 {
 
     public function __construct(
-        public readonly ChatType $type,
-        public readonly string $title,
+        public readonly ?int $id,
+        public readonly ChatType|string $type,
+        public readonly ?string $title,
+        public readonly ?string $avatar,
         public readonly ?Carbon $deletedAt,
     )
     {
@@ -19,8 +21,10 @@ class ChatDTO
     public static function fromArray(array $data): self
     {
         return new self(
-            type: $data['type'],
-            title: $data['title'],
+            id: $data['id'] ?? null,
+            type: is_string($data['type']) ? ChatType::from($data['type']) : $data['type'],
+            title: $data['title'] ?? null,
+            avatar: $data['avatar'] ?? null,
             deletedAt: $data['deleted_at'] ?? null,
         );
     }
@@ -30,6 +34,7 @@ class ChatDTO
         return [
             'type' => $this->type->value,
             'title' => $this->title,
+            'avatar' => $this->avatar,
             'deleted_at' => $this->deletedAt,
         ];
     }

@@ -34,7 +34,15 @@ class Chat extends Model
             return $this->title;
         }
 
+
         return $this->getOpportunityFor($userId)?->name;
+    }
+
+    // В модели Chat.php
+
+    public function userChats()
+    {
+        return $this->hasMany(UserChat::class, 'chat_id', 'id');
     }
 
     public function getOpportunityFor(int $userId): ?User
@@ -63,7 +71,7 @@ class Chat extends Model
                 : $this->getPrivateBaseImage(); //Иначе заглушку
         }
 
-        return $this->avatar ?? $this->getGroupBaseImage();
+        return $this->avatar ? asset('storage/' . $this->avatar) : $this->getGroupBaseImage();
     }
 
     public function getPrivateBaseImage()

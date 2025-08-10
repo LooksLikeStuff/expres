@@ -21,4 +21,17 @@ class UserChatService
             ->where('user_id', $userId)
             ->update(['left_at' => now()]);
     }
+
+    public function createChatParticipants(int $chatId, array $participantIds)
+    {
+        // Формируем массив данных для вставки
+        $data = array_map(fn($userId) => [
+            'chat_id' => $chatId,
+            'user_id' => $userId,
+            'joined_at' => now(),
+        ], $participantIds);
+
+        // Вставляем сразу все записи
+        return UserChat::insert($data);
+    }
 }

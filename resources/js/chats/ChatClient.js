@@ -2,7 +2,6 @@ import Echo from 'laravel-echo';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import $ from "jquery";
 
 export default class ChatClient {
     constructor(userId, userName) {
@@ -11,6 +10,7 @@ export default class ChatClient {
         this.currentChatId = null;
         this.onlineUsers = null;
         this.echo = null;
+        this.globalChannel = null;
         this.globalPresenceChannel = null;
         this.lastTyping = null;
         this.observer = null;
@@ -107,9 +107,21 @@ export default class ChatClient {
             .listenForWhisper('typing', (e) => {
                 if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('typing', e);
-            });
+            })
+        ;
     }
 
+    joinGlobalChannel(callback) {
+        if (this.globalChannel) return;
+
+        const channelName = 'user.' + this.userId;
+
+        this.globalChannel = this.echo.private(channelName)
+            .listen('ChatCreated', (e) => {
+                callback('ChatCreated', e);
+            })
+        ;
+    }
     joinGlobalPresenceChannel() {
         if (!this.echo) return;
 
@@ -162,9 +174,9 @@ export default class ChatClient {
         }
 
 
-        for (const [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-        }
+        // for (const [key, value] of formData.entries()) {
+        //     console.log(`${key}:`, value);
+        // }
 
         try {
             const response = await $.ajax({
@@ -270,4 +282,19 @@ export default class ChatClient {
     }
 
 
+    async createNewChat(data) {
+        try {
+            const response = await $.ajax({
+                url: '/chats/',
+                method: 'POST',
+                processData: false,
+                contentType: false,
+                data: data,
+            });
+            return response;
+        } catch (error) {
+            console.error('Ошибка создания чата:', error);
+            throw error;
+        }
+    }
 }

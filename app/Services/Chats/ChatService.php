@@ -8,6 +8,18 @@ use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
+    public function create(ChatDTO $chatDTO)
+    {
+        return Chat::create($chatDTO->toArray());
+    }
+
+    public function update(ChatDTO $chatDTO)
+    {
+        return Chat::where('id', $chatDTO->id)
+            ->update($chatDTO->toArray());
+    }
+
+    //Только для сидера
     public function updateOrCreate(ChatDTO $chatDTO)
     {
         return Chat::updateOrCreate([
@@ -43,6 +55,27 @@ class ChatService
             ->get();
 
         return $chats;
+    }
+
+    public function isPrivateChatExistsByParticipants(array $participantIds): bool
+    {
+        // Кол-во участников, которых ищем
+        $countParticipants = count($participantIds);
+
+        return Chat::where('type', 'private')
+            ->whereNull('deleted_at')
+            // Где id чата содержится в user_chats с нужными юзерами
+            ->whereHas('userChats', function ($query) use ($participantIds) {
+                $query->whereIn('user_id', $participantIds);
+            })
+            // Убедиться, что в чате ровно столько участников, сколько указано (нет лишних)
+            ->withCount('userChats')
+            ->having('user_chats_count', '=', $countParticipants)
+            // Убедиться, что чат содержит именно всех участников
+            ->whereDoesntHave('userChats', function ($query) use ($participantIds) {
+                $query->whereNotIn('user_id', $participantIds);
+            })
+            ->exists();
     }
 
 }

@@ -1,6 +1,5 @@
 import ChatClient from './ChatClient';
 import ChatInterface from './ChatInterface';
-import $ from 'jquery';
 
 $(document).ready(function() {
     const userId = $('#user_id')?.val();
@@ -208,31 +207,6 @@ $(document).ready(function() {
         });
     }
 
-    // Simulate online status changes
-    function simulateOnlineStatus() {
-        setInterval(() => {
-            // Randomly change online status
-            const allChatIds = $('.chat-item').map(function() {
-                return parseInt($(this).data('chat-id'));
-            }).get();
-
-            allChatIds.forEach(chatId => {
-                const isCurrentlyOnline = onlineUsers.includes(chatId);
-                const shouldBeOnline = Math.random() > 0.7; // 30% chance to be online
-
-                if (isCurrentlyOnline !== shouldBeOnline) {
-                    if (shouldBeOnline) {
-                        onlineUsers.push(chatId);
-                    } else {
-                        onlineUsers = onlineUsers.filter(id => id !== chatId);
-                    }
-
-                    // Update UI
-                    updateOnlineStatus(chatId, shouldBeOnline);
-                }
-            });
-        }, 10000); // Check every 10 seconds
-    }
 
     // Update online status in UI
 
@@ -243,29 +217,6 @@ $(document).ready(function() {
         }
     }
 
-    // Get avatar URL (fallback to placeholder)
-    function getAvatarUrl(avatar, name) {
-        return '/img/chats/private/placeholder.png';
-        if (avatar && avatar.startsWith('http')) {
-            return avatar;
-        }
-
-        // Generate placeholder avatar
-        const colors = ['1059b7', '2196f3', '4caf50', 'ff9800', 'f44336', '9c27b0'];
-        const colorIndex = name.length % colors.length;
-        const color = colors[colorIndex];
-        const initials = name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
-
-        return `https://via.placeholder.com/40x40/${color}/ffffff?text=${initials}`;
-    }
-
-    // Utility function to format time
-    function formatTime(date) {
-        return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
 });
 
 

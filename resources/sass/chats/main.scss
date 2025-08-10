@@ -5,6 +5,10 @@
     height: auto !important;
 }
 
+.select2-container--bootstrap-5 .select2-dropdown .select2-results {
+    overflow-y: hidden !important;
+}
+
 .select2-search__field {
     min-height: auto;
     width: 100% !important;
@@ -2634,7 +2638,7 @@ body.contacts-open {
         overflow-y: auto;
 
         .file-info-tooltip {
-            display: none;
+            display: none !important;
         }
 
         .form-label {

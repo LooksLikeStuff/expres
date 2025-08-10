@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
                 'name' => 'user_third',
                 'phone' => '+7 (999) 555-33-11',
                 'status' => Status::USER,
-                'password' => 'user_password',
+                'password' => 'user_password123',
             ]
         ];
 

@@ -3,13 +3,17 @@ import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
+
+        this.chatList =  $('#chatList');
         this.chatElements = $('.chat-item');
         this.showSidebarButton = $('.mobile-menu-btn');
+
+        this.createChatBtn = $('#createChatBtn');
+        this.createChatForm = $('#newChatForm');
 
         this.messagesContainer = $('.messages-container');
         this.messagesList = $('#messagesList');
         this.messageInput = $('#messageInput');
-
         //Файлы вложения
         this.attachPreviewContainer = document.getElementById('attach__container')
         this.attachInput = $('#fileInput');
@@ -20,7 +24,6 @@ export default class ChatInterface {
         this.MAX_FILES = 10;
         this.MAX_IMAGES = 5;
 
-        this.userListContainer = document.getElementById('chats_userlist');
         this.currentUserId = $('#user_id').val();
 
         this.currentPage = 1;
@@ -37,14 +40,15 @@ export default class ChatInterface {
     init() {
         this.bindEvents();
         this.initCreateChatForm();
+        this.initGlobalBroadcast();
     }
 
     bindEvents() {
         this.initFileAttachment();
-        // this.attachInputButton.click(() => this.attachFile());
-        // this.attachInput.change(() => this.displayAttachmentFiles());
-        //
-        this.chatElements.on('click', (e) => {
+
+        this.createChatBtn.click(() => this.dispatchCreateChat());
+
+        this.chatList.on('click', '.chat-item', (e) => {
             const chatItem = e.currentTarget;
             const chatId = chatItem.getAttribute('data-chat-id');
             this.activateChat(chatId);
@@ -55,6 +59,7 @@ export default class ChatInterface {
                 this.loadMoreMessages(this.chatClient.currentChatId);
             }
         });
+
         $('#sendBtn').click(async () => {
             const content = this.getMessageContent();
             if (content) {
@@ -96,11 +101,11 @@ export default class ChatInterface {
 
     initCreateChatForm() {
         const $chatModalElem = $('#newChatModal');
-        const $chatType = $('input[name="chatType"]');
+        const $chatType = $('input[name="type"]');
         const $chatNameField = $('#chatNameInput').closest('.mb-3');
         const $participants = $('#chatParticipants');
         const $chatAvatarField = $('#chatAvatarField'); // блок с инпутом для аватарки
-        const $chatAvatarInput = $('#chatAvatar'); // сам input
+        const $chatAvatarInput = $('#newChatAvatar'); // сам input
 
         // Инициализация select2 с базовыми настройками
         $participants.select2({
@@ -112,9 +117,9 @@ export default class ChatInterface {
         });
 
         function updateForm() {
-            const type = $('input[name="chatType"]:checked').val();
+            const type = $('input[name="type"]:checked').val();
 
-            if (type === 'personal') {
+            if (type === 'private') {
                 // Скрыть поле названия чата через класс d-none
                 $chatNameField.addClass('d-none');
 
@@ -156,6 +161,70 @@ export default class ChatInterface {
         updateForm();
     }
 
+    initGlobalBroadcast() {
+        this.chatClient.joinGlobalChannel((type, data) => {
+            switch (type) {
+                case 'ChatCreated':
+                    this.createChat(data.chat_id);
+                    break;
+            }
+        });
+    }
+
+    async dispatchCreateChat() {
+        const formElement = this.createChatForm[0]; // нативный элемент формы
+
+        // Создаем FormData из формы — включая файлы
+        let formData = new FormData(formElement);
+
+
+        return await this.chatClient.createNewChat(formData);
+    }
+
+    createChat(chatId) {
+        $.ajax({
+            url: `/chats/${chatId}`,
+            method: 'get',
+            success: (data) => {
+                this.chatList.prepend(this.createChatItem(data))
+                this.activateChat(chatId);
+            },
+        });
+    }
+
+    createChatItem(chat) {
+        const onlineUserIds = this.chatClient.onlineUsers || new Set();
+        const template = $('#chatItemTemplate').html();
+        const $item = $(template);
+
+        $item.attr('data-chat-id', chat.id);
+        $item.attr('data-chat-type', chat.type)
+        $item.attr('data-user-ids', chat.users.map(user => user.id).join(','));
+
+        $item.find('img').attr('src', this.getAvatarUrl(chat.avatar, chat.title));
+        $item.find('.chat-item-name').text(chat.title);
+        $item.find('.chat-item-message').text(chat.last_message);
+        $item.find('.chat-item-time').text(chat.last_message_time);
+
+        const userIdsStr = $item.attr('data-user-ids');
+        const userIds = userIdsStr.toString().split(',').map(id => parseInt(id));
+
+        const isAnyUserOnline = userIds.some(id => onlineUserIds.has(id));
+        const indicator = $item.find('.online-indicator');
+
+        if (isAnyUserOnline) {
+            indicator.removeClass('offline');
+        } else {
+            indicator.addClass('offline');
+        }
+
+        // Unread count
+        if (chat?.unread_count > 0) {
+            $item.find('.unread-count').text(chat.unread_count).show();
+        }
+
+        return $item;
+    }
     loadMoreMessages(chatId) {
         if (this.isLoadingMessages || !this.hasMoreMessages) return;
 
@@ -205,6 +274,7 @@ export default class ChatInterface {
         // Hide welcome screen and show chat window
         $('#welcomeScreen').hide();
         $('#chatWindow').show();
+        this.messagesList.html('');
 
         // Load chat info
         this.loadChatInfo(chatId);
@@ -420,7 +490,6 @@ export default class ChatInterface {
             $message.addClass('own');
             $message.find('.message-status').removeClass('d-none').addClass(isMessageRead ? 'read' : '');
         }
-        console.log(message);
 
         const avatar = message.sender_avatar ?? message.sender?.profile_avatar;
 
@@ -511,7 +580,7 @@ export default class ChatInterface {
     }
 
     getAvatarUrl(avatar, name) {
-        if (avatar && avatar.startsWith('http')) {
+        if (avatar && (avatar.startsWith('http') || avatar.startsWith('/storage'))) {
             return avatar;
         }
 
