@@ -745,15 +745,11 @@
 <script>
     window.addEventListener('load', () => {
         const loadingScreen = document.getElementById('loading-screen');
-        const content = document.getElementById('content');
         setTimeout(() => {
             loadingScreen.classList.add('hidden'); // Применяем класс для анимации исчезновения
             document.body.style.overflow = 'auto'; // Включаем прокрутку
             setTimeout(() => {
-                loadingScreen.style.display =
-                    'none'; // Полностью убираем загрузку после анимации
-                content.style.opacity =
-                    '1'; // Плавно показываем содержимое (контент уже анимируется в CSS)
+                loadingScreen.style.display = 'none'; // Полностью убираем загрузку после анимации
             }, 1000); // Длительность анимации исчезновения (совпадает с fadeOut)
         }, 1000); // Задержка до начала исчезновения
     });
@@ -901,88 +897,7 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Инициализация всплывающих подсказок Bootstrap с задержкой в 2 секунды
-        if (typeof $().tooltip === 'function') {
-            $('[title]').tooltip({
-                placement: 'auto',
-                trigger: 'hover',
-                delay: {show: 1000, hide: 100}, // Задержка в 1 секунду
-                template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
 
-            // Повторная инициализация подсказок после загрузки динамического контента
-            $(document).ajaxComplete(function() {
-                setTimeout(function() {
-                    $('[title]').tooltip({
-                        placement: 'auto',
-                        trigger: 'hover',
-                        delay: {show: 1000, hide: 100}, // Такая же задержка для динамически загружаемого контента
-                        template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-                    });
-                }, 500);
-            });
-        }
-    });
-</script>
-
-<!-- Улучшение скрипта для всплывающих подсказок с поддержкой HTML-контента -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Инициализация всплывающих подсказок Bootstrap с задержкой в 1 секунду
-        if (typeof $().tooltip === 'function') {
-            $('[title]').tooltip({
-                placement: 'auto',
-                trigger: 'hover',
-                delay: {show: 800, hide: 100},
-                html: true,
-                template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-
-            // Специальная инициализация для наград
-            $('.award-icon').tooltip({
-                placement: 'auto',
-                delay: {show: 500, hide: 100},
-                html: true,
-                template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-
-            // Повторная инициализация подсказок после загрузки динамического контента
-            $(document).ajaxComplete(function() {
-                setTimeout(function() {
-                    $('[title]').tooltip({
-                        placement: 'auto',
-                        trigger: 'hover',
-                        delay: {show: 800, hide: 100},
-                        html: true,
-                        template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-                    });
-
-                    $('.award-icon').tooltip({
-                        placement: 'auto',
-                        delay: {show: 500, hide: 100},
-                        html: true,
-                        template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-                    });
-                }, 500);
-            });
-        }
-    });
-</script>
-
-<style>
-
-    @media only screen and (max-width:780px) {
-        .flex-h1 {
-            flex-wrap: wrap;
-        }
-        .flex-h1  button {
-            width: 100%;
-        }
-    }
-
-</style>
 <!-- Скрипт для проверки и загрузки Select2 при необходимости -->
 <script src="{{ asset('/js/select2-checker.js') }}"></script>
 
