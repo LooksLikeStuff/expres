@@ -9,6 +9,8 @@ class UserFCMToken extends Model
 {
     use HasFactory;
 
+    protected $table = 'user_fcm_tokens';
+
     protected $fillable = [
         'user_id',
         'token'
