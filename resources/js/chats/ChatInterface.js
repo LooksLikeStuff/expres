@@ -44,6 +44,10 @@ export default class ChatInterface {
         this.initCreateChatForm();
         this.initChatInfoModal();
         this.initGlobalBroadcast();
+
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert(`Error: ${message} at ${source}:${lineno}:${colno}`);
+        }
     }
 
     bindEvents() {
