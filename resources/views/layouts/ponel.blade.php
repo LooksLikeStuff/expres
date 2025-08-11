@@ -8,6 +8,11 @@
             <button id="toggle-panel" class="toggle-btn" title="Свернуть/развернуть боковую панель"> <img src="/storage/icon/burger.svg" alt="">
                 <span>Свернуть меню</span></button>
         </li>
+        <li>
+            <button onclick="location.href='{{ url('/chats') }}'" id="step-3" title="Чаты">
+                <img src="/storage/icon/chat.svg" alt=""><span>Чаты </span>
+            </button>
+        </li>
         @if(!in_array(Auth::user()->status, ['architect', 'designer', 'visualizer']))
             <li>
                 <button onclick="location.href='{{ url('/brifs') }}'" id="step-4" title="Просмотр и управление вашими брифами">
@@ -60,7 +65,7 @@
                 <img src="/storage/icon/F-User.svg" alt=""><span>Ваш профиль</span>
             </button>
         </li>
-        
+
         <!-- Блок админских ссылок -->
         @if (Auth::user()->status == 'admin')
             <li>
@@ -79,7 +84,7 @@
                 </button>
             </li>
         @endif
-      
+
         {{-- <li>
             <button onclick="location.href='{{ url('/support') }}'" id="step-7">
                 <img src="/storage/icon/support.svg" alt=""><span>Помощь</span>
@@ -116,7 +121,7 @@
                 }
             }
         });
-        
-     
+
+
     });
 </script>

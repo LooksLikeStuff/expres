@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="{{ asset('/css/p/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin-briefs.css') }}">
 
+    @yield('stylesheets')
+
     <!-- JavaScript (основные библиотеки) -->
     <script src="{{ asset('/js/p/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('/js/p/popper.min.js') }}"></script>
@@ -49,7 +51,6 @@
 
     <!-- Подключаем CSS для загрузки больших файлов -->
     <link rel="stylesheet" href="{{ asset('css/large-file-upload.css') }}"></script>
-
 
     @vite(['resources/css/font.css', 'resources/js/ratings.js','resources/css/animation.css', 'resources/css/style.css', 'resources/css/element.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js', 'resources/js/modal.js', 'resources/js/success.js', 'resources/js/mask.js'])
 
@@ -98,94 +99,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <!-- PWA скрипты -->
-    <script>
-        // Регистрация сервис-воркера для PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker зарегистрирован:', registration.scope);
-
-                        // Передаем CSRF токен в сервис-воркер
-                        if (registration.active) {
-                            registration.active.postMessage({
-                                type: 'SET_CSRF_TOKEN',
-                                token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            });
-                        }
-
-                        // Запрос разрешения на push-уведомления
-                        requestNotificationPermission(registration);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка регистрации ServiceWorker:', error);
-                    });
-            });
-        }
-
-        // Запрос разрешения на уведомления и подписка на push
-        function requestNotificationPermission(registration) {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        console.log('Разрешение на уведомления получено');
-
-                        // Подписываемся на push-уведомления
-                        if (registration && registration.pushManager) {
-                            registration.pushManager.subscribe({
-                                userVisibleOnly: true,
-                                applicationServerKey: urlBase64ToUint8Array(
-                                    // Замените на ваш VAPID public key
-                                    'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
-                                )
-                            }).then(subscription => {
-                                // Отправляем подписку на сервер
-                                sendSubscriptionToServer(subscription);
-                            }).catch(err => console.error('Ошибка подписки:', err));
-                        }
-                    }
-                });
-            }
-        }
-
-        // Отправка подписки на сервер
-        function sendSubscriptionToServer(subscription) {
-            fetch('/api/push-subscriptions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(subscription)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Не удалось отправить подписку на сервер');
-                    }
-                    console.log('Подписка успешно отправлена на сервер');
-                })
-                .catch(error => {
-                    console.error('Ошибка отправки подписки:', error);
-                });
-        }
-
-        // Преобразование base64-строки в массив Uint8Array для applicationServerKey
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-                .replace(/\-/g, '+')
-                .replace(/_/g, '/');
-
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-
-            return outputArray;
-        }
-    </script>
 
     <script>
         wow = new WOW({
