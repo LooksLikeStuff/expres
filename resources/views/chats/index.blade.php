@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('chats.layouts.layout')
 
 @vite(['resources/js/chats/index.js', 'resources/sass/chats/index.scss'])
 
