@@ -9,7 +9,7 @@ use App\Http\Controllers\SupportController;
 use App\Http\Controllers\SmetsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Chats\ChatController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BrifsController;
