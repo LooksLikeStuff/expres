@@ -173,7 +173,6 @@ Route::post('login/code', [AuthController::class, 'loginByCode'])->name('login.c
 Route::post('/send-code', [AuthController::class, 'sendCode'])->name('send.code');
 Route::get('register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('register', [AuthController::class, 'register'])->name('register.post');
-Route::match(['GET', 'POST'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/register/executor', [AuthController::class, 'showRegistrationFormForExecutors'])->name('register.executor');
 Route::post('/register/executor', [AuthController::class, 'registerExecutor'])->name('register.executor.post');
