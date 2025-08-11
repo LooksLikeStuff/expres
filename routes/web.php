@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Chats\FCMTokenController;
+use App\Http\Controllers\Chats\MessageController;
+use App\Http\Controllers\Chats\ReadReceiptController;
+use App\Http\Controllers\Chats\UserChatController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
