@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-     
+
     }
 
     /**
@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
         // Устанавливаем длину строки по умолчанию для совместимости с MySQL < 5.7.7
         Schema::defaultStringLength(191);
 
@@ -34,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
             resource_path('views/admin'),
             resource_path('views/layouts'),
         ];
-        
+
         foreach ($viewPaths as $path) {
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0755, true);
