@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Schema;
 use App\Services\ChatService;
 use App\Services\MessageService;
 use Illuminate\Support\Facades\File;
-use App\Models\Deal;
-use App\Observers\DealObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,9 +28,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // Устанавливаем длину строки по умолчанию для совместимости с MySQL < 5.7.7
         Schema::defaultStringLength(191);
-        
-        // Регистрируем Observer для модели Deal
-        Deal::observe(DealObserver::class);
 
         // Проверим и создадим директории для шаблонов админки, если они не существуют
         $viewPaths = [

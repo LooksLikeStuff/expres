@@ -1,0 +1,194 @@
+/**
+ * Стили для единообразного отображения Select2 полей на странице редактирования сделки
+ * Приводит внешний вид Select2 к стилям обычных полей формы
+ * ОБНОВЛЕНО: Улучшена интеграция с общими стилями формы
+ */
+
+/* Основной контейнер Select2 - полная совместимость с Bootstrap form-control */
+.select2-container--default .select2-selection--single {
+    height: calc(1.5em + 0.75rem + 2px) !important; /* Точная высота как у form-control */
+    line-height: calc(1.5em + 0.75rem) !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    background-color: #fff !important;
+    background-clip: padding-box !important;
+    padding: 0 !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    color: #495057 !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* Стили при фокусе */
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Стили при ошибке валидации */
+.is-invalid + .select2-container .select2-selection--single {
+    border-color: #dc3545 !important;
+}
+
+/* Текст внутри поля */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #495057 !important;
+    padding-left: 0.75rem !important; /* Как у form-control */
+    padding-right: 2rem !important; /* Место для стрелки */
+    line-height: calc(1.5em + 0.75rem) !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+}
+
+/* Стрелка выпадающего списка */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(1.5em + 0.75rem) !important;
+    right: 0.75rem !important;
+    width: 20px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #6c757d transparent transparent transparent !important;
+    border-style: solid !important;
+    border-width: 5px 4px 0 4px !important;
+    height: 0 !important;
+    left: 50% !important;
+    margin-left: -4px !important;
+    margin-top: -2px !important;
+    position: absolute !important;
+    top: 50% !important;
+    width: 0 !important;
+}
+
+/* Placeholder */
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d !important;
+    font-style: normal !important;
+}
+
+/* Clear кнопка */
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    color: #6c757d !important;
+    cursor: pointer !important;
+    float: right !important;
+    font-weight: bold !important;
+    margin-right: 10px !important;
+}
+
+/* Обеспечиваем одинаковую ширину контейнера */
+.select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+    margin-top: -2px !important;
+    position: absolute !important;
+    top: 50% !important;
+    width: 0 !important;
+}
+
+/* Placeholder */
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d !important;
+    font-style: italic !important;
+}
+
+/* Dropdown */
+.select2-dropdown {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    z-index: 9999 !important;
+}
+
+/* Поле поиска в dropdown */
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    padding: 8px 12px !important;
+    font-size: 1rem !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    outline: none !important;
+}
+
+/* Результаты поиска */
+.select2-results__option {
+    padding: 8px 12px !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    color: #495057 !important;
+}
+
+.select2-results__option--highlighted {
+    background-color: #007bff !important;
+    color: #fff !important;
+}
+
+.select2-results__option[aria-selected="true"] {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+}
+
+/* Интеграция с Bootstrap формами */
+.form-group .select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+
+/* Disabled состояние */
+.select2-container--default.select2-container--disabled .select2-selection--single {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+/* Исправление для модальных окон */
+.modal .select2-container {
+    z-index: 10000 !important;
+}
+
+.modal .select2-dropdown {
+    z-index: 10001 !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .select2-search--dropdown .select2-search__field {
+        font-size: 16px !important; /* Предотвращает зум на iOS */
+    }
+}
+
+/* Совместимость с существующими стилями формы */
+.deal-edit-form .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #ced4da !important;
+}
+
+.deal-edit-form .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Анимация появления dropdown */
+.select2-dropdown {
+    animation: select2FadeIn 0.15s ease-out;
+}
+
+@keyframes select2FadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

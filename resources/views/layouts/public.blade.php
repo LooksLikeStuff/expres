@@ -8,8 +8,7 @@
     <title>Запрос на удаление своего профиля</title>
     @vite([ 'resources/css/style.css', 'resources/css/font.css', 'resources/css/element.css', 'resources/css/animation.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js',  'resources/js/success.js', 'resources/js/mask.js', 'resources/js/login.js'])</head>
     <link rel="stylesheet" href="resources/css/animate.css">
-    <script src="resources/js/wow.js"></script>
-     <!-- Обязательный (и достаточный) тег для браузеров -->
+        <!-- Обязательный (и достаточный) тег для браузеров -->
      <link type="image/x-icon" rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
 
      <!-- Дополнительные иконки для десктопных браузеров -->
@@ -140,16 +139,7 @@
         }
     </script>
 
-    <script>
-        wow = new WOW({
-            boxClass: 'wow', // default
-            animateClass: 'animated', // default
-            offset: 0, // default
-            mobile: true, // default
-            live: true // default
-        })
-        wow.init();
-    </script>
+    
 <body class="" style="overflow: scroll !important;">
   
     @if (session('success'))

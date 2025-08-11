@@ -1,0 +1,221 @@
+/**
+ * Стили для локального загрузчика документов
+ * Версия: 1.0
+ */
+
+/* Основные стили для области загрузки */
+.documents-upload-area {
+    transition: all 0.3s ease;
+}
+
+.documents-upload-area:hover {
+    border-color: #007bff !important;
+    background-color: #f8f9ff !important;
+}
+
+.documents-upload-area.drag-over {
+    border-color: #007bff !important;
+    background-color: #e3f2fd !important;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* Стили для выбранных файлов */
+.selected-file-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.selected-file-item:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.selected-file-item .file-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.selected-file-item .file-name {
+    font-weight: 500;
+    color: #495057;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-file-item .file-status .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Анимация загрузки */
+.upload-progress .upload-container {
+    background: linear-gradient(
+        90deg,
+        #f8f9fa 25%,
+        #e9ecef 50%,
+        #f8f9fa 75%
+    );
+    background-size: 200% 100%;
+    animation: uploadProgress 2s linear infinite;
+}
+
+@keyframes uploadProgress {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Стили для иконок файлов */
+.fa-file-pdf { color: #dc3545; }
+.fa-file-word { color: #0066cc; }
+.fa-file-excel { color: #107c41; }
+.fa-file-image { color: #6f42c1; }
+.fa-file-archive { color: #fd7e14; }
+.fa-file-alt { color: #6c757d; }
+.fa-file { color: #495057; }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .selected-file-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .selected-file-item .file-status {
+        margin-top: 0.5rem;
+        align-self: flex-end;
+    }
+    
+    .selected-file-item .file-name {
+        max-width: 100%;
+    }
+}
+
+/* Стили для уведомлений */
+.alert.position-fixed {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Состояния кнопки загрузки */
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.fa-spinner.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Стили для области перетаскивания */
+.upload-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 123, 255, 0.1),
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.upload-container:hover::before {
+    left: 100%;
+}
+
+/* Улучшенные стили для списка документов */
+.uploaded-documents-section {
+    margin-top: 2rem;
+}
+
+.documents-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.documents-empty-state i {
+    opacity: 0.6;
+}
+
+/* Стили для счетчика файлов */
+#filesCountInfo {
+    border-left: 4px solid #007bff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+}
+
+#filesCountInfo .alert {
+    margin-bottom: 0;
+}
+
+/* Responsive design */
+@media (max-width: 576px) {
+    .upload-container {
+        padding: 2rem 1rem !important;
+    }
+    
+    .upload-container .fa-4x {
+        font-size: 2.5rem !important;
+    }
+    
+    .upload-container h5 {
+        font-size: 1.1rem;
+    }
+    
+    .upload-container p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Стили для успешной загрузки */
+.file-uploaded {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+}
+
+/* Стили для ошибки загрузки */
+.file-error {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-color: #dc3545;
+}
+
+/* Плавные переходы для всех интерактивных элементов */
+.btn, .alert, .badge, .selected-file-item {
+    transition: all 0.2s ease-in-out;
+}

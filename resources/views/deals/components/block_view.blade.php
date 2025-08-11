@@ -141,11 +141,11 @@
                             </li>
                             <li>
                                 @if (in_array(Auth::user()->status, ['coordinator', 'admin', 'partner']))
-                                    <button type="button" class="edit-deal-btn"
-                                        data-id="{{ $dealItem->id }}">
+                                    <a href="{{ route('deal.edit-page', $dealItem->id) }}" class="edit-deal-btn"
+                                        data-id="{{ $dealItem->id }}" title="Редактировать сделку">
                                         <img src="/storage/icon/create__blue.svg" alt="">
                                         <span>Изменить</span>
-                                    </button>
+                                    </a>
                                 @endif
                             </li>
                         </ul>                    </div>

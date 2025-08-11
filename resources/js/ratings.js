@@ -13,8 +13,6 @@
             return;
         }
         
-        console.log('[Рейтинги] Модальное окно найдено:', ratingModal);
-        
         const stars = ratingModal.querySelectorAll('.rating-stars .star');
         const submitBtn = document.getElementById('submit-rating');
         const skipBtn = document.getElementById('skip-rating');
@@ -23,36 +21,6 @@
         const backdrop = document.getElementById('rating-modal-backdrop');
         const commentTextarea = document.getElementById('rating-comment');
         const charCount = document.getElementById('comment-char-count');
-        
-        // Отладочная информация
-        console.log('[Рейтинги] Элементы найдены:', {
-            stars: stars.length,
-            submitBtn: !!submitBtn,
-            skipBtn: !!skipBtn,
-            closeBtn: !!closeBtn,
-            closeAllBtn: !!closeAllBtn,
-            backdrop: !!backdrop,
-            commentTextarea: !!commentTextarea,
-            charCount: !!charCount
-        });
-        
-        // Проверяем критические элементы
-        const criticalElements = [
-            'rating-user-name',
-            'rating-user-role', 
-            'rating-user-avatar',
-            'current-rating-index',
-            'total-ratings',
-            'rating-instruction',
-            'rating-alert'
-        ];
-        
-        criticalElements.forEach(id => {
-            const element = document.getElementById(id);
-            if (!element) {
-                console.warn(`[Рейтинги] Не найден критический элемент: #${id}`);
-            }
-        });
         
         let currentRating = 0;
         let pendingRatings = [];
@@ -181,11 +149,6 @@
                 }, 2000);
             } else {
                 showNotification('Все оценки завершены! Спасибо за вашу обратную связь 🎉', 'success');
-                
-                // Перезагружаем страницу через 3 секунды после завершения всех оценок
-                setTimeout(() => {
-                    location.reload();
-                }, 3000);
             }
         }
         
@@ -438,16 +401,14 @@
         
         // Функция подсветки звезд
         function highlightStars(count) {
-            if (stars && stars.length > 0) {
-                stars.forEach(star => {
-                    const value = parseInt(star.dataset.value);
-                    if (value <= count) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-            }
+            stars.forEach(star => {
+                const value = parseInt(star.dataset.value);
+                if (value <= count) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
         }
         
         // Обработчик отправки оценки
@@ -471,8 +432,7 @@
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
                 
                 const userToRate = pendingRatings[currentRatingIndex];
-                const commentElement = document.getElementById('rating-comment');
-                const comment = commentElement ? commentElement.value : '';
+                const comment = document.getElementById('rating-comment').value;
                 
                 // Получаем CSRF-токен из meta-тега
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -530,45 +490,56 @@
             });
         }
         
+        // Функция обновления прогресс-бара
+        function updateProgressBar() {
+            const progressFill = document.getElementById('rating-progress-fill');
+            if (progressFill && pendingRatings.length > 0) {
+                const progress = ((currentRatingIndex + 1) / pendingRatings.length) * 100;
+                progressFill.style.width = `${progress}%`;
+            }
+        }
+        
         // Показ информации о следующем исполнителе для оценки
         function showNextRating() {
             if (currentRatingIndex >= pendingRatings.length) return;
             
             const userToRate = pendingRatings[currentRatingIndex];
             
-            // Обновляем информацию о пользователе с проверкой существования элементов
-            const nameElement = document.getElementById('rating-user-name');
-            const roleElement = document.getElementById('rating-user-role');
-            const avatarElement = document.getElementById('rating-user-avatar');
-            const indexElement = document.getElementById('current-rating-index');
-            const totalElement = document.getElementById('total-ratings');
+            // Обновляем информацию о пользователе
+            document.getElementById('rating-user-name').textContent = userToRate.name;
+            document.getElementById('rating-user-role').textContent = formatRole(userToRate.role);
+            document.getElementById('rating-user-avatar').src = userToRate.avatar_url || '/storage/icon/profile.svg';
+            document.getElementById('current-rating-index').textContent = currentRatingIndex + 1;
+            document.getElementById('total-ratings').textContent = pendingRatings.length;
             
-            if (nameElement) nameElement.textContent = userToRate.name;
-            if (roleElement) roleElement.textContent = formatRole(userToRate.role);
-            if (avatarElement) avatarElement.src = userToRate.avatar_url || '/storage/icon/profile.svg';
-            if (indexElement) indexElement.textContent = currentRatingIndex + 1;
-            if (totalElement) totalElement.textContent = pendingRatings.length;
+            // Обновляем прогресс бар
+            updateProgressBar();
             
-            // Заполняем информацию о сделке (если есть currentDealId)
-            if (currentDealId) {
-                fillDealInfo(currentDealId);
+            // Обновляем статус пользователя (онлайн/офлайн)
+            const statusElement = document.getElementById('rating-user-status');
+            if (statusElement) {
+                statusElement.className = `rating-user-status ${userToRate.isOnline ? 'online' : 'offline'}`;
             }
             
-            // Адаптируем заголовок в зависимости от роли оцениваемого
-            const modalTitle = document.querySelector('#rating-modal h3');
+            // Адаптируем заголовок и инструкцию в зависимости от роли оцениваемого
+            const modalTitle = document.querySelector('#rating-modal h2');
+            const instructionElement = document.getElementById('rating-instruction');
             
-            if (modalTitle) {
-                if (userToRate.role === 'coordinator') {
-                    modalTitle.textContent = 'Оценка работы координатора';
-                } else if (userToRate.role === 'architect') {
-                    modalTitle.textContent = 'Оценка работы архитектора';
-                } else if (userToRate.role === 'designer') {
-                    modalTitle.textContent = 'Оценка работы дизайнера';
-                } else if (userToRate.role === 'visualizer') {
-                    modalTitle.textContent = 'Оценка работы визуализатора';
-                } else {
-                    modalTitle.textContent = 'Оценка работы специалиста';
-                }
+            if (userToRate.role === 'coordinator') {
+                modalTitle.textContent = 'Оцените качество планировочных координатора';
+                instructionElement.textContent = 'Оцените качество координации проекта от 1 до 5 звезд';
+            } else if (userToRate.role === 'architect') {
+                modalTitle.textContent = 'Оценка работы архитектора';
+                instructionElement.textContent = 'Оцените качество планировочных решений от 1 до 5 звезд';
+            } else if (userToRate.role === 'designer') {
+                modalTitle.textContent = 'Оценка работы дизайнера';
+                instructionElement.textContent = 'Оцените качество дизайнерских решений от 1 до 5 звезд';
+            } else if (userToRate.role === 'visualizer') {
+                modalTitle.textContent = 'Оценка работы визуализатора';
+                instructionElement.textContent = 'Оцените качество визуализаций от 1 до 5 звезд';
+            } else {
+                modalTitle.textContent = 'Оценка работы специалиста';
+                instructionElement.textContent = 'Оцените качество работы специалиста от 1 до 5 звезд';
             }
             
             // Обновляем текст алерта
@@ -731,53 +702,6 @@
                 'error': 'exclamation-circle'
             };
             return icons[type] || 'info-circle';
-        }
-        
-        // Функция для заполнения информации о сделке
-        function fillDealInfo(dealId) {
-            // Получаем информацию о сделке с сервера
-            fetch(`/deal/${dealId}/data`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.deal) {
-                    const deal = data.deal;
-                    
-                    // Заполняем элементы информации о сделке
-                    const projectNumberElement = document.getElementById('deal-project-number');
-                    const clientInfoElement = document.getElementById('deal-client-info');
-                    const clientPhoneElement = document.getElementById('deal-client-phone');
-                    
-                    if (projectNumberElement) {
-                        projectNumberElement.textContent = deal.project_number || 'не указан';
-                    }
-                    
-                    if (clientInfoElement) {
-                        clientInfoElement.textContent = deal.client_name || 'не указан';
-                    }
-                    
-                    if (clientPhoneElement) {
-                        clientPhoneElement.textContent = deal.client_phone || 'не указан';
-                    }
-                }
-            })
-            .catch(error => {
-                console.warn('[Рейтинги] Не удалось получить информацию о сделке:', error);
-                // В случае ошибки показываем базовую информацию
-                const projectNumberElement = document.getElementById('deal-project-number');
-                const clientInfoElement = document.getElementById('deal-client-info');
-                const clientPhoneElement = document.getElementById('deal-client-phone');
-                
-                if (projectNumberElement) projectNumberElement.textContent = `№ ${dealId}`;
-                if (clientInfoElement) clientInfoElement.textContent = 'информация недоступна';
-                if (clientPhoneElement) clientPhoneElement.textContent = 'не указан';
-            });
         }
         
         // Функция для обновления текста алерта

@@ -13,14 +13,15 @@ class Deal extends Model
 
     protected $guarded = [];
 
-    protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
-        'start_date',
-        'payment_date',
-        'project_end_date',
-        'registration_token_expiry',
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'start_date' => 'datetime',
+        'payment_date' => 'datetime',
+        'project_end_date' => 'datetime',
+        'completion_date' => 'datetime',
+        'registration_token_expiry' => 'datetime',
     ];
 
     protected $fillable = [
@@ -119,6 +120,23 @@ class Deal extends Model
         'yandex_url_chat_screenshot',
         'yandex_disk_path_chat_screenshot',
         'original_name_chat_screenshot',
+        // Добавляем поля для скриншотов работы
+        'screenshot_work_1',
+        'yandex_url_screenshot_work_1',
+        'yandex_disk_path_screenshot_work_1',
+        'original_name_screenshot_work_1',
+        'screenshot_work_2',
+        'yandex_url_screenshot_work_2',
+        'yandex_disk_path_screenshot_work_2',
+        'original_name_screenshot_work_2',
+        'screenshot_work_3',
+        'yandex_url_screenshot_work_3',
+        'yandex_disk_path_screenshot_work_3',
+        'original_name_screenshot_work_3',
+        'screenshot_final',
+        'yandex_url_screenshot_final',
+        'yandex_disk_path_screenshot_final',
+        'original_name_screenshot_final',
         // Добавляем новые поля для фотографий проекта
         'photos_folder_url',
         'photos_count',
@@ -132,23 +150,6 @@ class Deal extends Model
         'deleted_architect_id',
         'deleted_designer_id',
         'deleted_visualizer_id',
-        // Добавляем новые поля для скриншотов
-        'screenshot_work_1',
-        'yandex_url_screenshot_work_1',
-        'original_name_screenshot_work_1',
-        'yandex_disk_path_screenshot_work_1',
-        'screenshot_work_2',
-        'yandex_url_screenshot_work_2',
-        'original_name_screenshot_work_2',
-        'yandex_disk_path_screenshot_work_2',
-        'screenshot_work_3',
-        'yandex_url_screenshot_work_3',
-        'original_name_screenshot_work_3',
-        'yandex_disk_path_screenshot_work_3',
-        'screenshot_final',
-        'yandex_url_screenshot_final',
-        'original_name_screenshot_final',
-        'yandex_disk_path_screenshot_final',
     ];
 
     // Отношение к пользователю (клиенту)

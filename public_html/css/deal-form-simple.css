@@ -1,0 +1,75 @@
+/**
+ * Простые стили для формы сделки
+ * Без сложных анимаций и AJAX-зависимостей
+ */
+
+/* Базовые стили формы */
+.form-control {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Кнопка сохранения */
+#saveButton {
+    transition: all 0.3s ease;
+}
+
+#saveButton:disabled {
+    opacity: 0.6;
+}
+
+/* Простые уведомления */
+.alert {
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+/* Файловые поля */
+.file-input-group {
+    margin-bottom: 1rem;
+}
+
+.file-input-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Вкладки */
+.deal-tab-button {
+    transition: all 0.3s ease;
+}
+
+.deal-tab-button:hover {
+    background-color: #f8f9fa;
+}
+
+.deal-tab-button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Успешное сохранение */
+.save-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+/* Ошибки валидации */
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

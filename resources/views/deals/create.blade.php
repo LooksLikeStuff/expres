@@ -39,9 +39,7 @@
                 <option value="экспресс 3Dвизуализация с коллажами" title="Только 3D визуализация пространства без рабочей документации">экспресс 3Dвизуализация с коллажами</option>
                 <option value="экспресс полный дизайн-проект" title="Комплексный дизайн-проект включающий все этапы проектирования">Экспресс полный дизайн-проект</option>
                 <option value="360 градусов" title="Панорамная 360-градусная визуализация пространства">360 градусов</option>
-                <option value="Ландшафт" title="Проектирование ландшафта и благоустройства территории">Ландшафт</option>
-                <option value="экспресс экстерьер" title="Быстрый дизайн внешнего вида здания">Экспресс экстерьер</option>
-                <option value="экспресс эскизный экстерьер" title="Эскизный проект внешнего вида здания">Экспресс эскизный экстерьер</option>
+                                <option value="Визуализация на одну комнату" title="Визуализация на одну комнату">Визуализация на одну комнату</option>
             </select>
         </div>  
         <div class="form-group-deal">
@@ -107,7 +105,7 @@
                 const fileInput = document.getElementById('documents');
                 const filePreview = document.getElementById('file-preview');
                 const fileList = filePreview.querySelector('.file-list');
-                const maxSize = parseInt(fileInput.dataset.maxSize); // 100 МБ в байтах
+                const maxSize = 1572864000; // 1500 МБ в байтах
                 
                 // Предотвращаем стандартное поведение при перетаскивании
                 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -289,11 +287,11 @@
             <div class="custom-file-upload-container">
                 <div class="file-upload-dropzone" id="dropzone-documents">
                     <input type="file" id="documents" name="documents[]" class="file-upload-input" multiple accept="*/*" 
-                           data-max-size="104857600" title="Выберите файлы или перетащите их сюда (до 100 МБ)">
+                           data-max-size="1572864000" title="Выберите файлы или перетащите их сюда (до 1500 МБ)">
                     <div class="dropzone-placeholder">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <span>Выберите файлы или перетащите их сюда</span>
-                        <small>(максимум 100 МБ)</small>
+                        <small>(максимум 1500 МБ)</small>
                     </div>
                 </div>
             </div>
@@ -383,12 +381,6 @@
                                 'min-width': containerWidth + 'px',
                                 'max-width': containerWidth + 'px'
                             });
-                            
-                            // Автоматически ставим фокус на поле поиска при открытии Select2
-                            var searchField = $('.select2-container--open .select2-search__field');
-                            if (searchField.length) {
-                                searchField.focus();
-                            }
                         }, 0);
                     });
                 }

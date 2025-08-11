@@ -427,7 +427,8 @@ class DealDocumentController extends Controller
         $fileFields = [
             'execution_order_file', 'measurements_file', 'final_floorplan', 'final_collage',
             'final_project_file', 'work_act', 'archicad_file', 'contract_attachment', 
-            'plan_final', 'chat_screenshot'
+            'plan_final', 'chat_screenshot', 'screenshot_work_1', 'screenshot_work_2', 
+            'screenshot_work_3', 'screenshot_final'
         ];
         
         foreach ($fileFields as $field) {

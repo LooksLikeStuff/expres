@@ -25,7 +25,7 @@ class DocumentUploadController extends Controller
 
             // Валидация
             $request->validate([
-                'documents.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip,rar|max:102400', // 100MB
+                'documents.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip,rar', // Убираем ограничение размера
             ]);
 
             if (!$request->hasFile('documents')) {

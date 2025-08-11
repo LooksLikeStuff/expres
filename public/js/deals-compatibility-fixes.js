@@ -272,7 +272,6 @@ function initializeAllSelect2Elements() {
                 
                 // Применяем фиксированную ширину к выпадающему списку после открытия
                 $(this).on('select2:open', function() {
-                    var that = this;
                     setTimeout(function() {
                         var dropdown = $('.select2-container--open .select2-dropdown');
                         if (dropdown.length && dropdown[0]) {
@@ -282,34 +281,6 @@ function initializeAllSelect2Elements() {
                                 'max-width': 'none',
                                 'z-index': '9999999'
                             });
-                        }
-                        
-                        // Автоматически ставим фокус на поле поиска при открытии Select2
-                        // Используем надежную функцию автофокуса
-                        if (window.setupAutoFocusWithRetries) {
-                            window.setupAutoFocusWithRetries();
-                        } else {
-                            // Fallback к старому методу, если новая функция недоступна
-                            var searchField = $('.select2-container--open .select2-search__field');
-                            if (searchField.length) {
-                                searchField.focus();
-                                
-                                // Дополнительные попытки для надежности
-                                setTimeout(function() {
-                                    if (document.activeElement !== searchField[0]) {
-                                        searchField[0].focus();
-                                        searchField.trigger('focus');
-                                        searchField[0].click();
-                                    }
-                                }, 10);
-                                
-                                setTimeout(function() {
-                                    if (document.activeElement !== searchField[0]) {
-                                        searchField[0].focus();
-                                        searchField.trigger('click');
-                                    }
-                                }, 25);
-                            }
                         }
                     }, 0);
                 });
@@ -426,15 +397,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализируем Select2
     setTimeout(initializeAllSelect2Elements, 500);
     
-    // Добавляем обработчик для инициализации Select2 при открытии модального окна
-    $(document).on('shown.bs.modal', function(e) {
-        console.log('Модальное окно открыто, инициализируем Select2');
-        setTimeout(initializeAllSelect2Elements, 300);
-    });
-    
     // Добавляем обработчик для инициализации после завершения AJAX запросов
     $(document).ajaxComplete(function(event, xhr, settings) {
-        if (settings.url.includes('/deal/') || settings.url.includes('/modal')) {
+        if (settings.url.includes('/deal/')) {
             console.log('AJAX запрос завершен, инициализируем Select2');
             setTimeout(initializeAllSelect2Elements, 300);
         }
@@ -474,74 +439,3 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     };
 });
-
-// Универсальная функция для добавления автофокуса к любым Select2 элементам
-function addSelect2AutoFocus(selector) {
-    selector = selector || '.select2-hidden-accessible';
-    
-    $(selector).each(function() {
-        var $element = $(this);
-        
-        // Удаляем старый обработчик если есть
-        $element.off('select2:open.autofocus');
-        
-        // Добавляем новый обработчик автофокуса
-        $element.on('select2:open.autofocus', function(e) {
-            var that = this;
-            
-            // Используем несколько попыток установки фокуса для надежности
-            setTimeout(function() {
-                var searchField = $('.select2-container--open .select2-search__field');
-                
-                if (searchField.length) {
-                    // Первая попытка
-                    searchField.focus();
-                    
-                    // Вторая попытка через небольшую задержку
-                    setTimeout(function() {
-                        if (document.activeElement !== searchField[0]) {
-                            searchField.focus();
-                            searchField.trigger('focus');
-                        }
-                    }, 25);
-                    
-                    // Третья попытка для сложных случаев
-                    setTimeout(function() {
-                        if (document.activeElement !== searchField[0]) {
-                            searchField.trigger('click');
-                            searchField.focus();
-                        }
-                    }, 75);
-                }
-            }, 10);
-        });
-    });
-}
-
-// Автоматически применяем автофокус ко всем существующим Select2 элементам
-$(document).ready(function() {
-    // Применяем автофокус с задержкой после инициализации всех Select2
-    setTimeout(function() {
-        addSelect2AutoFocus();
-    }, 1000);
-    
-    // Обработчик для модальных окон
-    $(document).on('shown.bs.modal', function() {
-        setTimeout(function() {
-            addSelect2AutoFocus();
-        }, 200);
-    });
-    
-    // Обработчик для динамически создаваемых элементов
-    $(document).on('DOMNodeInserted', function(e) {
-        var $target = $(e.target);
-        if ($target.hasClass('select2-hidden-accessible') || $target.find('.select2-hidden-accessible').length) {
-            setTimeout(function() {
-                addSelect2AutoFocus();
-            }, 100);
-        }
-    });
-});
-
-// Экспортируем функцию глобально
-window.addSelect2AutoFocus = addSelect2AutoFocus;

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест калькулятора дат проекта</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Наши стили -->
+    <link rel="stylesheet" href="css/project-date-calculator.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="mb-4">🗓️ Тест калькулятора дат проекта</h1>
+        
+        <div class="card modern-date-calculator">
+            <div class="card-header bg-gradient-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Временные рамки проекта
+                    <span class="badge bg-light text-primary ms-2">Автоматический расчет</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Дата старта -->
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label fw-bold">
+                            <i class="fas fa-play-circle text-success me-1"></i>
+                            Дата старта работы
+                        </label>
+                        <input type="date" class="form-control enhanced-date-picker" 
+                               id="start_date" name="start_date" 
+                               value="2025-08-06" placeholder="Выберите дату начала">
+                    </div>
+                    
+                    <!-- Срок проекта -->
+                    <div class="col-md-4">
+                        <label for="project_duration" class="form-label fw-bold">
+                            <i class="fas fa-hourglass-half text-warning me-1"></i>
+                            Длительность (рабочих дней)
+                        </label>
+                        <input type="number" class="form-control" 
+                               id="project_duration" name="project_duration" 
+                               value="" min="1" max="365" placeholder="Введите количество дней">
+                    </div>
+                    
+                    <!-- Дата завершения (автоматически рассчитывается) -->
+                    <div class="col-md-4">
+                        <label for="project_end_date" class="form-label fw-bold">
+                            <i class="fas fa-flag-checkered text-primary me-1"></i>
+                            Плановая дата завершения
+                            <span class="badge bg-success ms-1" title="Рассчитывается автоматически">
+                                <i class="fas fa-robot"></i> AUTO
+                            </span>
+                        </label>
+                        <input type="date" class="form-control auto-calculated-field" 
+                               id="project_end_date" name="project_end_date" 
+                               value="" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h5>Инструкции для тестирования:</h5>
+            <ol>
+                <li>Выберите дату старта проекта</li>
+                <li>Введите количество рабочих дней (например, 22)</li>
+                <li>Посмотрите, как автоматически рассчитается дата завершения</li>
+                <li>Откройте консоль браузера (F12) для просмотра отладочной информации</li>
+            </ol>
+            
+            <div class="alert alert-info">
+                <strong>Примечание:</strong> Калькулятор учитывает только рабочие дни (понедельник-пятница), 
+                исключая выходные дни (субботу и воскресенье).
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Наш калькулятор -->
+    <script src="js/project-date-calculator.js"></script>
+</body>
+</html>

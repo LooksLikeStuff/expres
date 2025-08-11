@@ -22,16 +22,281 @@ class DealsController extends Controller
 {
     use NotifyExecutorsTrait;
     
+    /**
+     * Загрузка файла на Яндекс.Диск
+     */
+    public function uploadFileToYandex(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file', // Убираем ограничение размера
+                'field_name' => 'required|string',
+                'deal_id' => 'sometimes|integer'
+            ]);
+
+            $file = $request->file('file');
+            $fieldName = $request->input('field_name');
+            $dealId = $request->input('deal_id');
+
+            Log::info('🚀 Начинаем загрузку файла на Яндекс.Диск', [
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+                'field_name' => $fieldName,
+                'deal_id' => $dealId
+            ]);
+
+            // Инициализируем сервис Яндекс.Диска
+            $yandexService = new YandexDiskService();
+
+            // Определяем папку для загрузки
+            $folderPath = 'lk_deals';
+            if ($dealId) {
+                $folderPath .= '/deal_' . $dealId;
+            }
+
+            // Загружаем файл
+            $result = $yandexService->uploadFile($file, $folderPath);
+
+            if ($result['success']) {
+                Log::info('✅ Файл успешно загружен на Яндекс.Диск', [
+                    'yandex_url' => $result['yandex_url'],
+                    'file_name' => $file->getClientOriginalName()
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Файл успешно загружен на Яндекс.Диск',
+                    'yandex_url' => $result['yandex_url'],
+                    'file_name' => $file->getClientOriginalName(),
+                    'field_name' => $fieldName
+                ]);
+            } else {
+                Log::error('❌ Ошибка загрузки файла на Яндекс.Диск', [
+                    'error' => $result['error'] ?? 'Неизвестная ошибка'
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error'] ?? 'Не удалось загрузить файл на Яндекс.Диск'
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('❌ Исключение при загрузке файла на Яндекс.Диск', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при загрузке файла: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Быстрая загрузка файлов на Яндекс.Диск с автоматическим обновлением сделки
+     */
+    public function fastYandexUpload(Request $request)
+    {
+        try {
+            $request->validate([
+                'documents' => 'required|array',
+                'documents.*' => 'file', // Убираем ограничение размера
+                'deal_id' => 'sometimes|integer'
+            ]);
+
+            $files = $request->file('documents');
+            $dealId = $request->input('deal_id');
+            
+            Log::info('🚀 Начинаем быструю загрузку файлов на Яндекс.Диск', [
+                'files_count' => count($files),
+                'deal_id' => $dealId
+            ]);
+
+            $yandexService = new YandexDiskService();
+            $uploadResults = [];
+            $deal = null;
+
+            // Если есть ID сделки, получаем её для обновления
+            if ($dealId) {
+                $deal = Deal::find($dealId);
+                if (!$deal) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Сделка не найдена'
+                    ], 404);
+                }
+            }
+
+            // Определяем папку для загрузки
+            $folderPath = 'lk_deals';
+            if ($dealId) {
+                $folderPath .= '/deal_' . $dealId;
+            }
+
+            // Загружаем файлы
+            foreach ($files as $file) {
+                $result = $yandexService->uploadFile($file, $folderPath);
+                
+                if ($result['success']) {
+                    $uploadResults[] = [
+                        'success' => true,
+                        'url' => $result['url'],
+                        'original_name' => $file->getClientOriginalName(),
+                        'file_name' => $file->getClientOriginalName()
+                    ];
+
+                    // Если есть сделка, обновляем соответствующие поля
+                    if ($deal) {
+                        $this->updateDealFileFields($deal, $file->getClientOriginalName(), $result['url']);
+                    }
+
+                    Log::info('✅ Файл успешно загружен', [
+                        'file_name' => $file->getClientOriginalName(),
+                        'url' => $result['url']
+                    ]);
+                } else {
+                    $uploadResults[] = [
+                        'success' => false,
+                        'error' => $result['message'] ?? 'Ошибка загрузки',
+                        'file_name' => $file->getClientOriginalName()
+                    ];
+
+                    Log::error('❌ Ошибка загрузки файла', [
+                        'file_name' => $file->getClientOriginalName(),
+                        'error' => $result['message'] ?? 'Неизвестная ошибка'
+                    ]);
+                }
+            }
+
+            // Сохраняем изменения в сделке
+            if ($deal) {
+                $deal->save();
+                Log::info('📝 Сделка обновлена с новыми файлами', ['deal_id' => $deal->id]);
+            }
+
+            $successCount = count(array_filter($uploadResults, function($result) {
+                return $result['success'];
+            }));
+
+            return response()->json([
+                'success' => $successCount > 0,
+                'message' => "Успешно загружено {$successCount} из " . count($files) . " файлов",
+                'results' => $uploadResults,
+                'deal' => $deal ? $deal->fresh() : null // Возвращаем обновленную сделку
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Исключение при быстрой загрузке файлов', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при загрузке файлов: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Автоматическое обновление полей сделки с файлами
+     */
+    private function updateDealFileFields($deal, $originalName, $yandexUrl)
+    {
+        // Мапинг расширений файлов к полям сделки
+        $extensionToFieldMap = [
+            // Изображения и скриншоты
+            'jpg' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
+            'jpeg' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
+            'png' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
+            'gif' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
+            'webp' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
+            
+            // Документы и проекты
+            'pdf' => ['final_project_file', 'work_act', 'execution_order_file'],
+            'doc' => ['final_project_file', 'work_act', 'execution_order_file'],
+            'docx' => ['final_project_file', 'work_act', 'execution_order_file'],
+            
+            // Архитектурные файлы
+            'dwg' => ['archicad_file'],
+            'pln' => ['archicad_file'],
+            
+            // Измерения
+            'xlsx' => ['measurements_file'],
+            'xls' => ['measurements_file'],
+        ];
+
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $fileName = strtolower($originalName);
+
+        // Определяем поле на основе имени файла или расширения
+        $targetField = null;
+
+        // Сначала пытаемся определить по имени файла
+        if (strpos($fileName, 'замер') !== false || strpos($fileName, 'measurement') !== false) {
+            $targetField = 'measurements_file';
+        } elseif (strpos($fileName, 'финал') !== false || strpos($fileName, 'final') !== false) {
+            $targetField = 'final_project_file';
+        } elseif (strpos($fileName, 'акт') !== false || strpos($fileName, 'work_act') !== false) {
+            $targetField = 'work_act';
+        } elseif (strpos($fileName, 'чат') !== false || strpos($fileName, 'chat') !== false) {
+            $targetField = 'chat_screenshot';
+        } elseif (strpos($fileName, 'архикад') !== false || strpos($fileName, 'archicad') !== false) {
+            $targetField = 'archicad_file';
+        } else {
+            // Если по имени не определили, используем расширение
+            if (isset($extensionToFieldMap[$extension])) {
+                $possibleFields = $extensionToFieldMap[$extension];
+                
+                // Находим первое пустое поле
+                foreach ($possibleFields as $field) {
+                    $yandexField = 'yandex_url_' . $field;
+                    if (empty($deal->$yandexField)) {
+                        $targetField = $field;
+                        break;
+                    }
+                }
+                
+                // Если все поля заняты, используем первое
+                if (!$targetField) {
+                    $targetField = $possibleFields[0];
+                }
+            }
+        }
+
+        // Обновляем поля сделки
+        if ($targetField) {
+            $yandexUrlField = 'yandex_url_' . $targetField;
+            $originalNameField = 'original_name_' . $targetField;
+            
+            $deal->$yandexUrlField = $yandexUrl;
+            $deal->$originalNameField = $originalName;
+            
+            Log::info('📎 Обновлено поле сделки', [
+                'field' => $targetField,
+                'original_name' => $originalName,
+                'yandex_url' => $yandexUrl
+            ]);
+        } else {
+            Log::warning('⚠️ Не удалось определить поле для файла', [
+                'file_name' => $originalName,
+                'extension' => $extension
+            ]);
+        }
+    }
+    
     protected $yandexDiskService;
 
     public function __construct(YandexDiskService $yandexDiskService)
     {
         $this->yandexDiskService = $yandexDiskService;
 
-        // Проверяем валидность токена при инициализации
-        if (!$this->yandexDiskService->checkAuth()) {
-            Log::error("Ошибка авторизации в Яндекс.Диск при инициализации DealsController");
-        }
+        // ВРЕМЕННО ОТКЛЮЧЕНО: Проверяем валидность токена при инициализации
+        // if (!$this->yandexDiskService->checkAuth()) {
+        //     Log::error("Ошибка авторизации в Яндекс.Диск при инициализации DealsController");
+        // }
 
         // Убираем ограничения для загрузки больших файлов
         ini_set('upload_max_filesize', '0'); // Без ограничений
@@ -224,12 +489,13 @@ class DealsController extends Controller
             'work_act' => 'nullable|file',
             'archicad_file' => 'nullable|file',
             'contract_attachment' => 'nullable|file',
+            'plan_final' => 'nullable|file',
+            'chat_screenshot' => 'nullable|file',
+            'screenshot_work_1' => 'nullable|file',
+            'screenshot_work_2' => 'nullable|file',
+            'screenshot_work_3' => 'nullable|file',
+            'screenshot_final' => 'nullable|file',
             'avatar_path' => 'nullable|file|image', // Убрали ограничение max:5000
-            // Добавляем валидацию для новых полей скриншотов
-            'screenshot_work_1' => 'nullable|file|image',
-            'screenshot_work_2' => 'nullable|file|image',
-            'screenshot_work_3' => 'nullable|file|image',
-            'screenshot_final' => 'nullable|file|image',
             // Правильная валидация для multiple file uploads - убираем ограничения размера
             'project_photos' => 'nullable|array',
             'project_photos.*' => 'file', // Убрали все ограничения размера
@@ -239,7 +505,7 @@ class DealsController extends Controller
         $fileFields = [
             'execution_order_file', 'measurements_file', 'final_floorplan', 
             'final_collage', 'final_project_file', 'work_act', 
-            'archicad_file', 'contract_attachment', 'avatar_path',
+            'archicad_file', 'contract_attachment', 'plan_final', 'chat_screenshot', 'avatar_path',
             'screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'screenshot_final',
             'project_photos'  // Добавляем наше поле с фотографиями
         ];
@@ -249,10 +515,10 @@ class DealsController extends Controller
         // Обновляем данные сделки без файлов
         $deal->update($dataToUpdate);
         
-        // Обрабатываем загрузку файлов на Яндекс Диск
-        $this->handleYandexDiskFileUploads($request, $deal);
+        // СТАРАЯ система для файлов документов ОТКЛЮЧЕНА - используется новая система v3.0 через API
+        // Файлы документов теперь загружаются через YandexDiskController API
         
-        // Добавляем вызов метода для обработки загрузки фотографий проекта
+        // Загрузка фотографий проекта (оставляем старую систему для массовой загрузки фотографий)
         $this->handleProjectPhotosUpload($request, $deal);
         
         // Обработка загрузки аватара
@@ -283,19 +549,34 @@ class DealsController extends Controller
             $this->notifyExecutorsAboutAttach($deal);
         }
         
-        return response()->json([
-            'success' => true, 
-            'message' => 'Сделка успешно обновлена',
-            'status_changed_to_completed' => $changedToCompleted,
-            'deal' => $deal,
-            'deal_id' => $deal->id // Добавляем ID сделки для проверки рейтингов
-        ]);
+        // Проверяем тип запроса - AJAX или обычная форма
+        if ($request->expectsJson() || $request->wantsJson()) {
+            // Возвращаем JSON для AJAX-запросов
+            return response()->json([
+                'success' => true, 
+                'message' => 'Сделка успешно обновлена',
+                'status_changed_to_completed' => $changedToCompleted,
+                'deal' => $deal,
+                'deal_id' => $deal->id
+            ]);
+        } else {
+            // Возвращаем редирект для обычной отправки формы
+            $message = 'Сделка успешно обновлена';
+            if ($changedToCompleted) {
+                $message .= '. Статус изменен на "Проект завершен"';
+            }
+            
+            return redirect()->route('deal.edit-page', $deal->id)
+                ->with('success', $message);
+        }
     }
     
     /**
-     * Обработка файлов для загрузки на Яндекс Диск
+     * УСТАРЕВШИЙ метод загрузки файлов документов на Яндекс Диск
+     * ЗАМЕНЕН на новую систему v3.0 через YandexDiskController API
+     * Сохранен для совместимости, но НЕ ИСПОЛЬЗУЕТСЯ
      */
-    private function handleYandexDiskFileUploads(Request $request, Deal $deal)
+    private function handleYandexDiskFileUploads_DEPRECATED(Request $request, Deal $deal)
     {
         // Проверяем авторизацию перед загрузкой
         if (!$this->yandexDiskService->checkAuth()) {
@@ -317,14 +598,10 @@ class DealsController extends Controller
             'contract_attachment' => 'Приложение к договору',
             'plan_final' => 'Планировка финал', // Добавляем поле plan_final
             'chat_screenshot' => 'Скриншот чата', // Добавляем поле chat_screenshot
-            'screenshot_work_1' => 'Скриншот работы 1', // Добавляем новые поля скриншотов
-            'screenshot_work_2' => 'Скриншот работы 2',
-            'screenshot_work_3' => 'Скриншот работы 3',
-            'screenshot_final' => 'Скриншот финального этапа',
         ];
         
         // Базовый путь для хранения файлов
-        $basePath = config('services.yandex_disk.base_folder', 'dlk_deals');
+        $basePath = config('services.yandex_disk.base_folder', 'lk_deals');
         // Всегда используем формат "deal_IDDEAL" для имени папки сделки
         $projectFolder = "deal_{$deal->id}";
         $dealFolder = "{$basePath}/{$projectFolder}";
@@ -403,7 +680,7 @@ class DealsController extends Controller
         }
         
         // Базовый путь для хранения файлов
-        $basePath = config('services.yandex_disk.base_folder', 'dlk_deals');
+        $basePath = config('services.yandex_disk.base_folder', 'lk_deals');
         // Всегда используем формат "deal_IDDEAL" для имени папки сделки
         $projectFolder = "deal_{$deal->id}";
         $photosFolder = "{$basePath}/{$projectFolder}/project_photos";
@@ -971,70 +1248,6 @@ class DealsController extends Controller
     }
 
     /**
-     * Глобальные логи действий со сделками для администратора
-     * с расширенными фильтрами и поиском
-     */
-    public function globalLogs(Request $request)
-    {
-        // Проверяем, что пользователь - администратор
-        if (Auth::user()->status !== 'admin') {
-            abort(403, 'Доступ запрещен');
-        }
-
-        $title_site = "Глобальные логи действий со сделками";
-        
-        // Параметры фильтрации
-        $search = $request->input('search');
-        $action_type = $request->input('action_type');
-        $user_id = $request->input('user_id');
-        $date_from = $request->input('date_from');
-        $date_to = $request->input('date_to');
-        $deal_id = $request->input('deal_id');
-        
-        // Базовый запрос
-        $query = DealChangeLog::with(['deal', 'user'])
-            ->orderBy('created_at', 'desc');
-            
-        // Применяем фильтры с использованием скопов модели
-        $query->search($search)
-              ->byActionType($action_type)
-              ->byUser($user_id)
-              ->byDateRange($date_from, $date_to);
-        
-        // Фильтр по конкретной сделке
-        if ($deal_id) {
-            $query->where('deal_id', $deal_id);
-        }
-        
-        $logs = $query->paginate(50)->appends($request->query());
-        
-        // Получаем список пользователей для фильтра
-        $users = User::select('id', 'name', 'status')
-            ->whereIn('status', ['admin', 'coordinator', 'partner'])
-            ->orderBy('name')
-            ->get();
-            
-        // Расширенная статистика
-        $stats = \App\Helpers\DealLogHelper::getLogStatistics();
-        
-        return view('deals.global_change_logs', compact('logs', 'title_site', 'users', 'stats', 'request'));
-    }
-
-    /**
-     * API endpoint для получения количества логов за сегодня
-     * Используется для обновления счетчика в реальном времени
-     */
-    public function getLogsCount()
-    {
-        try {
-            $todayLogs = DealChangeLog::whereDate('created_at', today())->count();
-            return response()->json(['count' => $todayLogs]);
-        } catch (\Exception $e) {
-            return response()->json(['count' => 0], 500);
-        }
-    }
-
-    /**
      * Создает сделку на основе брифа
      *
      * @param Request $request
@@ -1180,60 +1393,6 @@ class DealsController extends Controller
             ]);
             
             return redirect()->back()->with('error', 'Произошла ошибка при удалении сделки: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Восстановление удаленной сделки (только для администраторов)
-     *
-     * @param Request $request
-     * @param int $dealId
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function restoreDeal(Request $request, $dealId)
-    {
-        // Проверка прав доступа
-        if (Auth::user()->status !== 'admin') {
-            return redirect()->back()->with('error', 'У вас нет прав на восстановление сделок');
-        }
-        
-        try {
-            $deal = Deal::withTrashed()->findOrFail($dealId);
-            
-            // Проверяем, что сделка действительно удалена
-            if (!$deal->trashed()) {
-                return redirect()->back()->with('error', 'Сделка не была удалена и не требует восстановления');
-            }
-            
-            // Логируем действие перед восстановлением
-            Log::info('Восстановление сделки администратором', [
-                'deal_id' => $deal->id,
-                'deal_name' => $deal->name,
-                'admin_id' => Auth::id(),
-                'admin_name' => Auth::user()->name
-            ]);
-            
-            // Восстанавливаем сделку
-            $deal->restore();
-            
-            // Создаем запись в логах о восстановлении
-            \App\Helpers\DealLogHelper::logDealRestore($deal, [
-                'admin_id' => Auth::id(),
-                'admin_name' => Auth::user()->name,
-                'ip_address' => $request->ip() ?? request()->ip(),
-                'user_agent' => $request->userAgent() ?? request()->userAgent()
-            ]);
-            
-            return redirect()->route('deals.global_change_logs')->with('success', 'Сделка "' . $deal->name . '" успешно восстановлена');
-            
-        } catch (\Exception $e) {
-            Log::error('Ошибка при восстановлении сделки: ' . $e->getMessage(), [
-                'exception' => $e,
-                'deal_id' => $dealId,
-                'admin_id' => Auth::id()
-            ]);
-            
-            return redirect()->back()->with('error', 'Произошла ошибка при восстановлении сделки: ' . $e->getMessage());
         }
     }
 
@@ -1790,19 +1949,36 @@ class DealsController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+    /**
+     * Загрузка документов для сделки (улучшенная версия с поддержкой Яндекс.Диска)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function uploadDocuments(Request $request)
     {
         try {
             $dealId = $request->input('deal_id');
             
-            // Валидация входящих данных - убираем ограничения размера файлов
+            Log::info('🚀 Начало загрузки документов', [
+                'deal_id' => $dealId,
+                'files_count' => $request->hasFile('documents') ? count($request->file('documents')) : 0,
+                'user_id' => Auth::id()
+            ]);
+            
+            // Валидация входящих данных - убираем ограничения размера файлов для поддержки больших файлов
             $validator = Validator::make($request->all(), [
                 'deal_id' => 'required|exists:deals,id',
                 'documents' => 'required|array',
-                'documents.*' => 'file', // Убираем ограничения размера файлов
+                'documents.*' => 'file', // Убираем ограничение размера
             ]);
 
             if ($validator->fails()) {
+                Log::warning('⚠️ Ошибка валидации при загрузке документов', [
+                    'errors' => $validator->errors()->all(),
+                    'deal_id' => $dealId
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Ошибка валидации: ' . implode(', ', $validator->errors()->all())
@@ -1814,88 +1990,291 @@ class DealsController extends Controller
             
             // Проверяем права доступа
             if (!in_array(Auth::user()->status, ['coordinator', 'partner', 'admin'])) {
+                Log::warning('🚫 Отказ в доступе для загрузки документов', [
+                    'user_id' => Auth::id(),
+                    'user_status' => Auth::user()->status,
+                    'deal_id' => $dealId
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'У вас нет прав на загрузку документов'
                 ], 403);
             }
             
-            // Загружаем документы
             $uploadedDocuments = [];
-            $directory = "deals/{$dealId}/documents";
+            $uploadErrors = [];
+            // Принудительно используем локальное хранилище вместо Яндекс.Диска
+            $useYandexDisk = false;
             
-            // Создаем директорию, если она не существует
-            $fullPath = storage_path("app/public/{$directory}");
-            if (!file_exists($fullPath)) {
-                mkdir($fullPath, 0755, true);
-            }
+            Log::info('📂 Способ загрузки определен', [
+                'use_yandex_disk' => $useYandexDisk,
+                'storage_type' => 'local',
+                'files_count' => count($request->file('documents'))
+            ]);
             
-            // Обрабатываем каждый загруженный файл
-            foreach ($request->file('documents') as $file) {
-                if ($file->isValid()) {
-                    // Сохраняем оригинальное имя файла, но делаем его безопасным
-                    $originalName = $file->getClientOriginalName();
-                    $fileName = pathinfo($originalName, PATHINFO_FILENAME);
-                    $safeFileName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $fileName);
-                    $extension = $file->getClientOriginalExtension();
-                    $uniqueFileName = $safeFileName . '_' . time() . '_' . uniqid() . '.' . $extension;
-                    
-                    // Сохраняем файл
-                    $path = $file->storeAs($directory, $uniqueFileName, 'public');
-                    
-                    if ($path) {
-                        // Определяем иконку в зависимости от типа файла
-                        $icon = $this->getFileIconClass($extension);
-                        
-                        // Добавляем информацию о файле в результат
-                        $uploadedDocuments[] = [
-                            'name' => $originalName,
-                            'path' => $path,
-                            'url' => url('storage/' . $path),
-                            'extension' => $extension,
-                            'icon' => $icon
+            if ($useYandexDisk) {
+                // Загрузка через Яндекс.Диск для больших файлов
+                $yandexDiskService = app(YandexDiskService::class);
+                $uploadPath = "deals/{$dealId}/documents";
+                
+                Log::info('☁️ Используем Яндекс.Диск для загрузки', ['upload_path' => $uploadPath]);
+                
+                // Обрабатываем каждый файл
+                foreach ($request->file('documents') as $index => $file) {
+                    if ($file->isValid()) {
+                        try {
+                            Log::info("📄 Загружаем файл #{$index}", [
+                                'original_name' => $file->getClientOriginalName(),
+                                'size' => $file->getSize(),
+                                'mime_type' => $file->getMimeType()
+                            ]);
+                            
+                            // Генерируем уникальное имя файла
+                            $originalName = $file->getClientOriginalName();
+                            $safeFileName = $this->generateSafeFileName($originalName);
+                            $filePath = $uploadPath . '/' . $safeFileName;
+                            
+                            // Загружаем на Яндекс.Диск
+                            $uploadResult = $yandexDiskService->uploadFile($file, $filePath);
+                            
+                            if ($uploadResult['success']) {
+                                $uploadedDocuments[] = [
+                                    'name' => $originalName,
+                                    'path' => $filePath,
+                                    'url' => $uploadResult['url'],
+                                    'original_name' => $originalName,
+                                    'size' => $file->getSize(),
+                                    'extension' => $file->getClientOriginalExtension(),
+                                    'icon' => 'fas ' . $this->getFileIconClass($file->getClientOriginalExtension()),
+                                    'storage_type' => 'yandex_disk',
+                                    'uploaded_at' => now()->toISOString()
+                                ];
+                                
+                                Log::info("✅ Файл успешно загружен на Яндекс.Диск", [
+                                    'file' => $originalName,
+                                    'url' => $uploadResult['url']
+                                ]);
+                            } else {
+                                $uploadErrors[] = [
+                                    'file' => $originalName,
+                                    'error' => $uploadResult['message'] ?? 'Неизвестная ошибка загрузки на Яндекс.Диск'
+                                ];
+                                
+                                Log::error("❌ Ошибка загрузки на Яндекс.Диск", [
+                                    'file' => $originalName,
+                                    'error' => $uploadResult['message'] ?? 'Неизвестная ошибка'
+                                ]);
+                            }
+                            
+                        } catch (\Exception $e) {
+                            $uploadErrors[] = [
+                                'file' => $file->getClientOriginalName(),
+                                'error' => 'Исключение при загрузке: ' . $e->getMessage()
+                            ];
+                            
+                            Log::error("💥 Исключение при загрузке файла", [
+                                'file' => $file->getClientOriginalName(),
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                        }
+                    } else {
+                        $uploadErrors[] = [
+                            'file' => $file->getClientOriginalName(),
+                            'error' => 'Файл поврежден или невалиден'
                         ];
+                    }
+                }
+                
+            } else {
+                // Локальная загрузка (fallback)
+                Log::info('💾 Используем локальное хранилище');
+                
+                $directory = "deals/{$dealId}/documents";
+                $fullPath = storage_path("app/public/{$directory}");
+                
+                if (!file_exists($fullPath)) {
+                    mkdir($fullPath, 0755, true);
+                }
+                
+                foreach ($request->file('documents') as $file) {
+                    if ($file->isValid()) {
+                        try {
+                            $originalName = $file->getClientOriginalName();
+                            $safeFileName = $this->generateSafeFileName($originalName);
+                            
+                            $path = $file->storeAs($directory, $safeFileName, 'public');
+                            
+                            if ($path) {
+                                $uploadedDocuments[] = [
+                                    'name' => $originalName,
+                                    'path' => $path,
+                                    'url' => url('storage/' . $path),
+                                    'original_name' => $originalName,
+                                    'size' => $file->getSize(),
+                                    'extension' => $file->getClientOriginalExtension(),
+                                    'icon' => 'fas ' . $this->getFileIconClass($file->getClientOriginalExtension()),
+                                    'storage_type' => 'local',
+                                    'uploaded_at' => now()->toISOString()
+                                ];
+                            }
+                        } catch (\Exception $e) {
+                            $uploadErrors[] = [
+                                'file' => $file->getClientOriginalName(),
+                                'error' => 'Ошибка локального сохранения: ' . $e->getMessage()
+                            ];
+                        }
                     }
                 }
             }
             
             // Обновляем список документов в сделке
-            $currentDocuments = $deal->documents ? 
-                (is_string($deal->documents) ? json_decode($deal->documents, true) : $deal->documents) : 
-                [];
+            $this->updateDealDocuments($deal, $uploadedDocuments);
             
-            if (!is_array($currentDocuments)) {
-                $currentDocuments = [];
-            }
+            $successCount = count($uploadedDocuments);
+            $errorCount = count($uploadErrors);
+            $totalCount = $successCount + $errorCount;
             
-            // Добавляем новые пути к существующим
-            $documentPaths = [];
-            foreach ($uploadedDocuments as $doc) {
-                $documentPaths[] = $doc['path'];
-            }
-            
-            $allDocuments = array_merge($currentDocuments, $documentPaths);
-            
-            // Сохраняем обновленный список документов
-            $deal->documents = json_encode($allDocuments);
-            $deal->save();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Документы успешно загружены',
-                'documents' => $uploadedDocuments
+            Log::info('📊 Результаты загрузки документов', [
+                'deal_id' => $dealId,
+                'total_files' => $totalCount,
+                'successful' => $successCount,
+                'errors' => $errorCount,
+                'storage_type' => $useYandexDisk ? 'yandex_disk' : 'local'
             ]);
             
+            // Формируем ответ
+            $response = [
+                'success' => $successCount > 0,
+                'message' => $this->formatUploadMessage($successCount, $errorCount, $totalCount),
+                'documents' => $uploadedDocuments,
+                'errors' => $uploadErrors,
+                'stats' => [
+                    'total' => $totalCount,
+                    'successful' => $successCount,
+                    'failed' => $errorCount,
+                    'storage_type' => $useYandexDisk ? 'yandex_disk' : 'local'
+                ]
+            ];
+            
+            if ($errorCount > 0) {
+                $response['warnings'] = "Не удалось загрузить {$errorCount} файлов";
+            }
+            
+            return response()->json($response);
+            
         } catch (\Exception $e) {
-            Log::error('Ошибка при загрузке документов: ' . $e->getMessage(), [
-                'exception' => $e,
-                'deal_id' => $request->input('deal_id')
+            Log::error('💥 Критическая ошибка при загрузке документов', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'deal_id' => $request->input('deal_id'),
+                'user_id' => Auth::id()
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Произошла ошибка при загрузке документов: ' . $e->getMessage()
+                'message' => 'Произошла критическая ошибка при загрузке документов: ' . $e->getMessage(),
+                'error_type' => 'system_error'
             ], 500);
+        }
+    }
+    
+    /**
+     * Генерация безопасного имени файла
+     */
+    private function generateSafeFileName($originalName)
+    {
+        $pathInfo = pathinfo($originalName);
+        $fileName = $pathInfo['filename'];
+        $extension = $pathInfo['extension'] ?? '';
+        
+        // Очищаем имя файла от опасных символов
+        $safeFileName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $fileName);
+        $safeFileName = preg_replace('/_+/', '_', $safeFileName); // Убираем множественные подчеркивания
+        $safeFileName = trim($safeFileName, '_');
+        
+        // Ограничиваем длину
+        if (strlen($safeFileName) > 50) {
+            $safeFileName = substr($safeFileName, 0, 50);
+        }
+        
+        // Добавляем временную метку и уникальный ID
+        $timestamp = time();
+        $uniqueId = substr(uniqid(), -6);
+        
+        return $safeFileName . '_' . $timestamp . '_' . $uniqueId . ($extension ? '.' . $extension : '');
+    }
+    
+    /**
+     * Обновление списка документов в сделке
+     */
+    private function updateDealDocuments($deal, $newDocuments)
+    {
+        try {
+            // Получаем существующие документы
+            $currentDocuments = [];
+            if ($deal->documents) {
+                if (is_string($deal->documents)) {
+                    $currentDocuments = json_decode($deal->documents, true) ?: [];
+                } elseif (is_array($deal->documents)) {
+                    $currentDocuments = $deal->documents;
+                }
+            }
+            
+            // Добавляем новые документы с полной информацией
+            foreach ($newDocuments as $doc) {
+                $currentDocuments[] = [
+                    'name' => $doc['name'],
+                    'original_name' => $doc['original_name'],
+                    'path' => $doc['path'],
+                    'url' => $doc['url'],
+                    'size' => $doc['size'],
+                    'extension' => $doc['extension'],
+                    'storage_type' => $doc['storage_type'],
+                    'uploaded_at' => $doc['uploaded_at'],
+                    'uploaded_by' => Auth::id()
+                ];
+            }
+            
+            // Сохраняем обновленный список
+            $deal->documents = json_encode($currentDocuments);
+            $deal->save();
+            
+            Log::info('📝 Список документов сделки обновлен', [
+                'deal_id' => $deal->id,
+                'total_documents' => count($currentDocuments),
+                'new_documents' => count($newDocuments)
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('❌ Ошибка обновления списка документов', [
+                'deal_id' => $deal->id,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+    
+    /**
+     * Форматирование сообщения о результатах загрузки
+     */
+    private function formatUploadMessage($successCount, $errorCount, $totalCount)
+    {
+        if ($errorCount === 0) {
+            if ($successCount === 1) {
+                return "Документ успешно загружен";
+            } else {
+                return "Все {$successCount} документов успешно загружены";
+            }
+        } elseif ($successCount === 0) {
+            if ($totalCount === 1) {
+                return "Не удалось загрузить документ";
+            } else {
+                return "Не удалось загрузить ни одного документа";
+            }
+        } else {
+            return "Загружено {$successCount} из {$totalCount} документов";
         }
     }
     
@@ -1957,37 +2336,591 @@ class DealsController extends Controller
     }
 
     /**
-     * Тестовый метод для проверки работоспособности обновления сделки
+     * Отображение отдельной страницы редактирования сделки
+     * Заменяет функциональность модального окна на полную страницу
      */
-    public function testUpdateDeal(Request $request, $id)
+    public function editDealPage($dealId)
     {
         try {
-            // Логируем информацию о запросе
-            Log::info('Тестовый запрос на обновление сделки', [
-                'deal_id' => $id,
-                'method' => $request->method(),
-                'content_type' => $request->header('Content-Type'),
-                'has_files' => $request->hasFile('documents'),
-                'input_data' => $request->all()
+            // Получаем сделку с необходимыми связями
+            $deal = Deal::with([
+                'coordinator',
+                'partner', 
+                'architect',
+                'designer',
+                'visualizer',
+                'dealFeeds.user',
+                'dealFeeds' => function($q) {
+                    $q->orderBy('created_at', 'desc');
+                },
+                'users'
+            ])->findOrFail($dealId);
+            
+            // Проверяем права доступа к сделке - только coordinator, admin, partner
+            $user = Auth::user();
+            $hasAccess = false;
+            
+            // Администратор и координатор имеют доступ ко всем сделкам
+            if (in_array($user->status, ['admin', 'coordinator'])) {
+                $hasAccess = true;
+            }
+            // Партнер имеет доступ к своим сделкам
+            elseif ($user->status === 'partner' && $deal->office_partner_id === $user->id) {
+                $hasAccess = true;
+            }
+            
+            if (!$hasAccess) {
+                return redirect()->route('deal.cardinator')
+                    ->with('error', 'У вас нет доступа к этой сделке');
+            }
+            
+            // Получаем структуру полей сделки
+            $dealFields = $this->getDealFields($deal);
+            
+            // Получаем дополнительные данные для формы
+            $coordinators = \App\Models\User::where('status', 'coordinator')->get();
+            $partners = \App\Models\User::where('status', 'partner')->get();
+            $architects = \App\Models\User::where('status', 'architect')->get();
+            $designers = \App\Models\User::where('status', 'designer')->get();
+            $visualizers = \App\Models\User::where('status', 'visualizer')->get();
+            
+            // Получаем города из JSON файла
+            $citiesFile = public_path('cities.json');
+            $russianCities = [];
+            if (file_exists($citiesFile)) {
+                $citiesJson = file_get_contents($citiesFile);
+                $citiesData = json_decode($citiesJson, true) ?: [];
+                
+                // Добавляем базовые часовые пояса для основных городов
+                $timezones = [
+                    'Москва' => 'UTC+3',
+                    'Санкт-Петербург' => 'UTC+3',
+                    'Новосибирск' => 'UTC+7',
+                    'Екатеринбург' => 'UTC+5',
+                    'Казань' => 'UTC+3',
+                    'Нижний Новгород' => 'UTC+3',
+                    'Челябинск' => 'UTC+5',
+                    'Самара' => 'UTC+4',
+                    'Омск' => 'UTC+6',
+                    'Ростов-на-Дону' => 'UTC+3',
+                    'Уфа' => 'UTC+5',
+                    'Красноярск' => 'UTC+7',
+                    'Воронеж' => 'UTC+3',
+                    'Пермь' => 'UTC+5',
+                    'Волгоград' => 'UTC+3'
+                ];
+                
+                // Преобразуем данные городов, добавляя часовые пояса где возможно
+                foreach ($citiesData as $cityData) {
+                    if (isset($cityData['city'])) {
+                        $city = $cityData['city'];
+                        $russianCities[] = [
+                            'city' => $city,
+                            'region' => $cityData['region'] ?? '',
+                            'timezone' => $timezones[$city] ?? 'UTC+3' // По умолчанию московское время
+                        ];
+                    }
+                }
+            }
+            
+            // Статусы сделок
+            $statuses = [
+                'Ждем ТЗ', 'Планировка', 'Коллажи', 'Визуализация', 'Рабочка/сбор ИП',
+                'Проект готов', 'Проект завершен', 'Проект на паузе', 'Возврат',
+                'В работе', 'Завершенный', 'На потом', 'Регистрация',
+                'Бриф прикриплен', 'Поддержка', 'Активный'
+            ];
+            
+            // Пакеты услуг
+            $packages = [
+                'Стандарт',
+                'Премиум', 
+                'Люкс'
+            ];
+            
+            // Опции ценообразования
+            $priceServiceOptions = [
+                'За м²',
+                'За объект',
+                'Почасовая оплата'
+            ];
+            
+            // Заголовок страницы
+            $title_site = "Редактирование сделки #{$deal->id} - {$deal->client_name}";
+            
+            Log::info('Открыта страница редактирования сделки', [
+                'deal_id' => $deal->id,
+                'user_id' => $user->id,
+                'user_status' => $user->status
             ]);
             
-            // Возвращаем успешный ответ
-            return response()->json([
-                'success' => true,
-                'message' => 'Тестовый запрос получен успешно',
-                'deal_id' => $id,
-                'request_method' => $request->method(),
-            ]);
+            return view('deals.edit', compact(
+                'deal',
+                'title_site',
+                'coordinators',
+                'partners', 
+                'architects',
+                'designers',
+                'visualizers',
+                'russianCities',
+                'statuses',
+                'packages',
+                'priceServiceOptions',
+                'dealFields'
+            ))->with('userRole', $user->status);
+            
         } catch (\Exception $e) {
-            Log::error('Ошибка в тестовом запросе обновления сделки', [
+            Log::error('Ошибка при открытии страницы редактирования сделки', [
+                'deal_id' => $dealId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
+            return redirect()->route('deal.cardinator')
+                ->with('error', 'Ошибка при открытии сделки: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Получение структуры полей сделки для формы редактирования
+     * Скопировано из DealModalController для полной совместимости
+     */
+    private function getDealFields($deal = null) {
+        // Получаем только необходимые списки пользователей для полей
+        $coordinators = User::where('status', 'coordinator')->pluck('name', 'id')->toArray();
+        $partners = User::where('status', 'partner')->pluck('name', 'id')->toArray();
+        $architects = User::where('status', 'architect')->pluck('name', 'id')->toArray();
+        $designers = User::where('status', 'designer')->pluck('name', 'id')->toArray();
+        $visualizers = User::where('status', 'visualizer')->pluck('name', 'id')->toArray();
+        
+        // Добавляем пустые опции в начало списков для возможности сброса выбора
+        $coordinators = ['' => '-- Выберите координатора --'] + $coordinators;
+        $partners = ['' => '-- Выберите партнера --'] + $partners;
+        $architects = ['' => '-- Выберите архитектора --'] + $architects;
+        $designers = ['' => '-- Выберите дизайнера --'] + $designers;
+        $visualizers = ['' => '-- Выберите визуализатора --'] + $visualizers;
+        
+        return [
+            'zakaz' => [
+                [
+                    'name' => 'client_phone',
+                    'icon' => 'fas fa-phone',
+                    'type' => 'text',
+                    'label' => 'Телефон клиента',
+                    'role' => ['coordinator', 'partner', 'admin'],
+                    'required' => true,
+                    'class' => 'maskphone',
+                    'id' => 'client_phone',
+                ],
+                [
+                    'name' => 'project_number',
+                    'label' => '№ проекта',
+                    'type' => 'text',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'maxlength' => 150,
+                    'icon' => 'fas fa-hashtag',
+                    'required' => true,
+                    'description' => 'Основной идентификатор сделки',
+                ],
+                [
+                    'name' => 'client_name',
+                    'label' => 'Имя клиента',
+                    'type' => 'text',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'maxlength' => 255,
+                    'icon' => 'fas fa-user',
+                    'required' => true,
+                    'description' => 'Имя клиента по сделке',
+                ],
+                [
+                    'name' => 'avatar_path',
+                    'label' => 'Аватар сделки',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin'],
+                    'accept' => 'image/*',
+                    'icon' => 'fas fa-image',
+                ],
+                [
+                    'name' => 'status',
+                    'label' => 'Статус',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => [
+                        'Ждем ТЗ' => 'Ждем ТЗ',
+                        'Планировка' => 'Планировка',
+                        'Коллажи' => 'Коллажи',
+                        'Визуализация' => 'Визуализация',
+                        'Рабочка/сбор ИП' => 'Рабочка/сбор ИП',
+                        'Проект готов' => 'Проект готов',
+                        'Проект завершен' => 'Проект завершен',
+                        'Проект на паузе' => 'Проект на паузе',
+                        'Возврат' => 'Возврат',
+                        'Регистрация' => 'Регистрация',
+                        'Бриф прикриплен' => 'Бриф прикриплен',
+                    ],
+                    'selected' => $deal ? $deal->status : null,
+                    'icon' => 'fas fa-tag',
+                ],
+                [
+                    'name' => 'coordinator_id',
+                    'label' => 'Координатор',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => $coordinators,
+                    'selected' => $deal ? $deal->coordinator_id : null,
+                    'icon' => 'fas fa-user-tie',
+                ],
+                [
+                    'name' => 'client_timezone',
+                    'label' => 'Город/часовой пояс',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'options' => [],
+                    'selected' => $deal ? $deal->client_timezone : null,
+                    'icon' => 'fas fa-city',
+                ],
+                [
+                    'name' => 'office_partner_id',
+                    'label' => 'Партнер',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => $partners,
+                    'selected' => $deal ? $deal->office_partner_id : null,
+                    'icon' => 'fas fa-handshake',
+                ],
+                [
+                    'name' => 'package',
+                    'label' => 'Пакет',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'options' => [
+                        'Первый пакет 1400 м2' => 'Первый пакет 1400 м2',
+                        'Второй пакет 85% комиссия' => 'Второй пакет 85% комиссия',
+                        'Третий пакет 55% комиссия' => 'Третий пакет 55% комиссия',
+                        'Партнер 75% комиссия' => 'Партнер 75% комиссия',
+                    ],
+                    'selected' => $deal ? $deal->package : null,
+                    'icon' => 'fas fa-box',
+                ],
+                [
+                    'name' => 'price_service_option',
+                    'label' => 'Услуга по прайсу',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'options' => [
+                        'экспресс планировка' => 'Экспресс планировка',
+                        'экспресс планировка с коллажами' => 'Экспресс планировка с коллажами',
+                        'экспресс проект с электрикой' => 'Экспресс проект с электрикой',
+                        'экспресс планировка с электрикой и коллажами' => 'Экспресс планировка с электрикой и коллажами',
+                        'экспресс рабочий проект' => 'Экспресс рабочий проект',
+                        'экспресс эскизный проект с рабочей документацией' => 'Экспресс эскизный проект с рабочей документацией',
+                        'экспресс 3Dвизуализация с коллажами' => 'экспресс 3Dвизуализация с коллажами ',
+                        'экспресс полный дизайн-проект' => 'Экспресс полный дизайн-проект',
+                        'Визуализация на одну комнату' => 'Визуализация на одну комнату',
+                    ],
+                    'selected' => $deal ? $deal->price_service_option : null,
+                    'required' => true,
+                    'icon' => 'fas fa-list-check',
+                ],
+                [
+                    'name' => 'rooms_count_pricing',
+                    'label' => 'Кол-во комнат по прайсу',
+                    'type' => 'text',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-door-open',
+                ],
+                [
+                    'name' => 'completion_responsible',
+                    'label' => 'Кто делает комплектацию',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'options' => [
+                        'клиент' => 'Клиент',
+                        'партнер' => 'Партнер',
+                        'шопинг-лист' => 'Шопинг-лист',
+                        'закупки и снабжение от УК' => 'Нужны закупки и снабжение от УК',
+                    ],
+                    'selected' => $deal ? $deal->completion_responsible : null,
+                    'icon' => 'fas fa-clipboard-check',
+                ],
+                [
+                    'name' => 'created_date',
+                    'label' => 'Дата создания сделки',
+                    'type' => 'date',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'icon' => 'fas fa-calendar-plus',
+                ],
+                [
+                    'name' => 'payment_date',
+                    'label' => 'Дата оплаты',
+                    'type' => 'date',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-money-check',
+                ],
+                [
+                    'name' => 'total_sum',
+                    'label' => 'Сумма заказа',
+                    'type' => 'number',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'step' => '0.01',
+                    'icon' => 'fas fa-ruble-sign',
+                ],
+                [
+                    'name' => 'comment',
+                    'label' => 'Общий комментарий',
+                    'description' => 'Подробные заметки о сделке',
+                    'type' => 'textarea',
+                    'icon' => 'fas fa-sticky-note',
+                    'role' => ['admin', 'coordinator', 'partner'],
+                    'maxlength' => 1000,
+                ],
+                [
+                    'name' => 'measurements_file',
+                    'label' => 'Замеры',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => '.pdf,.dwg,image/*',
+                    'icon' => 'fas fa-ruler-combined',
+                ],
+            ],
+            'rabota' => [
+                [
+                    'name' => 'start_date',
+                    'label' => 'Дата старта работы по проекту',
+                    'type' => 'date',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-play',
+                ],
+                [
+                    'name' => 'project_duration',
+                    'label' => 'Общий срок проекта (в рабочих днях)',
+                    'type' => 'number',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-hourglass-half',
+                ],
+                [
+                    'name' => 'project_end_date',
+                    'label' => 'Дата завершения',
+                    'type' => 'date',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-flag-checkered',
+                ],
+                [
+                    'name' => 'architect_id',
+                    'label' => 'Архитектор',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => $architects,
+                    'selected' => $deal ? $deal->architect_id : null,
+                    'icon' => 'fas fa-drafting-compass',
+                ],
+                [
+                    'name' => 'designer_id',
+                    'label' => 'Дизайнер',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => $designers,
+                    'selected' => $deal ? $deal->designer_id : null,
+                    'icon' => 'fas fa-palette',
+                ],
+                [
+                    'name' => 'visualizer_id',
+                    'label' => 'Визуализатор',
+                    'type' => 'select',
+                    'role' => ['coordinator', 'admin'], // PARTNER только читает
+                    'readonly_roles' => ['partner'], // Добавляем поле для ролей только для чтения
+                    'options' => $visualizers,
+                    'selected' => $deal ? $deal->visualizer_id : null,
+                    'icon' => 'fas fa-eye',
+                ],
+                [
+                    'name' => 'plan_final',
+                    'label' => 'Ссылка на планировку',
+                    'type' => 'url',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'icon' => 'fas fa-link',
+                ],
+            ],
+            'final' => [
+                [
+                    'name' => 'measurements_file',
+                    'label' => 'Замеры',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => '.pdf,.doc,.docx,.jpg,.jpeg,.png',
+                    'icon' => 'fas fa-ruler',
+                    'description' => 'Файл с замерами помещений'
+                ],
+                [
+                    'name' => 'final_project_file',
+                    'label' => 'Финал проекта (PDF, до 1.5ГБ)',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => 'application/pdf',
+                    'icon' => 'fas fa-file-pdf',
+                    'description' => 'Финальная версия проекта в формате PDF'
+                ],
+                [
+                    'name' => 'work_act',
+                    'label' => 'Акт выполненных работ (PDF)',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => 'application/pdf',
+                    'icon' => 'fas fa-file-signature',
+                    'description' => 'Акт выполненных работ в формате PDF'
+                ],
+                [
+                    'name' => 'chat_screenshot',
+                    'label' => 'Скрин чата с оценкой и актом (JPEG)',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => 'image/jpeg,image/jpg,image/png',
+                    'icon' => 'fas fa-camera',
+                    'description' => 'Скриншот чата с оценкой и актом'
+                ],
+                [
+                    'name' => 'archicad_file',
+                    'label' => 'Исходный файл архикад (pln, dwg)',
+                    'type' => 'file',
+                    'role' => ['coordinator', 'admin', 'partner'],
+                    'accept' => '.pln,.dwg',
+                    'icon' => 'fas fa-file-code',
+                    'description' => 'Исходный файл проекта в формате ArchiCAD или AutoCAD'
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Получить информацию о документах сделки
+     */
+    private function getDealDocuments($deal)
+    {
+        $documents = [];
+        
+        $fileFields = [
+            'execution_order_file', 'measurements_file', 'final_floorplan', 'final_collage',
+            'final_project_file', 'work_act', 'archicad_file', 'contract_attachment', 
+            'plan_final', 'chat_screenshot'
+        ];
+        
+        foreach ($fileFields as $field) {
+            $yandexUrlField = "yandex_url_{$field}";
+            $originalNameField = "original_name_{$field}";
+            
+            if (isset($deal->$yandexUrlField) && !empty($deal->$yandexUrlField)) {
+                $extension = 'pdf';
+                $filename = $deal->$originalNameField ?? "{$field}.pdf";
+                
+                if (!empty($deal->$originalNameField)) {
+                    $extension = pathinfo($deal->$originalNameField, PATHINFO_EXTENSION);
+                }
+                
+                $documents[] = [
+                    'id' => $deal->id . '_' . $field,
+                    'name' => $filename,
+                    'path' => $deal->$yandexUrlField,
+                    'extension' => $extension,
+                    'icon' => $this->getFileIcon($extension),
+                    'url' => $deal->$yandexUrlField,
+                    'field' => $field
+                ];
+            }
+        }
+        
+        return $documents;
+    }
+    
+    /**
+     * Получить иконку для файла по расширению
+     */
+    private function getFileIcon($extension)
+    {
+        $icons = [
+            'pdf' => 'fas fa-file-pdf',
+            'doc' => 'fas fa-file-word',
+            'docx' => 'fas fa-file-word',
+            'jpg' => 'fas fa-file-image',
+            'jpeg' => 'fas fa-file-image',
+            'png' => 'fas fa-file-image',
+            'dwg' => 'fas fa-file-code',
+            'pln' => 'fas fa-file-code',
+        ];
+        
+        return $icons[strtolower($extension)] ?? 'fas fa-file';
+    }
+    
+    /**
+     * Получение актуальных данных сделки для обновления интерфейса
+     */
+    public function getDealData($id)
+    {
+        try {
+            $deal = Deal::findOrFail($id);
+            
+            // Проверяем права доступа к сделке
+            $user = Auth::user();
+            if (!$this->canUserAccessDeal($user, $deal)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет прав для просмотра этой сделки'
+                ], 403);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'deal' => $deal->toArray()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Ошибка при получении данных сделки', [
+                'deal_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Ошибка: ' . $e->getMessage()
+                'message' => 'Ошибка при получении данных сделки: ' . $e->getMessage()
             ], 500);
         }
+    }
+    
+    /**
+     * Проверка прав доступа пользователя к сделке
+     */
+    private function canUserAccessDeal($user, $deal)
+    {
+        // Администраторы и координаторы имеют доступ ко всем сделкам
+        if (in_array($user->status, ['admin', 'coordinator'])) {
+            return true;
+        }
+        
+        // Клиенты имеют доступ только к своим сделкам
+        if ($user->status === 'user' && $deal->user_id === $user->id) {
+            return true;
+        }
+        
+        // Исполнители имеют доступ к назначенным им сделкам
+        if (in_array($user->status, ['architect', 'designer', 'visualizer']) && 
+            ($deal->architect_id === $user->id || 
+             $deal->designer_id === $user->id || 
+             $deal->visualizer_id === $user->id)) {
+            return true;
+        }
+        
+        // Партнеры имеют доступ к сделкам где они указаны как партнер
+        if ($user->status === 'partner' && $deal->partner_id === $user->id) {
+            return true;
+        }
+        
+        return false;
     }
 }

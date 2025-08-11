@@ -107,8 +107,6 @@
                                         <span class="badge badge-primary">Активный</span>
                                     @elseif($brief->status == 'Завершенный' || $brief->status == 'completed')
                                         <span class="badge badge-success">Завершенный</span>
-                                    @elseif($brief->status == 'Отредактированный')
-                                        <span class="badge badge-info">Отредактированный</span>
                                     @else
                                         <span class="badge badge-secondary">{{ $brief->status }}</span>
                                     @endif
@@ -176,8 +174,6 @@
                                         <span class="badge badge-primary">Активный</span>
                                     @elseif($brief->status == 'Завершенный' || $brief->status == 'completed')
                                         <span class="badge badge-success">Завершенный</span>
-                                    @elseif($brief->status == 'Отредактированный')
-                                        <span class="badge badge-info">Отредактированный</span>
                                     @else
                                         <span class="badge badge-secondary">{{ $brief->status }}</span>
                                     @endif

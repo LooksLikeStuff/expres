@@ -4,22 +4,6 @@
     "src": "public/css/animate.css",
     "isEntry": true
   },
-  "public/img/auth/authFon.png": {
-    "file": "assets/authFon-Dr30-3FL.png",
-    "src": "public/img/auth/authFon.png"
-  },
-  "public/img/brifs/formFONbrif-commercian.jpg": {
-    "file": "assets/formFONbrif-commercian-DEhvJI9R.jpg",
-    "src": "public/img/brifs/formFONbrif-commercian.jpg"
-  },
-  "public/img/brifs/formFONbrif-common.jpg": {
-    "file": "assets/formFONbrif-common-CVoJ95ny.jpg",
-    "src": "public/img/brifs/formFONbrif-common.jpg"
-  },
-  "public/img/brifs/formFONbrif.png": {
-    "file": "assets/formFONbrif-Dxtcab3H.png",
-    "src": "public/img/brifs/formFONbrif.png"
-  },
   "public/js/jquery-3.6.0.min.js": {
     "file": "assets/jquery-3.6.0.min-5GtrIU7X.js",
     "name": "jquery-3.6.0.min",
@@ -58,7 +42,7 @@
     "isEntry": true
   },
   "resources/css/style.css": {
-    "file": "assets/style-jLlEnQr-.css",
+    "file": "assets/style--aYP9iDZ.css",
     "src": "resources/css/style.css",
     "isEntry": true
   },
@@ -147,7 +131,7 @@
     "isEntry": true
   },
   "resources/js/ratings.js": {
-    "file": "assets/ratings-C3zOPMI8.js",
+    "file": "assets/ratings-96DZJwCR.js",
     "name": "ratings",
     "src": "resources/js/ratings.js",
     "isEntry": true
