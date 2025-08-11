@@ -40,7 +40,7 @@ export default defineConfig({
       overlay: false
     },
     cors: {
-      origin: ['http://back', 'https://back', 'http://127.0.0.1', 'http://localhost'],
+      origin: ['http://back', 'https://back', 'http://127.0.0.1', 'http://localhost', 'https://chat.iamstuff.space'],
       credentials: true
     }
   },
