@@ -42,6 +42,7 @@ export default class ChatInterface {
     init() {
         this.bindEvents();
         this.initCreateChatForm();
+        this.initChatInfoModal();
         this.initGlobalBroadcast();
     }
 
@@ -174,6 +175,96 @@ export default class ChatInterface {
         });
     }
 
+    initChatInfoModal() {
+        $('#addParticipantSelect').select2({
+            dropdownParent: $('#chatInfoModal')
+        })
+            .on('change', function () {
+                const userId = $(this).val();
+
+            });
+
+
+        $('body').on('click', '.remove-participant', (e)=>  {
+            const $participantItem = $(e.currentTarget).closest('.participant-item');
+            const userId = $participantItem.data('user-id');
+            const chatId = this.chatClient.currentChatId;
+
+            // Меняем крестик на подтверждение
+            $participantItem.replaceWith(`
+                <div class="confirm-remove d-flex gap-2">
+                    <button class="btn btn-sm btn-danger confirm-remove-btn">Вы уверены, что хотите исключить пользователя из чата?</button>
+                    <button class="btn btn-sm btn-secondary cancel-remove-btn">Отмена</button>
+                </div>
+            `);
+
+            // Подтверждение
+            $participantItem.on('click', '.confirm-remove-btn', function () {
+                $.ajax({
+                    url: `/userChats/${chatId}/users/remove`,
+                    type: 'DELETE',
+                    data: {
+                        user_id: userId,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        // Убираем участника из DOM
+                        $participantItem.remove();
+
+                        // Тут эвент UserLeft должен отработать через бродкаст
+                        console.log(`User ${userId} removed from chat ${chatId}`);
+                    },
+                    error: function () {
+                        alert('Ошибка при удалении участника');
+                    }
+                });
+            });
+
+            // Отмена
+            $participantItem.on('click', '.cancel-remove-btn', function () {
+                $participantItem.find('.confirm-remove').replaceWith(`<span class="remove-participant">&times;</span>`);
+            });
+        });
+
+        $('#addParticipantBtn').on('click', function () {
+
+        });
+
+    }
+
+
+    setChatInfoModal(chat) {
+        $('#chatInfoModalLabel').text(chat.title);
+
+        const $list = $('#participantsList');
+        $list.empty();
+
+        // Скрыть/показать кнопку добавления участников
+        if (chat.type === 'private') {
+            $('.chat-add-user').addClass('d-none');
+        } else {
+            $('.chat-add-user').removeClass('d-none');
+        }
+
+        chat.users.forEach(user => {
+            const isPrivate = chat.type === 'private';
+
+            const $item = $(`
+        <div class="participant-item list-group-item" data-user-id="${user.id}">
+            <div class="participant-info">
+                <img src="${user.profile_avatar}" class="participant-avatar" alt="avatar">
+                <span class="participant-name">${user.name}</span>
+                <span class="participant-role">${user.status}</span>
+            </div>
+
+            ${!isPrivate ? '<span class="remove-participant">&times;</span>' : ''}
+        </div>
+    `);
+
+            $list.append($item);
+        });
+    }
+
     async dispatchCreateChat() {
         this.newChatModalElem.hide();
 
@@ -192,7 +283,7 @@ export default class ChatInterface {
     createChat(chatId) {
         $.ajax({
             url: `/chats/${chatId}`,
-            method: 'get',
+            method: 'post',
             success: (data) => {
                 this.chatList.prepend(this.createChatItem(data))
                 this.activateChat(chatId);
@@ -291,7 +382,7 @@ export default class ChatInterface {
         this.messagesList.html('');
 
         // Load chat info
-        this.loadChatInfo(chatId);
+        await this.loadChatInfo(chatId);
 
         // Load messages
         this.loadMessages(chatId);
@@ -333,7 +424,14 @@ export default class ChatInterface {
 
     }
 
-    loadChatInfo(chatId) {
+    async loadChatInfo(chatId) {
+        $.ajax({
+            url: `/chats/${chatId}`,
+            method: 'post',
+            success: (data) => {
+                this.setChatInfoModal(data);
+            },
+        });
         // Find chat in current list
         const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
         const chatName = chatItem.find('.chat-item-name').text();
@@ -655,12 +753,17 @@ export default class ChatInterface {
         return $(`.chat-item[data-chat-id="${this.chatClient.currentChatId}"]`).attr('data-chat-type') === 'group';
     }
 
+
     updateChatInfo(data) {
         const $chatItem = $(`.chat-item[data-chat-id="${data.chat_id}"]`)
 
         $chatItem.find('.chat-item-message').text(data.body);
         $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${data.unread_count}</span>`);
         $chatItem.find('.chat-item-time').text(data.time);
+
+        // Перемещаем в начало списка
+        const $chatList = $chatItem.parent();
+        $chatItem.prependTo($chatList);
     }
 
 

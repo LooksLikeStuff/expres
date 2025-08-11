@@ -25,7 +25,11 @@ export default defineConfig({
         // Новая система загрузки файлов на Яндекс.Диск v3.0 находится в public/js
         'public/js/jquery-3.6.0.min.js',
         'public/js/wow.js',
-        'public/css/animate.css'
+        'public/css/animate.css',
+
+          //chats
+          'resources/sass/chats/index.scss',
+          'resources/js/chats/index.js',
       ],
       refresh: true,
     })

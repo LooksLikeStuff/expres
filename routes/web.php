@@ -346,7 +346,7 @@ Route::get('/test/document-system', function () {
 Route::middleware('auth')->group(function () {
     Route::prefix('chats')->controller(ChatController::class)->group(function () {
         Route::get('/', 'index')->name('chats.index');
-        Route::get('{chat}/', 'show')->name('chats.show');
+        Route::post('{chat}/', 'show')->name('chats.show');
         Route::post('{chatId}/messages', 'getMessages')->name('chats.messages');
         Route::post('/', 'store')->name('chats.store');
     });

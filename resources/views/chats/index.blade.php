@@ -162,8 +162,43 @@
                         </div>
                     </div>
 
+
+                    <!-- New Chat Modal -->
+                    <div class="modal fade" id="chatInfoModal" tabindex="-1" aria-labelledby="chatInfoModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="chatInfoModalLabel">Название чата</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <!-- Список участников -->
+                                    <div id="participantsList" class="list-group mb-3">
+                                        <!-- динамически сюда вставляем участников -->
+                                    </div>
+
+                                    <!-- Кнопка добавить участника -->
+                                    <div class="chat-add-user">
+                                        <select id="addParticipantSelect" class="form-select form-select-sm">
+                                            @foreach($users as $participant)
+                                                <option value="{{$participant->id}}">{{$participant->name}}</option>
+                                            @endforeach
+                                        </select>
+                                        <button id="addParticipantBtn" class="btn btn-outline-primary btn-sm ms-2">+</button>
+                                    </div>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Chat window -->
                     <div class="chat-window" id="chatWindow" style="display: none;">
+
                         <!-- Chat header -->
                         <div class="chat__header">
                             <div class="chat-info">
@@ -192,11 +227,12 @@
                                 <button class="btn-icon">
                                     <i class="bi bi-search"></i>
                                 </button>
-{{--                                <button class="btn-icon">--}}
-{{--                                    <i class="bi bi-three-dots-vertical"></i>--}}
-{{--                                </button>--}}
+                                <button class="btn-icon"  data-bs-toggle="modal" data-bs-target="#chatInfoModal">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
                             </div>
                         </div>
+
 
                         <!-- Messages area -->
                         <div class="messages-container" id="messagesContainer">
