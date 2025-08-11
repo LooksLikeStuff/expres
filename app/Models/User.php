@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Chats\Chat;
+use App\Models\UserFCMToken;
 use App\Models\Chats\Message;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
