@@ -9,7 +9,6 @@
 
 @section('scripts')
     @vite(['resources/js/app.js'])
-    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
 @endsection
 
 @section('content')

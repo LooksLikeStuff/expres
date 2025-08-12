@@ -46,14 +46,6 @@ export default class ChatInterface {
     }
 
     bindEvents() {
-        $('body').click(() => {
-            console.log('body click');
-        })
-
-        $('body').on('touchstart', () => {
-            console.log('body click');
-        })
-
         this.initFileAttachment();
 
         this.createChatBtn.click(() => this.dispatchCreateChat());
