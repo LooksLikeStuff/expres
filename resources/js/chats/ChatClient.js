@@ -64,14 +64,25 @@ export default class ChatClient {
 
 
     async registerFirebaseToken(fcmToken) {
-        await fetch('/fcm/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            },
-            body: JSON.stringify({ token: fcmToken }),
-        });
+        try {
+            console.log('Регистрация FCM токена:', fcmToken);
+            const response = await fetch('/fcm/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ token: fcmToken }),
+            });
+
+            if (!response.ok) {
+                console.error('Ошибка регистрации FCM токена:', response.status, await response.text());
+            } else {
+                console.log('FCM токен успешно зарегистрирован');
+            }
+        } catch (error) {
+            console.error('Ошибка при регистрации FCM токена:', error);
+        }
     }
 
     initEcho() {
