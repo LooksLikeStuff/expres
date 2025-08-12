@@ -14,12 +14,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
     console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
 
-    const notificationTitle = payload.data.title;
+    const notificationTitle = payload.notification.title;
     const notificationOptions = {
-        body: payload.data.body,
-        // icon: '/img/chats/private/placeholder.png', // желательно иконку указать!
+        body: payload.notification.body,
+        icon: '/img/chats/notification.png',
         data: {
-            url: '/' // можно использовать для перехода по клику
+            url: '/chats',
         }
     };
 

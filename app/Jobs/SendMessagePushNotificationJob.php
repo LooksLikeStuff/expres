@@ -44,9 +44,11 @@ class SendMessagePushNotificationJob implements ShouldQueue
                 ->post('https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send', [
                     'message' => [
                         'token' => $token->token,
-                        'data' => [
+                        'notification' => [
                             'title' => 'Новое сообщение от - ' . $sender->name,
                             'body' => $this->message->content,
+                        ],
+                        'data' => [
                             'chat_id' => (string)$chat->id,
                             'unread_count' => (string)$chat->unreadCountForUser($user->id),
                             'time' => $chat->lastMessage?->formatted_time,
