@@ -75,11 +75,11 @@ export default class ChatClient {
                 body: JSON.stringify({ token: fcmToken }),
             });
 
-            if (!response.ok) {
-                console.error('Ошибка регистрации FCM токена:', response.status, await response.text());
-            } else {
-                console.log('FCM токен успешно зарегистрирован');
-            }
+            // if (!response.ok) {
+            //     console.error('Ошибка регистрации FCM токена:', response.status, await response.text());
+            // } else {
+            //     console.log('FCM токен успешно зарегистрирован');
+            // }
         } catch (error) {
             console.error('Ошибка при регистрации FCM токена:', error);
         }

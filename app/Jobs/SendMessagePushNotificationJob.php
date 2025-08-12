@@ -48,7 +48,9 @@ class SendMessagePushNotificationJob implements ShouldQueue
                             'title' => 'Новое сообщение от - ' . $sender->name,
                             'body' => $this->message->content,
                             'image' => asset('img/chats/notification.png'),
-                            'click_action' => route('chats.index'),
+                        ],
+                        'fcm_options' => [
+                            'link' => route('chats.index'),
                         ],
                         'data' => [
                             'chat_id' => (string)$chat->id,
