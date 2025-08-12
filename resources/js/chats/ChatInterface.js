@@ -46,6 +46,14 @@ export default class ChatInterface {
     }
 
     bindEvents() {
+        $('body').click(() => {
+            console.log('body click');
+        })
+
+        $('body').on('touchstart', () => {
+            console.log('body click');
+        })
+
         this.initFileAttachment();
 
         this.createChatBtn.click(() => this.dispatchCreateChat());
@@ -189,16 +197,12 @@ export default class ChatInterface {
             const userId = $participantItem.data('user-id');
             const chatId = this.chatClient.currentChatId;
 
-            // Меняем крестик на подтверждение
-            $participantItem.replaceWith(`
-                <div class="confirm-remove d-flex gap-2">
-                    <button class="btn btn-sm btn-danger confirm-remove-btn">Вы уверены, что хотите исключить пользователя из чата?</button>
-                    <button class="btn btn-sm btn-secondary cancel-remove-btn">Отмена</button>
-                </div>
-            `);
+            const $confirmDiv = $(`<div class="confirm-remove d-flex gap-2">
+                <button class="btn btn-sm btn-danger confirm-remove-btn">Вы уверены, что хотите исключить пользователя из чата?</button>
+                <button class="btn btn-sm btn-secondary cancel-remove-btn">Отмена</button>
+            </div>`);
 
-            // Подтверждение
-            $participantItem.on('click', '.confirm-remove-btn', function () {
+            $confirmDiv.on('click', '.confirm-remove-btn', function() {
                 $.ajax({
                     url: `/userChats/${chatId}/users/remove`,
                     type: 'DELETE',
@@ -219,16 +223,8 @@ export default class ChatInterface {
                 });
             });
 
-            // Отмена
-            $participantItem.on('click', '.cancel-remove-btn', function () {
-                $participantItem.find('.confirm-remove').replaceWith(`<span class="remove-participant">&times;</span>`);
-            });
+            $participantItem.replaceWith($confirmDiv);
         });
-
-        $('#addParticipantBtn').on('click', function () {
-
-        });
-
     }
 
 
@@ -251,7 +247,7 @@ export default class ChatInterface {
             const $item = $(`
         <div class="participant-item list-group-item" data-user-id="${user.id}">
             <div class="participant-info">
-                <img src="${user.profile_avatar}" class="participant-avatar" alt="avatar">
+                <img src="${user.profile_avatar}" loading="lazy" class="participant-avatar" alt="avatar">
                 <span class="participant-name">${user.name}</span>
                 <span class="participant-role">${user.status}</span>
             </div>
@@ -586,7 +582,7 @@ export default class ChatInterface {
 
         const avatar = message.sender_avatar ?? message.sender?.profile_avatar;
 
-        $message.find('img').attr('src', this.getAvatarUrl(avatar, message.sender_name));
+        $message.find('img').attr('loading', 'lazy').attr('src', this.getAvatarUrl(avatar, message.sender_name));
         $message.find('.message-author').text(message.sender_name);
         $message.find('.message-time').text(message.formatted_time);
         $message.find('.message-text').text(message.content);
@@ -769,14 +765,14 @@ export default class ChatInterface {
     // Initialize file attachment functionality
     initFileAttachment() {
         // Attach button click
-        this.attachInputButton.on('click', function() {
+        this.attachInputButton.on('click', function () {
             $('#fileInput').click();
         });
 
         // File input change
-        this.attachInput.on('change', (e)=> {
+        this.attachInput.on('change', (e) => {
             const files = Array.from(e.currentTarget.files);
-            console.log(files);
+
             this.addFiles(files);
             // Clear input to allow selecting same file again
             $(e.currentTarget).val('');
@@ -791,26 +787,6 @@ export default class ChatInterface {
             this.removeFile(fileIndex);
         });
 
-        // Drag and drop functionality
-        const messageInputContainer = $('.message-input-container');
-
-        messageInputContainer.on('dragover', function(e) {
-            e.preventDefault();
-            $(this).addClass('drag-over');
-        });
-
-        messageInputContainer.on('dragleave', function(e) {
-            e.preventDefault();
-            $(this).removeClass('drag-over');
-        });
-
-        messageInputContainer.on('drop', (e)=>  {
-            e.preventDefault();
-            $(e.currentTarget).removeClass('drag-over');
-
-            const files = Array.from(e.originalEvent.dataTransfer.files);
-            this.addFiles(files);
-        });
     }
 
 // Add files to selection

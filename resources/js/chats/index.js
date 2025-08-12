@@ -75,13 +75,6 @@ $(document).ready(function() {
 
         // Window resize handler
         $(window).on('resize', handleResize);
-
-        // Prevent body scroll when mobile menu is open
-        $(document).on('touchmove', function(e) {
-            if ($('#sidebar').hasClass('active')) {
-                e.preventDefault();
-            }
-        });
     }
 
     // Load chats from API
@@ -567,30 +560,30 @@ let swipeThreshold = 50;
 let swipeContainer = null;
 
 // Initialize swipe functionality
-function initSwipeFunctionality() {
-    if ($(window).width() <= 768) {
-        setupMobileLayout();
-    }
-
-    // Touch events for swipe
-    $(document).on('touchstart', handleTouchStart);
-    $(document).on('touchmove', handleTouchMove);
-    $(document).on('touchend', handleTouchEnd);
-
-    // Close contacts panel
-    $('#closeContacts').on('click', function() {
-        closeContactsPanel();
-    });
-
-    // Window resize handler
-    $(window).on('resize', function() {
-        if ($(window).width() <= 768) {
-            setupMobileLayout();
-        } else {
-            restoreDesktopLayout();
-        }
-    });
-}
+// function initSwipeFunctionality() {
+//     if ($(window).width() <= 768) {
+//         setupMobileLayout();
+//     }
+//
+//     // Touch events for swipe
+//     $(document).on('touchstart', handleTouchStart);
+//     $(document).on('touchmove', handleTouchMove);
+//     $(document).on('touchend', handleTouchEnd);
+//
+//     // Close contacts panel
+//     $('#closeContacts').on('click', function() {
+//         closeContactsPanel();
+//     });
+//
+//     // Window resize handler
+//     $(window).on('resize', function() {
+//         if ($(window).width() <= 768) {
+//             setupMobileLayout();
+//         } else {
+//             restoreDesktopLayout();
+//         }
+//     });
+// }
 
 // Setup mobile layout
 function setupMobileLayout() {
@@ -815,7 +808,7 @@ function startChatWithContact(contactId, contactName) {
 // Initialize all new functionality
 $(document).ready(function() {
     initModalFunctionality();
-    initSwipeFunctionality();
+   // initSwipeFunctionality();
 });
 
 
