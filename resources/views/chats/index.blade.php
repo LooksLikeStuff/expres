@@ -3,13 +3,9 @@
 @vite(['resources/js/chats/index.js', 'resources/sass/chats/index.scss'])
 
 @section('stylesheets')
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 @endsection
 
-@section('scripts')
-    @vite(['resources/js/app.js'])
-@endsection
 
 @section('content')
     <input type="hidden" id="user_id" value="{{$user->id}}">

@@ -65,7 +65,6 @@ export default class ChatClient {
 
     async registerFirebaseToken(fcmToken) {
         try {
-            console.log('Регистрация FCM токена:', fcmToken);
             const response = await fetch('/fcm/register', {
                 method: 'POST',
                 headers: {

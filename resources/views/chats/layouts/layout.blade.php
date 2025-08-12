@@ -11,20 +11,11 @@
     <link rel="stylesheet" href="{{ asset('/css/introjs.min.css') }}">
 
 
-    <script src="{{ asset('/js/wow.js') }}"></script>
-    <!-- Подключаем стили Intro.js -->
-
-
-    <script src="{{ asset('/js/intro.min.js') }}"></script>
-
+    @vite(['resources/js/app.js'])
 
     <!-- CSS стили (загружаем сначала) -->
     <link rel="stylesheet" href="{{ asset('/css/p/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/5.15.4/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/bootstrap-select.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/css/p/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/css/p/jquery.dataTables.min.css') }}">
 
     @yield('stylesheets')
 
