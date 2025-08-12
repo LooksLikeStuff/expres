@@ -49,9 +49,6 @@ class SendMessagePushNotificationJob implements ShouldQueue
                             'body' => $this->message->content,
                             'image' => asset('img/chats/notification.png'),
                         ],
-                        'fcm_options' => [
-                            'link' => route('chats.index'),
-                        ],
                         'data' => [
                             'chat_id' => (string)$chat->id,
                             'unread_count' => (string)$chat->unreadCountForUser($user->id),
