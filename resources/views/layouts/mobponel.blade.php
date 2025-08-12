@@ -5,13 +5,13 @@
                 <img src="/storage/icon/brif.svg" alt=""><span>Брифы</span>
             </button>
         </li>
-      
+
         @if (Auth::check() && (Auth::user()->status == 'coordinator' ||
                 Auth::user()->status == 'admin' ||
                 Auth::user()->status == 'partner' ||
                 Auth::user()->status == 'support' ||
                 Auth::user()->status == 'architect' ||
-                Auth::user()->status == 'designer' || 
+                Auth::user()->status == 'designer' ||
                 Auth::user()->status == 'visualizer'))
         <li>
             <button onclick="location.href='{{ route('deal.cardinator') }}'" title="Просмотр и управление вашими сделками">
@@ -25,7 +25,7 @@
             </button>
         </li>
         @endif
-        
+
         @if (Auth::check() && (Auth::user()->status == 'partner' || Auth::user()->status == 'admin' || Auth::user()->status == 'coordinator'))
         <li>
             <button onclick="window.location.href='{{ route('ratings.specialists') }}'" title="Просмотр рейтингов специалистов">
@@ -34,13 +34,19 @@
             </button>
         </li>
         @endif
-        
+
         @if (Auth::check())
         <li>
             <button onclick="location.href='{{ url('/profile') }}'" id="step-mobile-6" title="Просмотр и редактирование вашего профиля">
                 <img src="/storage/icon/F-User.svg" alt=""><span>Профиль</span>
             </button>
         </li>
+
+            <li>
+                <button onclick="location.href='{{ route('chats.index') }}'" title="Чаты">
+                    <img src="/storage/icon/chat.svg" alt=""> <span>Чаты </span>
+                </button>
+            </li>
         @endif
         @if (Auth::check() && Auth::user()->status == 'admin' )
         <!-- Админские ссылки для мобильного меню -->
@@ -64,7 +70,7 @@
 </div>
 
 @if(isset($deal) && $deal !== null)
-  
+
 @else
-   
+
 @endif
