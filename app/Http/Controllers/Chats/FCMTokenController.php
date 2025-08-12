@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chats\FCMTokenCreateRequest;
-use App\Models\UserFcmToken;
-use Illuminate\Http\Request;
+use App\Models\UserFCMToken;
 
 class FCMTokenController extends Controller
 {
