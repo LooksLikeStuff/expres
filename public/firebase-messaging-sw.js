@@ -11,18 +11,38 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            for (const client of windowClients) {
+                // Если окно с нужным URL уже открыто, переключаемся на него
+                if (client.url === event.notification.click_action && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Иначе открываем новое окно с нужным URL
+            if (clients.openWindow) {
+                return clients.openWindow(event.notification.click_action);
+            }
+        })
+    );
+});
+
 messaging.onBackgroundMessage(function(payload) {
     console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
 
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/img/chats/notification.png',
-        data: {
-            url: '/chats',
-        }
-    };
-
-    // 💡 ВАЖНО: Используем waitUntil, чтобы воркер дождался показа уведомления
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    // const notificationTitle = payload.notification.title;
+    // const notificationOptions = {
+    //     body: payload.notification.body,
+    //     icon: '/img/chats/notification.png',
+    //     data: {
+    //         url: '/chats',
+    //     }
+    // };
+    //
+    // // 💡 ВАЖНО: Используем waitUntil, чтобы воркер дождался показа уведомления
+    // self.registration.showNotification(notificationTitle, notificationOptions);
 });
