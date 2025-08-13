@@ -24,6 +24,15 @@ return [
     |
     */
     'disks' => [
+        'yandex' => [
+            'driver' => 's3',
+            'key' => env('YANDEX_CLOUD_ACCESS_KEY_ID'),
+            'secret' => env('YANDEX_CLOUD_SECRET_ACCESS_KEY'),
+            'endpoint' => env('YANDEX_CLOUD_ENDPOINT', 'https://storage.yandexcloud.net'),
+            'region' => env('YANDEX_CLOUD_REGION', 'ru-central1'),
+            'bucket' => env('YANDEX_CLOUD_BUCKET'),
+            'use_path_style_endpoint' => true, // важно для Яндекса
+        ],
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),

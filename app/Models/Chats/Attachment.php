@@ -19,10 +19,18 @@ class Attachment extends Model
     ];
 
     protected $appends = ['full_path'];
+    protected $appends = ['created_day', 'full_path', 'download_url'];
 
     public function getFullPathAttribute(): string
     {
-        return Storage::disk('public')->url($this->path);
+        $expiresAt = Carbon::now()->addMinutes(60); // ссылка будет валидна 60 минут
+
+        return Storage::disk('yandex')->temporaryUrl($this->path, $expiresAt);
+    }
+
+    public function getDownloadUrlAttribute()
+    {
+        return $this->full_path;
     }
 
     public function message()

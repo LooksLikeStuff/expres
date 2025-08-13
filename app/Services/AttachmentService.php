@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\Chats\Message;
+use Illuminate\Support\Facades\Storage;
 
 class AttachmentService
 {
     public function saveMessageAttachments(Message $message, array $attachments)
     {
         foreach ($attachments as $attachment) {
-            $path = $attachment->store('attachments', 'public');
+           $path = Storage::disk('yandex')->putFile('chat-attachments', $attachment);
 
             $message->attachments()->create([
                 'path' => $path,
