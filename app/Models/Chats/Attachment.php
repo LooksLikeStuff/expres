@@ -4,6 +4,7 @@ namespace App\Models\Chats;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class Attachment extends Model
@@ -18,8 +19,12 @@ class Attachment extends Model
         'filesize',
     ];
 
-    protected $appends = ['full_path'];
     protected $appends = ['created_day', 'full_path', 'download_url'];
+
+    public function getCreatedDayAttribute()
+    {
+        return $this->created_at->format('Y-m-d'); // только день
+    }
 
     public function getFullPathAttribute(): string
     {

@@ -85,7 +85,7 @@ class ChatController extends Controller
 
     public function show(Chat $chat)
     {
-        $chat = $chat->load('users');
+        $chat = $chat->load(['users', 'attachments']);
 
         return response()->json([
             'id' => $chat->id,
@@ -93,6 +93,7 @@ class ChatController extends Controller
             'type' => $chat->type->value,
             'title' => $chat->getTitleForUser(auth()->id()),
             'avatar' => $chat->getAvatar(),
+            'attachments' => $chat->attachments,
         ]);
     }
     public function getContacts()

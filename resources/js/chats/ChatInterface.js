@@ -4,7 +4,7 @@ export default class ChatInterface {
     constructor(chatClient) {
         this.chatClient = chatClient;
 
-        this.chatList =  $('#chatList');
+        this.chatList = $('#chatList');
         this.newChatModalElem = $('#newChatModal');
 
         this.showSidebarButton = $('.mobile-menu-btn');
@@ -47,6 +47,8 @@ export default class ChatInterface {
 
     bindEvents() {
         this.initFileAttachment();
+        this.initDownloadHandler();
+        this.initAttachmentsActions();
 
         this.createChatBtn.click(() => this.dispatchCreateChat());
 
@@ -97,6 +99,48 @@ export default class ChatInterface {
                 const userId = event.target.getAttribute('data-user-id');
 
                 await this.chatClient.removeUserFromCurrentChat(userId);
+            }
+        });
+    }
+
+    initAttachmentsActions() {
+        $(document).on('click', '.download-file-btn', (e)=>  {
+            const $item = $(e.currentTarget);
+            const fileUrl = $item.data('download-url'); // ссылка на файл
+            const fileName = $item.data('file-name') || 'file'; // имя для сохранения
+
+            // уведомление
+            this.showNotification(`Скачивание файла "${fileName}"`, 'success');
+
+            // создаём временный <a> элемент
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.setAttribute('target', '_blank');
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Анимация появления элементов при загрузке
+        $('#chatInfoModal').on('shown.bs.modal', function () {
+            setTimeout(() => {
+                $('.member-item, .setting-item, .attachment-item').each(function (index) {
+                    $(this).css({
+                        'opacity': '0',
+                        'transform': 'translateY(20px)'
+                    }).animate({
+                        'opacity': '1',
+                        'transform': 'translateY(0)'
+                    }, 300 + (index * 50));
+                });
+            }, 100);
+        });
+
+        // Обработчик Enter в поле названия чата
+        $('#chatNameInput').on('keypress', function (e) {
+            if (e.which === 13) {
+                $('#editChatNameBtn').click();
             }
         });
     }
@@ -184,7 +228,7 @@ export default class ChatInterface {
             });
 
 
-        $('body').on('click', '.remove-participant', (e)=>  {
+        $('body').on('click', '.remove-participant', (e) => {
             const $participantItem = $(e.currentTarget).closest('.participant-item');
             const userId = $participantItem.data('user-id');
             const chatId = this.chatClient.currentChatId;
@@ -194,7 +238,7 @@ export default class ChatInterface {
                 <button class="btn btn-sm btn-secondary cancel-remove-btn">Отмена</button>
             </div>`);
 
-            $confirmDiv.on('click', '.confirm-remove-btn', function() {
+            $confirmDiv.on('click', '.confirm-remove-btn', function () {
                 $.ajax({
                     url: `/userChats/${chatId}/users/remove`,
                     type: 'DELETE',
@@ -220,11 +264,14 @@ export default class ChatInterface {
     }
 
 
-    setChatInfoModal(chat) {
-        $('#chatInfoModalLabel').text(chat.title);
+    setChatInfoModal(chat, chatName, avatarSrc) {
+        // Обновляем заголовок модального окна
+        $('#chatInfoModalLabel').text(chatName);
+        $('#chatMembersCount').text(`${chat.users.length} участников`);
+        $('#chatInfoAvatar').attr('src', avatarSrc);
 
-        const $list = $('#participantsList');
-        $list.empty();
+        // Обновляем счетчик участников
+        $('#memberCountBadge').text(chat.users.length);
 
         // Скрыть/показать кнопку добавления участников
         if (chat.type === 'private') {
@@ -233,24 +280,221 @@ export default class ChatInterface {
             $('.chat-add-user').removeClass('d-none');
         }
 
-        chat.users.forEach(user => {
-            const isPrivate = chat.type === 'private';
+        // Загружаем список участников
+        this.loadMembers(chat.users);
 
-            const $item = $(`
-        <div class="participant-item list-group-item" data-user-id="${user.id}">
-            <div class="participant-info">
-                <img src="${user.profile_avatar}" loading="lazy" class="participant-avatar" alt="avatar">
-                <span class="participant-name">${user.name}</span>
-                <span class="participant-role">${user.status}</span>
-            </div>
+        // Загружаем вложения
+        this.loadAttachments(chat.attachments);
+    }
 
-            ${!isPrivate ? '<span class="remove-participant">&times;</span>' : ''}
-        </div>
-    `);
+    loadMembers(members) {
+        const membersList = $('#membersList');
+        membersList.empty();
 
-            $list.append($item);
+        const onlineUserIds = this.chatClient.onlineUsers || new Set();
+
+        members.forEach(member => {
+            const isMemberOnline = onlineUserIds.has(member.id);
+            const statusIndicator = isMemberOnline ? 'online' : 'offline';
+            const statusText = isMemberOnline ? 'в сети' : `был(а) недавно`;
+
+            const memberHtml = `
+                <div class="member-item" data-member-id="${member.id}">
+                    <img src="${member.profile_avatar}" alt="${member.name}" class="member-avatar">
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-status">
+                            <span class="online-indicator ${statusIndicator}"></span>
+                            <span class="member-status-text">${statusText}</span>
+                        </div>
+                    </div>
+                    <div class="member-role ${member.status}">${member.status}</div>
+                    <div class="member-actions">
+                        ${member.status !== 'admin' ? `
+                            <button class="btn btn-sm btn-outline-danger kick-member-btn" data-member-id="${member.id}" data-member-name="${member.name}">
+                                <i class="fas fa-user-times"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            membersList.append(memberHtml);
         });
     }
+
+    loadAttachments(attachments) {
+        this.updateAttachmentsStats(attachments);
+        this.renderAttachments(attachments);
+    }
+
+    // Функция обновления статистики вложений
+    updateAttachmentsStats(attachments) {
+        const totalFiles = attachments.length;
+
+        // считаем размер в мегабайтах
+        const totalSizeMB = attachments.reduce((sum, file) => {
+            const sizeInBytes = Number(file.filesize); // преобразуем в число на всякий случай
+            const sizeInMB = sizeInBytes / (1024 * 1024); // переводим байты в MB
+            return sum + sizeInMB;
+        }, 0);
+
+        $('#totalAttachments').text(totalFiles);
+        $('#totalSize').text(`${totalSizeMB.toFixed(1)} MB`);
+    }
+
+    // Функция отображения вложений
+    renderAttachments(attachments) {
+        const timeline = $('#attachmentsTimeline');
+        timeline.empty();
+
+        if (attachments.length === 0) {
+            $('#emptyAttachments').removeClass('d-none');
+            $('.attachments-tab-body').addClass('d-none');
+            return;
+        }
+
+        $('#emptyAttachments').addClass('d-none');
+        $('.attachments-tab-body').removeClass('d-none');
+
+        // Группируем файлы по датам
+        const groupedByDate = {};
+        attachments.forEach(file => {
+            const date = file.created_day;
+            if (!groupedByDate[date]) {
+                groupedByDate[date] = [];
+            }
+            groupedByDate[date].push(file);
+        });
+
+        // Сортируем даты в убывающем порядке
+        const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+
+        sortedDates.forEach(date => {
+            const files = groupedByDate[date];
+            const formattedDate = this.formatDate(date);
+
+            const dateGroupHtml = `
+                <div class="date-group">
+                    <div class="date-header">${formattedDate}</div>
+                    <div class="files-list">
+                        ${files.map(file => this.createFileItem(file)).join('')}
+                    </div>
+                </div>
+            `;
+
+            timeline.append(dateGroupHtml);
+        });
+    }
+
+    createFileItem(file) {
+        const fileIconClass = this.getFileTypeClassByMime(file.mime_type);
+        const fileTypeElem = $(`<div class="file-icon ${fileIconClass}"><i></i></div>`);
+        this.getFileTypeClass(fileTypeElem, file.original_name);
+
+        const formattedFilesize = this.formatFileSize(file.filesize);
+        const formattedDate = this.formatDate(file.created_at);
+
+        return `<div class="attachment-item" data-file-id="${file.id}">
+               ${fileTypeElem.prop('outerHTML')}
+                <div class="file-info">
+                    <div class="file-name">${file.original_name}</div>
+                    <div class="file-meta">${formattedFilesize} • ${formattedDate}</div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-sm btn-outline-success download-file-btn" data-download-url="${file.download_url}" data-file-name="${file.original_name}">
+                        <i class="fas fa-download"></i>
+                    </button>
+
+                </div>
+            </div>
+        `;
+    }
+
+    getFileTypeClassByMime(mimeType) {
+        if (!mimeType) return 'document';
+
+        if (mimeType.startsWith('image/')) return 'image';
+        if (mimeType.startsWith('video/')) return 'video';
+        if (mimeType.startsWith('audio/')) return 'audio';
+
+        // Для документов проверяем несколько известных MIME
+        const documentMimes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'text/plain'
+        ];
+
+        if (documentMimes.includes(mimeType)) return 'document';
+
+        // По умолчанию — документ
+        return 'document';
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (date.toDateString() === today.toDateString()) {
+            return 'Сегодня';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return 'Вчера';
+        } else {
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+    }
+
+    // Функция получения класса типа файла
+    getFileTypeClass(iconElem, filename) {
+        let extension = this.getFileExtension(filename);
+
+        const icon = iconElem.find('i');
+        this.setFileIcon(icon, extension);
+    }
+
+
+    // setChatInfoModal(chat, chatName, avatarSrc) {
+    //     $('#chatInfoModalLabel').text(chat.title);
+    //
+    //     const $list = $('#participantsList');
+    //     $list.empty();
+    //
+    //     // Скрыть/показать кнопку добавления участников
+    //     if (chat.type === 'private') {
+    //         $('.chat-add-user').addClass('d-none');
+    //     } else {
+    //         $('.chat-add-user').removeClass('d-none');
+    //     }
+    //
+    //     chat.users.forEach(user => {
+    //         const isPrivate = chat.type === 'private';
+    //
+    //         const $item = $(`
+    //     <div class="participant-item list-group-item" data-user-id="${user.id}">
+    //         <div class="participant-info">
+    //             <img src="${user.profile_avatar}" loading="lazy" class="participant-avatar" alt="avatar">
+    //             <span class="participant-name">${user.name}</span>
+    //             <span class="participant-role">${user.status}</span>
+    //         </div>
+    //
+    //         ${!isPrivate ? '<span class="remove-participant">&times;</span>' : ''}
+    //     </div>
+    // `);
+    //
+    //         $list.append($item);
+    //     });
+    // }
 
     async dispatchCreateChat() {
         this.newChatModalElem.hide();
@@ -317,6 +561,7 @@ export default class ChatInterface {
 
         return $item;
     }
+
     loadMoreMessages(chatId) {
         if (this.isLoadingMessages || !this.hasMoreMessages) return;
 
@@ -336,7 +581,7 @@ export default class ChatInterface {
                 const scrollPositionBefore = this.messagesList[0].scrollHeight;
                 const scrollTarget = this.messagesList[0].scrollTop;
 
-                this.renderMessages(messages, { prepend: true });
+                this.renderMessages(messages, {prepend: true});
                 this.chatClient.observeReadReceipts(this.messagesList);
 
                 const scrollPositionAfter = this.messagesList[0].scrollHeight;
@@ -357,6 +602,7 @@ export default class ChatInterface {
         $('.sidebar').addClass('active');
         $('.mobile__ponel').removeClass('d-none');
     }
+
     async activateChat(chatId) {
         $('.sidebar').removeClass('active');
         $('.mobile__ponel').addClass('d-none');
@@ -412,13 +658,6 @@ export default class ChatInterface {
     }
 
     async loadChatInfo(chatId) {
-        $.ajax({
-            url: `/chats/${chatId}`,
-            method: 'post',
-            success: (data) => {
-                this.setChatInfoModal(data);
-            },
-        });
         // Find chat in current list
         const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
         const chatName = chatItem.find('.chat-item-name').text();
@@ -426,6 +665,14 @@ export default class ChatInterface {
 
         $('#chatName').text(chatName);
         $('#chatAvatar').attr('src', avatarSrc);
+
+        $.ajax({
+            url: `/chats/${chatId}`,
+            method: 'post',
+            success: (data) => {
+                this.setChatInfoModal(data, chatName, avatarSrc);
+            },
+        });
     }
 
     loadMessages(chatId) {
@@ -436,12 +683,12 @@ export default class ChatInterface {
         $.ajax({
             url: `/chats/${chatId}/messages`,
             method: 'POST',
-            success: (data)=> {
+            success: (data) => {
                 this.renderMessages(data.messages.data.reverse());
                 this.scrollToBottom();
                 this.chatClient.observeReadReceipts(this.messagesList);
             },
-            error: function() {
+            error: function () {
                 console.error('Failed to load messages');
             }
         });
@@ -542,6 +789,7 @@ export default class ChatInterface {
         //     this.messageContainer.appendChild(messageDiv);
         // }
     }
+
     createMessageElement(message) {
         const template = $('#messageTemplate').html();
         const $message = $(template);
@@ -560,7 +808,7 @@ export default class ChatInterface {
                 isMessageRead = readReceipts.some(r => r.user_id != currentUserId && r.read_at);
             } else {
                 // Ищем read_receipt от самого себя
-                const selfReceipt =readReceipts.find(r => r.user_id == currentUserId);
+                const selfReceipt = readReceipts.find(r => r.user_id == currentUserId);
                 isMessageRead = Boolean(selfReceipt?.read_at);
             }
         }
@@ -782,7 +1030,7 @@ export default class ChatInterface {
     }
 
 // Add files to selection
-     addFiles(files) {
+    addFiles(files) {
         files.forEach(file => {
             if (this.selectedFiles.length >= this.MAX_FILES) {
                 this.showNotification('Максимальное количество файлов: ' + this.MAX_FILES, 'warning');
@@ -814,7 +1062,7 @@ export default class ChatInterface {
     }
 
     // Clear all files
-   clearAllFiles() {
+    clearAllFiles() {
         this.selectedFiles = [];
         this.updateFilePreview();
     }
@@ -851,7 +1099,7 @@ export default class ChatInterface {
         if (isImage) {
             // Create image preview
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 $item.find('img').attr('src', e.target.result);
             };
             reader.readAsDataURL(file);
@@ -932,27 +1180,7 @@ export default class ChatInterface {
         const iconClass = iconMap[extension] || 'bi-file-earmark';
         iconElement.removeClass().addClass('bi ' + iconClass);
     }
-    showNotification(message, type = 'info') {
-        const notification = $(`
-            <div class="notification ${type}">
-                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `);
 
-        $('body').append(notification);
-
-        setTimeout(() => {
-            notification.addClass('show');
-        }, 100);
-
-        setTimeout(() => {
-            notification.removeClass('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
-    }
 
     createImagesContainer(images) {
         const container = $('<div class="message-images"></div>');
@@ -997,6 +1225,7 @@ export default class ChatInterface {
 
         return container;
     }
+
 // Create message file element
     createMessageFileElement(file) {
         const template = $('#messageFileTemplate').html();
@@ -1016,4 +1245,58 @@ export default class ChatInterface {
     }
 
 
+    initDownloadHandler() {
+        this.messagesList.on('click', '.download-btn', (event) => {
+            const $btn = $(event.currentTarget);
+            const url = $btn.data('download-url');
+
+            if (!url) {
+                console.warn('Ссылка для скачивания не найдена в data-download-url');
+                return;
+            }
+
+            this.downloadFile(url);
+        });
+    }
+
+    downloadFile(url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    showNotification(message, type = 'info') {
+        // Создаем элемент уведомления
+        const alertClass = {
+            'success': 'alert-success',
+            'danger': 'alert-danger',
+            'warning': 'alert-warning',
+            'info': 'alert-info'
+        }[type] || 'alert-info';
+
+        const notification = $(`
+            <div class="alert ${alertClass} alert-dismissible fade show notification-toast" role="alert" style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `);
+
+        // Добавляем в body
+        $('body').append(notification);
+
+        // Автоматически удаляем через 5 секунд
+        setTimeout(() => {
+            notification.alert('close');
+        }, 5000);
+    }
 }

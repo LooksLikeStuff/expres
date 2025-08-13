@@ -22,11 +22,17 @@ class Chat extends Model
         'type' => ChatType::class,
     ];
 
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_chats');
     }
 
+
+    public function attachments()
+    {
+        return $this->hasManyThrough(Attachment::class, Message::class);
+    }
 
     public function getTitleForUser(int $userId)
     {

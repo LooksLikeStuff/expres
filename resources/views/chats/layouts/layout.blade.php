@@ -12,6 +12,12 @@
 
 
     @vite(['resources/js/app.js'])
+    <script src="{{ asset('/js/wow.js') }}"></script>
+    <!-- Подключаем стили Intro.js -->
+
+
+    <script src="{{ asset('/js/intro.min.js') }}"></script>
+
 
     <!-- CSS стили (загружаем сначала) -->
     <link rel="stylesheet" href="{{ asset('/css/p/bootstrap.min.css') }}">
@@ -21,19 +27,9 @@
 
     <!-- JavaScript (основные библиотеки) -->
     <script src="{{ asset('/js/p/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('/js/p/popper.min.js') }}"></script>
-    <script src="{{ asset('/js/p/bootstrap.min.js') }}"></script>
-
-    <!-- JavaScript (дополнительные плагины) -->
-    <script src="{{ asset('/js/p/bootstrap-select.min.js') }}"></script>
-    <script src="{{ asset('/js/p/defaults-ru_RU.min.js') }}"></script>
-    <script src="{{ asset('/js/p/axios.min.js') }}"></script>
-    <script src="{{ asset('/js/p/jquery.dataTables.min.js') }}"></script>
 
     <!-- Исправленный путь к Select2 -->
     <script src="{{ asset('/js/p/select2.min.js') }}"></script>
-
-    <script src="{{ asset('/js/p/jquery.simplePagination.min.js') }}"></script>
 
 {{--    pusher--}}
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
@@ -86,6 +82,33 @@
 </head>
 
 <body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButton = document.getElementById('toggle-panel');
+        const panel = document.querySelector('.main__ponel');
+
+        // Проверяем наличие элементов перед работой с ними
+        if (toggleButton && panel) {
+            // Проверяем сохраненное состояние панели в localStorage
+            const isCollapsed = localStorage.getItem('panelCollapsed') === 'true';
+            if (isCollapsed) {
+                panel.classList.add('collapsed');
+            }
+
+            // Обработчик клика по кнопке переключения
+            toggleButton.addEventListener('click', () => {
+                panel.classList.toggle('collapsed');
+                // Сохраняем текущее состояние панели в localStorage
+                const collapsed = panel.classList.contains('collapsed');
+                localStorage.setItem('panelCollapsed', collapsed);
+            });
+        } else {
+            console.error('Toggle panel elements not found: toggleButton =', !!toggleButton, 'panel =', !!
+                panel);
+        }
+    });
+</script>
 
 <main>
     @yield('content')

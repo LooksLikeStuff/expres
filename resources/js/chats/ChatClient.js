@@ -87,7 +87,7 @@ export default class ChatClient {
     initEcho() {
         this.echo = new Echo({
             broadcaster: 'pusher',
-            key: '371b92c8af1e4bce7e5f',
+            key: 'd4def58edd2723c9fff1',
             cluster: 'ap1',
             forceTLS: true,
             authEndpoint: '/broadcasting/auth',
