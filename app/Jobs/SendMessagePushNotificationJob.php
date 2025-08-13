@@ -52,8 +52,8 @@ class SendMessagePushNotificationJob implements ShouldQueue
                         'data' => [
                             'chat_id' => (string)$chat->id,
                             'unread_count' => (string)$chat->unreadCountForUser($user->id),
-                            'time' => $chat->lastMessage?->formatted_time,
-                            'message_id' => (string)$this->message->id,
+                            'formatted_time' => (string)$this->message->formatted_time,
+                            'body' => $this->message->content,
                         ],
                         'android' => [
                             'priority' => 'high',

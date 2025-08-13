@@ -49,6 +49,7 @@ export default class ChatInterface {
         this.initFileAttachment();
         this.initDownloadHandler();
         this.initAttachmentsActions();
+        this.initPageFocusHandler();
 
         this.createChatBtn.click(() => this.dispatchCreateChat());
 
@@ -263,6 +264,49 @@ export default class ChatInterface {
         });
     }
 
+    initPageFocusHandler() {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('Вкладка снова активна — обновляем чат');
+                this.refreshChatsState();
+                this.refreshChatData();
+            }
+        });
+    }
+
+    async refreshChatsState() {
+        $.ajax({
+            url: '/chats',
+            method: 'get',
+            success: (data) => this.updateChats(data.chats),
+        })
+    }
+
+    updateChats(chats) {
+        Array.from(chats).forEach((chat) => {
+            const data = {
+                chat_id: chat.id,
+                unread_count: chat.unread_count,
+                body: chat.last_message?.content,
+                formatted_time: chat.last_message?.formatted_time
+            };
+
+            this.updateChatInfo(data)
+        });
+    }
+    async refreshChatData() {
+        try {
+            if (this.chatClient.currentChatId) {
+                await this.activateChat(this.chatClient.currentChatId);
+            }
+
+            // 4. Уведомление
+           // this.showNotification('Чат обновлен', 'success');
+        } catch (error) {
+            console.error('Ошибка при обновлении чата:', error);
+          //  this.showNotification('Ошибка при обновлении чата', 'error');
+        }
+    }
 
     setChatInfoModal(chat, chatName, avatarSrc) {
         // Обновляем заголовок модального окна
@@ -989,12 +1033,17 @@ export default class ChatInterface {
     }
 
 
-    updateChatInfo(data) {
-        const $chatItem = $(`.chat-item[data-chat-id="${data.chat_id}"]`)
+    updateChatInfo(chat) {
+        const $chatItem = $(`.chat-item[data-chat-id="${chat.chat_id}"]`)
+        console.log(chat);
+        $chatItem.find('.chat-item-message').text(chat.body);
+        $chatItem.find('.chat-item-time').text(chat.formatted_time);
 
-        $chatItem.find('.chat-item-message').text(data.body);
-        $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${data.unread_count}</span>`);
-        $chatItem.find('.chat-item-time').text(data.time);
+        if (chat.unread_count > 0) {
+            $chatItem.find('.chat-item-badges').html(`<span class="unread-count">${chat.unread_count}</span>`);
+        } else {
+            $chatItem.find('.chat-item-badges').html();
+        }
 
         // Перемещаем в начало списка
         const $chatList = $chatItem.parent();

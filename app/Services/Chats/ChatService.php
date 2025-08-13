@@ -52,6 +52,8 @@ class ChatService
             ->whereHas('users', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
+            ->leftJoin('messages as lm', 'lm.id', '=', \DB::raw('(SELECT id FROM messages WHERE messages.chat_id = chats.id ORDER BY created_at DESC LIMIT 1)'))
+            ->orderByRaw('COALESCE(lm.created_at, chats.created_at) ASC')
             ->get();
 
         return $chats;

@@ -57,6 +57,7 @@ export default class ChatClient {
 
 
         onMessage(messaging, (payload) => {
+            console.log(payload);
             this.onFirebaseMessage(payload);
         });
 
