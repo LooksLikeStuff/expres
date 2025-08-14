@@ -56,6 +56,10 @@ export default class ChatInterface {
         this.searchMessages = [];
         this.currentSearchIndex = -1;
 
+        this.loadedPages = new Set();
+        this.loadedMessageIds = new Set();
+        this.maxPages = null;
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -86,10 +90,23 @@ export default class ChatInterface {
         });
 
         this.messagesContainer.on('scroll', () => {
-            if (this.messagesContainer.scrollTop() <= 100) {
+            const scrollTop = this.messagesContainer.scrollTop();
+            const scrollBottom = this.messagesContainer[0].scrollHeight - this.messagesContainer.scrollTop() - this.messagesContainer.outerHeight();
+
+            // старые сообщения (скролл вверх)
+            if (scrollTop <= 100) {
                 this.loadMoreMessages(this.chatClient.currentChatId);
             }
+
+            // новые сообщения (скролл вниз)
+            if (scrollBottom <= 100) {
+                this.loadMoreMessages(this.chatClient.currentChatId);
+            }
+
+            // проверяем, есть ли недостающие сообщения поиска
+            this.checkForMissingMessages();
         });
+
 
         $('#sendBtn').click(async () => {
             const content = this.getMessageContent();
@@ -139,10 +156,12 @@ export default class ChatInterface {
         $('#searchClose').click(() => this.hideSearchElems());
 
         $('#searchInput').on('input', debounce(async (e) => {
-            const item = $(e.currentTarget);
-            const value = item.val().trim();
+            const value = $(e.currentTarget).val().trim();
+            this.currentSearchQuery = value;
+            this.isSearchingMessages = !!value;
 
             if (!value) {
+                this.isSearchingMessages = false;
                 return;
             }
 
@@ -174,21 +193,17 @@ export default class ChatInterface {
         const messageId = this.searchMessages[index].id;
         const $messageElem = $(`.message[data-message-id="${messageId}"]`);
 
-        // Сначала убираем подсветку со всех сообщений
         $('.message').removeClass('highlight-search highlight-search-anim');
 
         if ($messageElem.length) {
             $messageElem[0].scrollIntoView({ block: 'center' });
-
-            // Добавляем оба класса: highlight-search и анимацию
             $messageElem.addClass('highlight-search highlight-search-anim');
-
-            // Через 1.5 секунды убираем только анимацию, подсветка остаётся
-            setTimeout(() => {
-                $messageElem.removeClass('highlight-search-anim');
-            }, 1500);
+            setTimeout(() => $messageElem.removeClass('highlight-search-anim'), 1500);
         } else {
-            this.loadMessagePage(messageId);
+            // если сообщения нет в DOM, подгружаем страницу
+            this.loadPageForMessage(messageId, () => {
+                this.scrollToSearchResult(index);
+            });
         }
     }
 
@@ -208,7 +223,7 @@ export default class ChatInterface {
 
 
     initAttachmentsActions() {
-        $(document).on('click', '.download-file-btn', (e)=>  {
+        $(document).on('click', '.download-file-btn', (e) => {
             const $item = $(e.currentTarget);
             const fileUrl = $item.data('download-url'); // ссылка на файл
             const fileName = $item.data('file-name') || 'file'; // имя для сохранения
@@ -397,6 +412,7 @@ export default class ChatInterface {
             this.updateChatInfo(data)
         });
     }
+
     async refreshChatData() {
         try {
             if (this.chatClient.currentChatId) {
@@ -404,10 +420,10 @@ export default class ChatInterface {
             }
 
             // 4. Уведомление
-           // this.showNotification('Чат обновлен', 'success');
+            // this.showNotification('Чат обновлен', 'success');
         } catch (error) {
             console.error('Ошибка при обновлении чата:', error);
-          //  this.showNotification('Ошибка при обновлении чата', 'error');
+            //  this.showNotification('Ошибка при обновлении чата', 'error');
         }
     }
 
@@ -739,6 +755,12 @@ export default class ChatInterface {
     loadMoreMessages(chatId) {
         if (this.isLoadingMessages || !this.hasMoreMessages) return;
 
+        // проверяем maxPages
+        if (this.maxPages && (this.currentPage >= this.maxPages)) {
+            this.hasMoreMessages = false;
+            return;
+        }
+
         this.isLoadingMessages = true;
 
         $.ajax({
@@ -751,6 +773,9 @@ export default class ChatInterface {
                     this.hasMoreMessages = false;
                     return;
                 }
+
+                // сохраняем максимум страниц
+                this.maxPages = data.messages.last_page;
 
                 const scrollPositionBefore = this.messagesList[0].scrollHeight;
                 const scrollTarget = this.messagesList[0].scrollTop;
@@ -779,6 +804,8 @@ export default class ChatInterface {
 
     async activateChat(chatId) {
         this.hideSearchElems(); //Прячем поиск
+        this.loadedPages = new Set();
+        this.loadedMessageIds = new Set();
 
         $('.sidebar').removeClass('active');
         $('.mobile__ponel').addClass('d-none');
@@ -822,14 +849,6 @@ export default class ChatInterface {
         });
 
         this.updateOnlineStatus();
-
-// Удаляем предыдущий обработчик и добавляем новый
-//         this.messageInput.removeEventListener('_typing', this._typingListener);
-//         this._typingListener = () => {
-//             this.chatClient.sendTypingEvent();
-//         };
-//         this.messageInput.addEventListener('input', this._typingListener);
-//         this.messageInput.addEventListener('_typing', this._typingListener); // для возможного удаления
 
     }
 
@@ -1486,4 +1505,35 @@ export default class ChatInterface {
             this.scrollToSearchResult(this.currentSearchIndex);
         });
     }
+
+    async loadPageForMessage(messageId, callback) {
+        if (this.loadedMessageIds.has(messageId)) {
+            callback && callback(); // сообщение уже загружено
+            return;
+        }
+
+        this.chatClient.getPageOfMessages(messageId, (data) => {
+            const messages = data.messages.data.reverse();
+            this.renderMessages(data.messages.data, {prepend: true});
+            data.messages.data.forEach(msg => this.loadedMessageIds.add(msg.id));
+            this.loadedPages.add(data.page); // сервер должен вернуть номер страницы
+            callback && callback();
+        });
+    }
+
+    checkForMissingMessages() {
+        if (!this.isSearchingMessages || !this.searchMessages.length) return;
+
+        const firstMessageId = $('.message:first').data('message-id');
+        const lastMessageId = $('.message:last').data('message-id');
+
+        for (const msg of this.searchMessages) {
+            if (!this.loadedMessageIds.has(msg.id) &&
+                (msg.id < firstMessageId || msg.id > lastMessageId)) {
+                this.loadPageForMessage(msg.id);
+            }
+        }
+    }
+
+
 }

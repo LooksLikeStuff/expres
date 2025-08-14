@@ -103,9 +103,9 @@ class ChatController extends Controller
         ]);
     }
 
-    public function getMessages(int $chatId)
+    public function getMessages(int $chatId, Request $request)
     {
-        $messages = $this->messageService->getPaginatedMessagesByChatId(chatId: $chatId);
+        $messages = $this->messageService->getPaginatedMessagesByChatId(chatId: $chatId, page: $request->get('page') ?? 1);
         $users = $this->userService->getByChatId($chatId);
 
         return response()->json([
