@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Enums\UserStatus;
 use App\Models\Chats\Chat;
-use App\Models\UserFCMToken;
 use App\Models\Chats\Message;
+use DateTime;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Log;
 
 /**
  * @property int $id
@@ -31,10 +35,10 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int|null $active_projects_count
  * @property string|null $firebase_token
  * @property string|null $verification_code
- * @property \DateTime|null $verification_code_expires_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property DateTime|null $verification_code_expires_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  */
 class User extends Authenticatable
 {
@@ -115,19 +119,71 @@ class User extends Authenticatable
         });
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->status === UserStatus::ADMIN->value;
+    }
+
+    public function isCoordinator(): bool
+    {
+        return $this->status === UserStatus::COORDINATOR->value;
+    }
+
+    public function isPartner(): bool
+    {
+        return $this->status === UserStatus::PARTNER->value;
+    }
+
+    public function isArchitect(): bool
+    {
+        return $this->status === UserStatus::ARCHITECT->value;
+    }
+
+    public function isDesigner(): bool
+    {
+        return $this->status === UserStatus::DESIGNER->value;
+    }
+
+    public function isVisualizer(): bool
+    {
+        return $this->status === UserStatus::VISUALIZER->value;
+    }
+
+    public function isClient(): bool
+    {
+        return $this->status === UserStatus::CLIENT->value;
+    }
+
+    public function hasAnyRole(UserStatus ...$roles): bool
+    {
+        return in_array($this->status, array_map(fn($r) => $r->value, $roles), true);
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasAnyRole(
+            UserStatus::ADMIN,
+            UserStatus::COORDINATOR,
+            UserStatus::ARCHITECT,
+            UserStatus::DESIGNER,
+            UserStatus::VISUALIZER
+        );
+    }
+
     public function chats()
     {
         return $this->belongsToMany(Chat::class, 'user_chats')
             ->wherePivotNull('left_at');
     }
+
     /**
      * Отношение многие-ко-многим с моделью Deal.
      */
     public function deals()
     {
         return $this->belongsToMany(Deal::class, 'deal_user')
-                    ->withPivot('role')
-                    ->withTimestamps();
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**
@@ -172,8 +228,8 @@ class User extends Authenticatable
             }
 
             // Если ничего не найдено, возвращаем дефолтный аватар
-        } catch (\Exception $e) {
-            \Log::error('Ошибка при получении аватара: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Ошибка при получении аватара: ' . $e->getMessage());
         }
 
         // Проверяем, существует ли файл дефолтного аватара
@@ -202,27 +258,13 @@ class User extends Authenticatable
     }
 
 
-    /**
-     * Аксессор для получения URL аватара с дефолтным значением
-     *
-     * @return string
-     */
 
-    public function isCoordinator()
-    {
-        return $this->status === 'coordinator';
-    }
-
-    public function isClient()
-    {
-        return $this->status === 'user';
-    }
 
     public function coordinatorDeals()
     {
         return $this->belongsToMany(Deal::class, 'deal_user')
-                    ->withPivot('role')
-                    ->wherePivot('role', 'coordinator');
+            ->withPivot('role')
+            ->wherePivot('role', 'coordinator');
     }
 
     public function tokens()
@@ -266,7 +308,7 @@ class User extends Authenticatable
 
         return Message::where(function ($query) use ($receiverColumn) {
             $query->where('sender_id', $this->id)
-                  ->orWhere($receiverColumn, $this->id);
+                ->orWhere($receiverColumn, $this->id);
         })->orderBy('created_at', 'desc');
     }
 
@@ -284,8 +326,8 @@ class User extends Authenticatable
             return $this->receivedMessages()
                 ->whereNull('read_at')
                 ->count();
-        } catch (\Exception $e) {
-            \Log::error('Ошибка при подсчете непрочитанных сообщений: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Ошибка при подсчете непрочитанных сообщений: ' . $e->getMessage());
             return 0;
         }
     }
@@ -300,8 +342,8 @@ class User extends Authenticatable
     public function adminChatGroups()
     {
         return $this->belongsToMany(ChatGroup::class, 'chat_group_users')
-                    ->wherePivot('role', 'admin')
-                    ->withTimestamps();
+            ->wherePivot('role', 'admin')
+            ->withTimestamps();
     }
 
     /**
@@ -433,28 +475,28 @@ class User extends Authenticatable
 
     public function briefs()
     {
-        return $this->hasMany(\App\Models\Common::class, 'user_id');
+        return $this->hasMany(Common::class, 'user_id');
     }
 
 
     /**
      * Получить общие брифы пользователя
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function commons()
     {
-        return $this->hasMany(\App\Models\Common::class, 'user_id');
+        return $this->hasMany(Common::class, 'user_id');
     }
 
     /**
      * Получить коммерческие брифы пользователя
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function commercials()
     {
-        return $this->hasMany(\App\Models\Commercial::class, 'user_id');
+        return $this->hasMany(Commercial::class, 'user_id');
     }
 
     /**
@@ -466,6 +508,7 @@ class User extends Authenticatable
             ->withPivot('awarded_by', 'comment', 'awarded_at')
             ->withTimestamps();
     }
+
     public function fcmTokens()
     {
         return $this->hasMany(UserFCMToken::class);

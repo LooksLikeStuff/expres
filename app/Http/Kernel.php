@@ -56,8 +56,8 @@ class Kernel extends HttpKernel
         'check.chat.access' => \App\Http\Middleware\CheckChatAccess::class,
         'update.last.seen' => \App\Http\Middleware\UpdateUserLastSeen::class,
     ];
-    
-    
+
+
     protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'admin' => \App\Http\Middleware\Admin::class,
     ];
 }

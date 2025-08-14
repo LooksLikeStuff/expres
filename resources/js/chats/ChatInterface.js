@@ -2,6 +2,27 @@ import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 import debounce from 'lodash/debounce';
 
 export default class ChatInterface {
+    static UserRole = Object.freeze({
+        ADMIN: 'admin',
+        COORDINATOR: 'coordinator',
+        PARTNER: 'partner',
+        ARCHITECT: 'architect',
+        DESIGNER: 'designer',
+        VISUALIZER: 'visualizer',
+        CLIENT: 'user',
+    });
+
+    // Маппинг ролей на лейблы
+    static UserRoleLabel = {
+        [ChatInterface.UserRole.ADMIN]: 'Администратор',
+        [ChatInterface.UserRole.COORDINATOR]: 'Координатор',
+        [ChatInterface.UserRole.PARTNER]: 'Партнёр',
+        [ChatInterface.UserRole.ARCHITECT]: 'Архитектор',
+        [ChatInterface.UserRole.DESIGNER]: 'Дизайнер',
+        [ChatInterface.UserRole.VISUALIZER]: 'Визуализатор',
+        [ChatInterface.UserRole.CLIENT]: 'Клиент',
+    };
+
     constructor(chatClient) {
         this.chatClient = chatClient;
 
@@ -107,6 +128,7 @@ export default class ChatInterface {
                 await this.chatClient.removeUserFromCurrentChat(userId);
             }
         });
+
     }
 
     initSearchMessages() {
@@ -390,25 +412,19 @@ export default class ChatInterface {
     }
 
     setChatInfoModal(chat, chatName, avatarSrc) {
-        // Обновляем заголовок модального окна
         $('#chatInfoModalLabel').text(chatName);
         $('#chatMembersCount').text(`${chat.users.length} участников`);
         $('#chatInfoAvatar').attr('src', avatarSrc);
 
-        // Обновляем счетчик участников
         $('#memberCountBadge').text(chat.users.length);
 
-        // Скрыть/показать кнопку добавления участников
         if (chat.type === 'private') {
             $('.chat-add-user').addClass('d-none');
         } else {
             $('.chat-add-user').removeClass('d-none');
         }
 
-        // Загружаем список участников
         this.loadMembers(chat.users);
-
-        // Загружаем вложения
         this.loadAttachments(chat.attachments);
     }
 
@@ -417,32 +433,40 @@ export default class ChatInterface {
         membersList.empty();
 
         const onlineUserIds = this.chatClient.onlineUsers || new Set();
+        const currentUserStatus = this.chatClient.currentUserStatus; // статус текущего пользователя
 
         members.forEach(member => {
             const isMemberOnline = onlineUserIds.has(member.id);
             const statusIndicator = isMemberOnline ? 'online' : 'offline';
             const statusText = isMemberOnline ? 'в сети' : `был(а) недавно`;
+            // Используем маппинг для красивого вывода роли
+            const memberLabel = ChatInterface.UserRoleLabel[member.status] || member.status;
+
+            const showKickButton = currentUserStatus !== ChatInterface.UserRole.CLIENT &&
+                currentUserStatus !== ChatInterface.UserRole.VISUALIZER; // пример: кто может кикать
+
 
             const memberHtml = `
-                <div class="member-item" data-member-id="${member.id}">
-                    <img src="${member.profile_avatar}" alt="${member.name}" class="member-avatar">
-                    <div class="member-info">
-                        <div class="member-name">${member.name}</div>
-                        <div class="member-status">
-                            <span class="online-indicator ${statusIndicator}"></span>
-                            <span class="member-status-text">${statusText}</span>
-                        </div>
-                    </div>
-                    <div class="member-role ${member.status}">${member.status}</div>
-                    <div class="member-actions">
-                        ${member.status !== 'admin' ? `
-                            <button class="btn btn-sm btn-outline-danger kick-member-btn" data-member-id="${member.id}" data-member-name="${member.name}">
-                                <i class="fas fa-user-times"></i>
-                            </button>
-                        ` : ''}
+            <div class="member-item" data-member-id="${member.id}" data-role="${member.status}">
+                <img src="${member.profile_avatar}" alt="${member.name}" class="member-avatar">
+                <div class="member-info">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-status">
+                        <span class="online-indicator ${statusIndicator}"></span>
+                        <span class="member-status-text">${statusText}</span>
                     </div>
                 </div>
-            `;
+                <div class="member-role ${member.status}">${memberLabel}</div>
+                <div class="member-actions">
+                    ${showKickButton && member.status !== ChatInterface.UserRole.ADMIN ? `
+                        <button class="btn btn-sm btn-outline-danger kick-member-btn"
+                                data-member-id="${member.id}" data-member-name="${member.name}">
+                            <i class="fas fa-user-times"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
 
             membersList.append(memberHtml);
         });

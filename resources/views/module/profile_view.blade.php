@@ -2,7 +2,7 @@
     <div class="profile-header">
         <h1 class="profile-title">Профиль пользователя</h1>
         <p class="profile-subtitle">Информация о {{ $target->name }}</p>
-        
+
         @if(Auth::user()->status === 'admin')
         <div class="admin-controls">
             <button id="toggle-edit-mode" class="btn btn-primary">
@@ -10,6 +10,17 @@
             </button>
         </div>
         @endif
+
+        @if(auth()->user()->isAdmin())
+            <div class="my-3 py-3">
+                <a href="{{route('chats.show-user-chats', ['userId' => $target->id])}}" class="link link-danger my-3 py-3">
+                    <span class="profile-menu-icon"><i class="fas fa-list"></i></span>
+                    Чаты пользователя
+                </a>
+            </div>
+
+        @endif
+
     </div>
 
     <div class="profile-grid">
@@ -33,12 +44,12 @@
 
                 <h2 class="profile-name">{{ $target->name }}</h2>
                 <div class="profile-status">{{ ucfirst($target->status) ?? 'Пользователь' }}</div>
-                
+
                 <p class="profile-join-date">
-                    <i class="fas fa-calendar-alt"></i> 
+                    <i class="fas fa-calendar-alt"></i>
                     На сайте с {{ $target->created_at->format('d.m.Y') }}
                 </p>
-                
+
                 @if(in_array($target->status, ['architect', 'designer', 'executor', 'coordinator', 'visualizer']))
                 <div class="profile-badges">
                     @if($target->experience)
@@ -46,13 +57,13 @@
                         <i class="fas fa-briefcase"></i> Стаж: {{ $target->experience }}
                     </span>
                     @endif
-                    
+
                     @if($target->rating)
                     <span class="profile-badge">
                         <i class="fas fa-star"></i> Рейтинг: {{ $target->rating }}
                     </span>
                     @endif
-                    
+
                     @if($target->active_projects_count)
                     <span class="profile-badge">
                         <i class="fas fa-tasks"></i> Проекты: {{ $target->active_projects_count }}
@@ -61,7 +72,7 @@
                 </div>
                 @endif
             </div>
-            
+
             <ul class="profile-menu">
                 <li class="profile-menu-item">
                     <a href="#info" class="profile-menu-link active" data-section="info-section">
@@ -87,7 +98,7 @@
                     </a>
                 </li>
                 @endif
-                
+
                 @if(Auth::user()->status === 'admin')
                 <li class="profile-menu-item admin-menu-item">
                     <a href="#admin" class="profile-menu-link" data-section="admin-section">
@@ -97,7 +108,7 @@
                 </li>
                 @endif
             </ul>
-            
+
             <div class="profile-actions">
                 @if(in_array($target->status, ['architect', 'designer', 'executor', 'visualizer']))
                     @if($target->portfolio_link)
@@ -109,7 +120,7 @@
                 <!-- Здесь можно добавить другие действия для взаимодействия с пользователем -->
             </div>
         </div>
-        
+
         <!-- Правая панель профиля -->
         <div class="profile-content">
             <!-- Основная информация -->
@@ -124,12 +135,12 @@
                             <div class="profile-info-label">ФИО</div>
                             <div class="profile-info-value">{{ $target->name }}</div>
                         </div>
-                        
+
                         <div class="profile-info-row">
                             <div class="profile-info-label">Email</div>
                             <div class="profile-info-value">{{ $target->email ?: 'Не указан' }}</div>
                         </div>
-                        
+
                         <div class="profile-info-row">
                             <div class="profile-info-label">Телефон</div>
                             <div class="profile-info-value">
@@ -140,28 +151,28 @@
                                 @endif
                             </div>
                         </div>
-                        
+
                         @if($target->city)
                         <div class="profile-info-row">
                             <div class="profile-info-label">Город</div>
                             <div class="profile-info-value">{{ $target->city }}</div>
                         </div>
                         @endif
-                        
+
                         @if($target->status == 'partner' && $target->contract_number)
                         <div class="profile-info-row">
                             <div class="profile-info-label">Номер договора</div>
                             <div class="profile-info-value">{{ $target->contract_number }}</div>
                         </div>
                         @endif
-                        
+
                         @if($target->comment)
                         <div class="profile-info-row">
                             <div class="profile-info-label">Комментарий</div>
                             <div class="profile-info-value">{{ $target->comment }}</div>
                         </div>
                         @endif
-                        
+
                         <!-- Статистика пользователя -->
                         @if(in_array($target->status, ['architect', 'designer', 'executor', 'coordinator', 'visualizer']))
                         <div class="profile-stats-container">
@@ -171,14 +182,14 @@
                                 <span class="profile-stat-label">Опыт работы</span>
                             </div>
                             @endif
-                            
+
                             @if($target->active_projects_count)
                             <div class="profile-stat-item">
                                 <span class="profile-stat-value">{{ $target->active_projects_count }}</span>
                                 <span class="profile-stat-label">Активных проектов</span>
                             </div>
                             @endif
-                            
+
                             @php
                                 // Получаем количество завершенных проектов из свойства или через отношение с моделью Deal
                                 if(isset($target->completed_projects_count)) {
@@ -192,7 +203,7 @@
                                 } else {
                                     $completedProjects = isset($target->completed_projects) ? $target->completed_projects : 0;
                                 }
-                                
+
                                 // Получаем средний рейтинг из свойства или через отношение с моделью Rating
                                 if(isset($target->average_rating)) {
                                     $avgRating = $target->average_rating;
@@ -207,12 +218,12 @@
                                     $avgRating = max(4.0, (float)$avgRating);
                                 }
                             @endphp
-                            
+
                             <div class="profile-stat-item">
                                 <span class="profile-stat-value">{{ $completedProjects }}</span>
                                 <span class="profile-stat-label">Завершенных проектов</span>
                             </div>
-                            
+
                             <div class="profile-stat-item">
                                 <span class="profile-stat-value">{{ number_format((float)$avgRating, 1) }}</span>
                                 <span class="profile-stat-label">Средний рейтинг</span>
@@ -220,7 +231,7 @@
                         </div>
                         @endif
                     </div>
-                    
+
                     <!-- Режим редактирования для админа -->
                     @if(Auth::user()->status === 'admin')
                     <div class="edit-mode" style="display: none;">
@@ -230,17 +241,17 @@
                                 <label for="admin-edit-name" class="form-label">ФИО</label>
                                 <input type="text" id="admin-edit-name" name="name" class="form-control" value="{{ $target->name }}" required>
                             </div>
-                            
+
                             <div class="form-group-profile">
                                 <label for="admin-edit-email" class="form-label">Email</label>
                                 <input type="email" id="admin-edit-email" name="email" class="form-control" value="{{ $target->email }}">
                             </div>
-                            
+
                             <div class="form-group-profile">
                                 <label for="admin-edit-phone" class="form-label">Телефон</label>
                                 <input type="text" id="admin-edit-phone" name="phone" class="form-control maskphone" value="{{ $target->phone }}">
                             </div>
-                            
+
                             <div class="form-group-profile">
                                 <label for="admin-edit-status" class="form-label">Статус</label>
                                 <select id="admin-edit-status" name="status" class="form-control">
@@ -254,16 +265,16 @@
                                     <option value="admin" {{ $target->status === 'admin' ? 'selected' : '' }}>Администратор</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group-profile">
                                 <label for="admin-edit-city" class="form-label">Город</label>
                                 <input type="text" id="admin-edit-city" name="city" class="form-control" value="{{ $target->city }}">
                             </div>
-                            
+
                             <div id="partner-fields" style="{{ $target->status === 'partner' ? '' : 'display: none;' }}">
                                 <div class="form-group-profile">
                                     <label for="admin-edit-contract-number" class="form-label">Номер договора</label>
-                                    <input type="text" id="admin-edit-contract-number" name="contract_number" class="form-control" 
+                                    <input type="text" id="admin-edit-contract-number" name="contract_number" class="form-control"
                                            value="{{ $target->contract_number }}">
                                 </div>
                                 <div class="form-group-profile">
@@ -271,30 +282,30 @@
                                     <textarea id="admin-edit-comment" name="comment" class="form-control" rows="3">{{ $target->comment }}</textarea>
                                 </div>
                             </div>
-                            
+
                             <div id="specialist-fields" style="{{ in_array($target->status, ['architect', 'designer', 'executor', 'visualizer']) ? '' : 'display: none;' }}">
                                 <div class="form-group-profile">
                                     <label for="admin-edit-experience" class="form-label">Опыт работы (лет)</label>
-                                    <input type="number" id="admin-edit-experience" name="experience" class="form-control" 
+                                    <input type="number" id="admin-edit-experience" name="experience" class="form-control"
                                            value="{{ $target->experience }}" min="0" max="100">
                                 </div>
                                 <div class="form-group-profile">
                                     <label for="admin-edit-portfolio-link" class="form-label">Ссылка на портфолио</label>
-                                    <input type="url" id="admin-edit-portfolio-link" name="portfolio_link" class="form-control" 
+                                    <input type="url" id="admin-edit-portfolio-link" name="portfolio_link" class="form-control"
                                            value="{{ $target->portfolio_link }}">
                                 </div>
                                 <div class="form-group-profile">
                                     <label for="admin-edit-active-projects" class="form-label">Активные проекты</label>
-                                    <input type="number" id="admin-edit-active-projects" name="active_projects_count" class="form-control" 
+                                    <input type="number" id="admin-edit-active-projects" name="active_projects_count" class="form-control"
                                            value="{{ $target->active_projects_count }}" min="0">
                                 </div>
                             </div>
-                            
+
                             <div class="form-group-profile">
                                 <label for="admin-edit-new-password" class="form-label">Новый пароль (оставьте пустым, чтобы не менять)</label>
                                 <input type="password" id="admin-edit-new-password" name="new_password" class="form-control" placeholder="Введите новый пароль">
                             </div>
-                            
+
                             <div class="form-footer">
                                 <button type="button" id="cancel-edit" class="btn btn-secondary">Отменить</button>
                                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
@@ -305,7 +316,7 @@
                     @endif
                 </div>
             </div>
-            
+
             <!-- Рейтинг (для специалистов, кроме партнеров) -->
             @if(in_array($target->status, ['architect', 'designer', 'executor', 'coordinator', 'visualizer']))
             <div class="profile-card profile-section" id="rating-section" style="display: none;">
@@ -323,10 +334,10 @@
                         if(strtolower($viewer->status) === 'user' && in_array(strtolower($target->status), ['architect', 'designer', 'executor', 'visualizer'])) {
                             $averageRating = max(4.0, (float)$averageRating);
                         }
-                        
+
                         $totalRatings = isset($target->receivedRatings) ? $target->receivedRatings()->count() : 0;
                     @endphp
-                    
+
                     <div class="rating-summary">
                         <h4 class="rating-title">Средний рейтинг</h4>
                         <div class="rating-stats-container">
@@ -347,7 +358,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     @if($totalRatings > 0)
                         <div class="rating-distribution">
                             <h4 class="rating-title">Распределение оценок</h4>
@@ -357,40 +368,40 @@
                                         // Собираем статистику по каждой оценке
                                         $ratingStats = [];
                                         $highestCount = 0;
-                                        
+
                                         for($star = 5; $star >= 1; $star--) {
                                             $ratingCount = isset($target->receivedRatings) ? $target->receivedRatings()->where('score', $star)->count() : 0;
-                                            
+
                                             // Для обычного пользователя скрываем низкие оценки исполнителей
                                             if(strtolower($viewer->status) === 'user' && in_array(strtolower($target->status), ['architect', 'designer', 'executor', 'visualizer']) && $star < 4) {
                                                 $ratingCount = 0;
                                             }
-                                            
+
                                             $percentage = $totalRatings > 0 ? round(($ratingCount / $totalRatings) * 100) : 0;
                                             $ratingStats[$star] = [
                                                 'count' => $ratingCount,
                                                 'percentage' => $percentage
                                             ];
-                                            
+
                                             if ($ratingCount > $highestCount) {
                                                 $highestCount = $ratingCount;
                                             }
                                         }
                                     @endphp
-                                    
+
                                     @for($star = 5; $star >= 1; $star--)
                                         @php
                                             $ratingCount = $ratingStats[$star]['count'];
                                             $percentage = $ratingStats[$star]['percentage'];
                                             // Определяем класс для подсветки самой частой оценки
                                             $highlightClass = $ratingCount == $highestCount && $ratingCount > 0 ? 'most-common' : '';
-                                            
+
                                             // Проверяем, нужно ли использовать фейковые данные для оценок ниже 4
-                                            $needFakeData = strtolower($viewer->status) === 'user' && 
-                                                in_array(strtolower($target->status), ['architect', 'designer', 'executor', 'visualizer']) && 
+                                            $needFakeData = strtolower($viewer->status) === 'user' &&
+                                                in_array(strtolower($target->status), ['architect', 'designer', 'executor', 'visualizer']) &&
                                                 $star < 4 &&
                                                 $averageRating < 4;
-                                            
+
                                             // Генерируем фейковые данные, если нужно
                                             if ($needFakeData) {
                                                 if ($star === 4) {
@@ -415,7 +426,7 @@
                                                 }
                                             }
                                         @endphp
-                                        
+
                                         <li class="rating-bar {{ $highlightClass }}">
                                             <span class="star-label">{{ $star }} <i class="fas fa-star"></i></span>
                                             <div class="progress-container">
@@ -429,18 +440,18 @@
                                     @endfor
                                 </ul>
                             </div>
-                            
+
                             @php
                                 // Получаем несколько последних отзывов с комментариями
-                                $latestReviews = isset($target->receivedRatings) ? 
+                                $latestReviews = isset($target->receivedRatings) ?
                                     $target->receivedRatings()
                                         ->whereNotNull('comment')
                                         ->with('raterUser')
                                         ->orderBy('created_at', 'desc')
                                         ->take(3)
-                                        ->get() : 
+                                        ->get() :
                                     collect([]);
-                                    
+
                                 // Для обычных пользователей фильтруем отзывы, оставляя только с высоким рейтингом
                                 if(strtolower($viewer->status) === 'user' && in_array(strtolower($target->status), ['architect', 'designer', 'executor', 'visualizer'])) {
                                     $latestReviews = $latestReviews->filter(function($review) {
@@ -448,7 +459,7 @@
                                     });
                                 }
                             @endphp
-                            
+
                             @if($latestReviews->count() > 0 && in_array(strtolower($viewer->status), ['admin', 'partner', 'coordinator']))
                                 <h4 class="rating-title mt-4">Последние отзывы</h4>
                                 <div class="rating-comments">
@@ -491,7 +502,7 @@
             <div class="profile-card profile-section" id="awards-section" style="display: none;">
                 <div class="profile-card-header">
                     <h3 class="profile-card-title">Награды пользователя</h3>
-                    
+
                     @if(Auth::user()->status === 'admin')
                     <div class="header-actions">
                         <a href="{{ route('admin.awards.user.form', $target->id) }}" class="btn btn-sm btn-primary">
@@ -500,7 +511,7 @@
                     </div>
                     @endif
                 </div>
-                
+
                 <div class="profile-card-body">
                     @if($target->awards->count() > 0)
                         <div class="awards-grid">
@@ -543,7 +554,7 @@
                 </div>
             </div>
             @endif
-            
+
             <!-- Секция администрирования для админов -->
             @if(Auth::user()->status === 'admin')
             <div class="profile-card profile-section" id="admin-section" style="display: none;">
@@ -564,7 +575,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="admin-action-group">
                             <h4>Действия с аккаунтом</h4>
                             <p>Управление аккаунтом пользователя</p>
@@ -590,42 +601,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Переключение между разделами профиля
     const menuLinks = document.querySelectorAll('.profile-menu-link');
     const sections = document.querySelectorAll('.profile-section');
-    
+
     menuLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             // Удаляем активный класс у всех пунктов меню
             menuLinks.forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // Добавляем активный класс текущему пункту
             this.classList.add('active');
-            
+
             // Скрываем все секции
             sections.forEach(section => {
                 section.style.display = 'none';
             });
-            
+
             // Показываем нужную секцию
             const targetSection = document.getElementById(this.getAttribute('data-section'));
             targetSection.style.display = 'block';
         });
     });
-    
+
     // Добавляем функцию для форматирования телефона при отображении
     function formatPhoneNumber(phoneNumberString) {
         const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
         if (cleaned.length < 11) return phoneNumberString;
-        
+
         const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})$/);
         if (match) {
             return '+' + match[1] + ' (' + match[2] + ') ' + match[3] + '-' + match[4] + '-' + match[5];
         }
         return phoneNumberString;
     }
-    
+
     // Форматируем телефонные номера на странице
     document.querySelectorAll('.profile-info-value').forEach(element => {
         const text = element.textContent.trim();
@@ -645,16 +656,16 @@ document.addEventListener('DOMContentLoaded', function() {
             template: '<div class="tooltip custom-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
         });
     }
-    
+
     // Код для администратора - переключение между режимами просмотра и редактирования
     const toggleEditBtn = document.getElementById('toggle-edit-mode');
     const cancelEditBtn = document.getElementById('cancel-edit');
-    
+
     if (toggleEditBtn && cancelEditBtn) {
         toggleEditBtn.addEventListener('click', function() {
             const viewMode = document.querySelector('.view-mode');
             const editMode = document.querySelector('.edit-mode');
-            
+
             if (viewMode && editMode) {
                 if (viewMode.style.display !== 'none') {
                     viewMode.style.display = 'none';
@@ -669,11 +680,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
+
         cancelEditBtn.addEventListener('click', function() {
             const viewMode = document.querySelector('.view-mode');
             const editMode = document.querySelector('.edit-mode');
-            
+
             if (viewMode && editMode) {
                 viewMode.style.display = 'block';
                 editMode.style.display = 'none';
@@ -682,19 +693,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Обработчик изменения статуса пользователя для показа/скрытия соответствующих полей
     const statusSelect = document.getElementById('admin-edit-status');
     if (statusSelect) {
         statusSelect.addEventListener('change', function() {
             const partnerFields = document.getElementById('partner-fields');
             const specialistFields = document.getElementById('specialist-fields');
-            
+
             if (partnerFields && specialistFields) {
                 // Скрываем все поля по умолчанию
                 partnerFields.style.display = 'none';
                 specialistFields.style.display = 'none';
-                
+
                 // Показываем соответствующие поля в зависимости от выбранного статуса
                 if (this.value === 'partner') {
                     partnerFields.style.display = 'block';
@@ -704,20 +715,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Обработчик отправки формы редактирования для администратора
     const adminEditForm = document.getElementById('admin-edit-form');
     if (adminEditForm) {
         adminEditForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const userId = this.getAttribute('data-user-id');
             const formData = new FormData(this);
             const messageElement = document.getElementById('admin-edit-message');
-            
+
             // Получаем CSRF-токен
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
+
             // Отправляем запрос на сервер
             fetch(`/admin/profile/update/${userId}`, {
                 method: 'POST',
@@ -731,11 +742,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (messageElement) {
                     messageElement.style.display = 'block';
-                    
+
                     if (data.success) {
                         messageElement.className = 'alert alert-success';
                         messageElement.textContent = data.message || 'Профиль успешно обновлен';
-                        
+
                         // Перезагружаем страницу через 1 секунду
                         setTimeout(() => {
                             window.location.reload();
@@ -756,53 +767,53 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    
+
     // Обработчики для кнопок в секции администрирования
     const resetPasswordBtn = document.getElementById('admin-reset-password');
     const lockAccountBtn = document.getElementById('admin-lock-account');
-    
+
     if (resetPasswordBtn) {
         resetPasswordBtn.addEventListener('click', function() {
             const userId = adminEditForm.getAttribute('data-user-id');
-            
+
             if (confirm('Вы уверены, что хотите сбросить пароль этого пользователя? Будет сгенерирован новый пароль и отправлен на почту пользователя.')) {
                 // Здесь можно добавить код для сброса пароля
                 console.log('Сброс пароля для пользователя ID:', userId);
-                
+
                 // В реальной реализации здесь должен быть запрос к API для сброса пароля
             }
         });
     }
-    
+
     if (lockAccountBtn) {
         lockAccountBtn.addEventListener('click', function() {
             const userId = adminEditForm.getAttribute('data-user-id');
-            
+
             if (confirm('Вы уверены, что хотите заблокировать этого пользователя? Он не сможет войти в систему до разблокировки.')) {
                 // Здесь можно добавить код для блокировки аккаунта
                 console.log('Блокировка аккаунта пользователя ID:', userId);
-                
+
                 // В реальной реализации здесь должен быть запрос к API для блокировки аккаунта
             }
         });
     }
-    
+
     // Улучшенная маска для телефона с автоформатированием
     function maskPhone(event) {
         const blank = "+_ (___) ___-__-__";
         let i = 0;
         const val = this.value.replace(/\D/g, "").replace(/^8/, "7").replace(/^9/, "79");
-        
+
         this.value = blank.replace(/./g, function (char) {
             if (/[_\d]/.test(char) && i < val.length) return val.charAt(i++);
             return i >= val.length ? "" : char;
         });
-        
+
         if (event.type == "blur" && this.value.length <= 4) {
             this.value = "";
         }
     }
-    
+
     // Применяем маску для всех полей телефона
     document.querySelectorAll('.maskphone').forEach(input => {
         input.addEventListener('input', maskPhone);
@@ -820,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const awardName = $(this).attr('title').split(':')[0];
                 const awardDesc = $(this).attr('title').split(':')[1];
                 const awardDate = $(this).data('award-date');
-                
+
                 return `<div class="award-tooltip">
                     <div class="award-tooltip-title">${awardName}</div>
                     <div class="award-tooltip-desc">${awardDesc}</div>

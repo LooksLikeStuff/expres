@@ -45,7 +45,6 @@ class Chat extends Model
     }
 
     // В модели Chat.php
-
     public function userChats()
     {
         return $this->hasMany(UserChat::class, 'chat_id', 'id');

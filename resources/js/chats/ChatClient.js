@@ -14,12 +14,15 @@ export default class ChatClient {
         this.globalPresenceChannel = null;
         this.lastTyping = null;
         this.observer = null;
+
+        this.currentUserStatus = 'user';
     }
 
     init() {
         this.initEcho();
         this.initFirebase();
         this.joinGlobalPresenceChannel();
+        this.currentUserStatus = $('#userStatus').val();
     }
 
     initFirebase() {

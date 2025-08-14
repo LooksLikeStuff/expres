@@ -42,29 +42,35 @@
                                         Участники
                                         <span class="member-count" id="memberCountBadge">0</span>
                                     </h6>
-                                    <button class="btn btn-sm btn-outline-light" id="addMemberBtn">
-                                        <i class="fas fa-user-plus me-1"></i>
-                                        Добавить
-                                    </button>
+
+                                    @if($user->isStaff())
+                                        <button class="btn btn-sm btn-outline-light" id="addMemberBtn">
+                                            <i class="fas fa-user-plus me-1"></i>
+                                            Добавить
+                                        </button>
+                                    @endif
                                 </div>
 
                                 <div class="members-list" id="membersList">
                                     <!-- Участники будут добавлены через JavaScript -->
                                 </div>
                             </div>
-                            <!-- Опасная зона -->
-                            <div class="danger-zone">
-                                <div class="danger-actions">
-                                    <button class="btn btn-outline-danger" id="leaveChatBtn">
-                                        <i class="fas fa-sign-out-alt me-2"></i>
-                                        Покинуть чат
-                                    </button>
-                                    <button class="btn btn-danger" id="deleteChatBtn">
-                                        <i class="fas fa-trash me-2"></i>
-                                        Удалить чат
-                                    </button>
+
+                            @if($user->isStaff())
+                                <!-- Опасная зона -->
+                                <div class="danger-zone">
+                                    <div class="danger-actions">
+                                        <button class="btn btn-outline-danger" id="leaveChatBtn">
+                                            <i class="fas fa-sign-out-alt me-2"></i>
+                                            Покинуть чат
+                                        </button>
+                                        <button class="btn btn-danger" id="deleteChatBtn">
+                                            <i class="fas fa-trash me-2"></i>
+                                            Удалить чат
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
 

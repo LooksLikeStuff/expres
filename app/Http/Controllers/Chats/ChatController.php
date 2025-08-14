@@ -114,5 +114,17 @@ class ChatController extends Controller
         ]);
     }
 
+    //Admin route to see every user chat
+    public function showUserChats(int $userId)
+    {
+        //Показываем все от лица админа
+        $user = \auth()->user();
+
+        //Сюда передаем id пользователя, чаты которого необходимо видеть
+        $chats = $this->chatService->getUserChats($userId);
+        $user->setRelation('chats', $chats);
+
+        return view('chats.index', compact('user'));
+    }
 
 }
