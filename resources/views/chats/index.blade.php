@@ -196,6 +196,12 @@
                     <!-- Chat window -->
                     <div class="chat-window" id="chatWindow" style="display: none;">
 
+                        <div class="chat__search d-none">
+                            <div class="input-wrapper">
+                                <input type="text" id="searchInput" class="message-input" placeholder="Начните вводить текст сообщения">
+                            </div>
+                            <a id="searchClose" class="search-close">Выйти</a>
+                        </div>
                         <!-- Chat header -->
                         <div class="chat__header">
                             <div class="chat-info">
@@ -221,7 +227,7 @@
                                 <button class="btn-icon mobile-menu-btn">
                                     <i class="bi bi-list"></i>
                                 </button>
-                                <button class="btn-icon">
+                                <button id="searchBtn" class="btn-icon">
                                     <i class="bi bi-search"></i>
                                 </button>
                                 <button class="btn-icon"  data-bs-toggle="modal" data-bs-target="#chatInfoModal">
@@ -230,15 +236,28 @@
                             </div>
                         </div>
 
+                        <div class="chat__search-actions d-none">
+                            <button class="search-nav-btn search-nav-btn--up search-arrow search-arrow-up" title="Предыдущее совпадение">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                            <button class="search-nav-btn search-nav-btn--down search-arrow search-arrow-down" title="Следующее совпадение">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
 
                         <!-- Messages area -->
                         <div class="messages-container" id="messagesContainer">
                             <div class="messages-list" id="messagesList">
                                 <!-- Messages will be loaded here -->
                             </div>
+
                         </div>
 
                         <!-- Message input -->
+                        <div class="chat__search-panel d-none">
+                            <span class="chat__amount">500 сообщений</span>
+                        </div>
+
                         <div class="message-input-container">
                             <div class="file-preview-container" id="filePreviewContainer" style="display: none;">
                                 <div class="file-preview-header">

@@ -6,6 +6,7 @@ use App\DTO\MessageDTO;
 use App\Enums\MessageType;
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Chats\MessageSearchRequest;
 use App\Http\Requests\MessageRequest;
 use App\Models\Chats\Message;
 use App\Services\AttachmentService;
@@ -19,6 +20,25 @@ class MessageController extends Controller
         private readonly AttachmentService $attachmentService,
     )
     {
+    }
+
+    public function search(MessageSearchRequest $request)
+    {
+        $messages = $this->messageService->getMessageIdsInChatByMatch($request->validated('chat_id'), $request->validated('term'));
+
+        return response()
+            ->json([
+                'messages' => $messages,
+            ]);
+    }
+
+    public function getPageOfMessages(int $messageId)
+    {
+        $messages = $this->messageService->getPageOfMessagesByMessageId($messageId);
+
+        return response()->json([
+            'messages' => $messages,
+        ]);
     }
 
     /**

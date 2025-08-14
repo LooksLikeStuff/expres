@@ -21,6 +21,8 @@ use App\Http\Controllers\CommonController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\DealFeedController;
 
+use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\BriefSearchController;
@@ -355,6 +357,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('messages', MessageController::class);
+    Route::post('messages/search', [MessageController::class, 'search'])->name('messages.search');
+    Route::get('messages/{messageId}/page', [MessageController::class, 'getPageOfMessages'])->name('messages.page');
+
     Route::controller(ReadReceiptController::class)->prefix('readReceipts')->group(function () {
         Route::patch('read', 'readMessage');
     });

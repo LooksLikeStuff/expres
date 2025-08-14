@@ -640,6 +640,7 @@ body {
     flex: 1 1 auto;
     overflow-y: auto;
     padding: 16px 20px;
+    position: relative;
     background: linear-gradient(to bottom, #f8f9fa, #ffffff);
 
     @media screen and (max-width: 768px) {
@@ -756,7 +757,37 @@ body {
                 word-wrap: break-word;
             }
         }
+    }
 
+    // Подсветка для обычных сообщений
+    .message.highlight-search {
+        position: relative;
+
+        .message-content {
+            background-color: lighten($primary-color, 40%);
+            box-shadow: 0 0 0 3px rgba($primary-color, 0.3);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+    }
+
+    // Подсветка для своих сообщений
+    .message.own.highlight-search {
+        .message-content {
+            background-color: lighten($message-own-search-color, 20%); // светлее собственного фона
+            box-shadow: 0 0 0 3px rgba($message-own-search-color, 0.4); // чуть контрастнее
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+    }
+
+    // Анимация мигания
+    @keyframes highlightFlash {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+    }
+
+    .message.highlight-search.highlight-search-anim .message-content {
+        animation: highlightFlash 1.5s ease-in-out;
     }
 }
 
@@ -1272,6 +1303,81 @@ body {
         display: none;
     }
 }
+
+
+.chat__search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 8px 20px;
+    border-bottom: 1px solid $border-color;
+
+    .input-wrapper {
+        width: 100%;
+    }
+
+    #searchInput {
+        min-height: auto;
+        padding: 12px;
+        width: 100%;
+
+    }
+
+    .search-close {
+        text-decoration: none;
+    }
+}
+
+.chat__search-panel {
+    padding: 16px 20px;
+    text-align: end;
+    color: $gray;
+}
+
+.chat__search-actions {
+    position: absolute;
+    z-index: 5;
+    bottom: 68px;
+    right: 20px;
+    display: flex;
+    align-items: end;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-nav-btn {
+    background: #eeeeee;
+    color: #757575;
+    min-height: auto;
+    border: none;
+    border-radius: 4px;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    font-size: 20px;
+
+}
+
+.search-nav-btn:hover {
+    background-color: #e6e6e6;
+}
+
+.search-nav-btn:active {
+    background-color: #d9d9d9;
+}
+
+.search-counter {
+    font-size: 13px;
+    color: #777;
+    margin-left: 4px;
+    min-width: 40px;
+    text-align: center;
+}
+
 
 // Enhanced chat header for modal trigger
 .chat__header {

@@ -105,7 +105,7 @@ class ChatController extends Controller
 
     public function getMessages(int $chatId)
     {
-        $messages = $this->messageService->getPaginatedMessagesByChatId($chatId, 20);
+        $messages = $this->messageService->getPaginatedMessagesByChatId(chatId: $chatId);
         $users = $this->userService->getByChatId($chatId);
 
         return response()->json([
@@ -113,4 +113,6 @@ class ChatController extends Controller
             'users' => $users,
         ]);
     }
+
+
 }

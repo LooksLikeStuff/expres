@@ -308,4 +308,32 @@ export default class ChatClient {
             throw error;
         }
     }
+
+    async searchMessages(term, callback) {
+        $.ajax({
+            url: '/messages/search',
+            method: 'post',
+            data: {
+                chat_id: this.currentChatId,
+                term: term,
+            },
+            success: (data) => {
+                if (typeof callback === 'function') {
+                    callback(data);
+                }
+            }
+        });
+    }
+
+    async getPageOfMessages(messageId, callback) {
+        $.ajax({
+            url: `/messages/${messageId}/page`,
+            method: 'get',
+            success: (data) => {
+                if (typeof callback === 'function') {
+                    callback(data);
+                }
+            }
+        });
+    }
 }
