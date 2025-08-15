@@ -1,6 +1,8 @@
 <?php
 namespace App\Providers;
 use App\Models\Chats\Message;
+use App\Models\Deal;
+use App\Observers\DealObserver;
 use App\Observers\MessageObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -24,6 +26,7 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Message::observe(MessageObserver::class);
+        Deal::observe(DealObserver::class);
     }
     /**
      * Determine if events and listeners should be automatically discovered.

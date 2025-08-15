@@ -3,6 +3,7 @@
 namespace App\DTO;
 
 use App\Enums\ChatType;
+use App\Models\Deal;
 use Carbon\Carbon;
 
 class ChatDTO
@@ -26,6 +27,17 @@ class ChatDTO
             title: $data['title'] ?? null,
             avatar: $data['avatar'] ?? null,
             deletedAt: $data['deleted_at'] ?? null,
+        );
+    }
+
+    public static function fromDeal(Deal $deal)
+    {
+        return new self(
+            id: null,
+            type: ChatType::GROUP,
+            title: 'Сделка №' . $deal->id,
+            avatar:  null,
+            deletedAt: null,
         );
     }
 

@@ -3,6 +3,7 @@
 namespace App\Services\Chats;
 
 use App\DTO\ChatDTO;
+use App\Enums\ChatType;
 use App\Models\Chats\Chat;
 use Illuminate\Support\Facades\DB;
 
@@ -64,8 +65,7 @@ class ChatService
         // Кол-во участников, которых ищем
         $countParticipants = count($participantIds);
 
-        return Chat::where('type', 'private')
-            ->whereNull('deleted_at')
+        return Chat::where('type', ChatType::PRIVATE->value)
             // Где id чата содержится в user_chats с нужными юзерами
             ->whereHas('userChats', function ($query) use ($participantIds) {
                 $query->whereIn('user_id', $participantIds);

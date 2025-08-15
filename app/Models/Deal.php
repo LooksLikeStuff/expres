@@ -261,7 +261,7 @@ class Deal extends Model
 
     /**
      * Проверяет, поставил ли пользователь оценку другому пользователю в этой сделке
-     * 
+     *
      * @param int $raterUserId ID оценивающего пользователя
      * @param int $ratedUserId ID оцениваемого пользователя
      * @param string|null $role Роль, в которой оценивается пользователь
@@ -272,12 +272,12 @@ class Deal extends Model
         $query = Rating::where('deal_id', $this->id)
             ->where('rater_user_id', $raterUserId)
             ->where('rated_user_id', $ratedUserId);
-        
+
         // Если указана роль, добавляем её в условие запроса
         if ($role) {
             $query->where('role', $role);
         }
-        
+
         return $query->exists();
     }
 
@@ -291,18 +291,18 @@ class Deal extends Model
         if ($this->status !== 'Проект завершен') {
             return null;
         }
-        
+
         // Получаем все оценки по сделке, где оценивающий - клиент (user)
         $ratings = \App\Models\Rating::where('deal_id', $this->id)
                                     ->whereHas('raterUser', function($query) {
                                         $query->where('status', 'user');
                                     })
                                     ->get();
-        
+
         if ($ratings->isEmpty()) {
             return null;
         }
-        
+
         // Преобразуем строку, полученную от number_format, обратно в float
         return (float)number_format($ratings->avg('score'), 1);
     }
@@ -332,7 +332,7 @@ class Deal extends Model
         $yandexPathField = "yandex_disk_path_{$fieldName}";
         return !empty($this->$yandexPathField);
     }
-    
+
     /**
      * Получает URL файла с Яндекс Диска
      *
@@ -344,7 +344,7 @@ class Deal extends Model
         $yandexUrlField = "yandex_url_{$fieldName}";
         return $this->$yandexUrlField;
     }
-    
+
     /**
      * Получает оригинальное имя файла
      *
@@ -359,7 +359,7 @@ class Deal extends Model
 
     /**
      * Получить имя владельца сделки, даже если он был удален
-     * 
+     *
      * @return string
      */
     public function getOwnerNameAttribute()
@@ -375,7 +375,7 @@ class Deal extends Model
 
     /**
      * Получить имя координатора сделки, даже если он был удален
-     * 
+     *
      * @return string
      */
     public function getCoordinatorNameAttribute()
@@ -392,7 +392,7 @@ class Deal extends Model
 
     /**
      * Получить URL брифа, привязанного к сделке
-     * 
+     *
      * @return string|null
      */
     public function getBriefUrlAttribute()
@@ -401,7 +401,7 @@ class Deal extends Model
         if (!empty($this->link)) {
             return $this->link;
         }
-        
+
         // Если есть привязанный общий бриф
         if ($this->common_id) {
             $common = $this->brief;
@@ -410,7 +410,7 @@ class Deal extends Model
             }
             return route('common.show', $this->common_id);
         }
-        
+
         // Если есть привязанный коммерческий бриф
         if ($this->commercial_id) {
             $commercial = $this->commercial;
@@ -419,13 +419,13 @@ class Deal extends Model
             }
             return route('commercial.show', $this->commercial_id);
         }
-        
+
         return null;
     }
 
     /**
      * Проверяет, есть ли у сделки привязанный бриф
-     * 
+     *
      * @return bool
      */
     public function getHasBriefAttribute()
@@ -441,7 +441,7 @@ class Deal extends Model
     public function getDocuments()
     {
         $documents = [];
-        
+
         // Если documents хранится как JSON-строка
         if (!empty($this->documents)) {
             if (is_string($this->documents)) {
@@ -450,10 +450,10 @@ class Deal extends Model
                     foreach ($docs as $path) {
                         $filename = basename($path);
                         $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                        
+
                         // Определяем иконку на основе расширения файла
                         $icon = $this->getFileIconClass($extension);
-                        
+
                         $documents[] = [
                             'path' => $path,
                             'name' => $filename,
@@ -468,7 +468,7 @@ class Deal extends Model
                     $filename = basename($path);
                     $extension = pathinfo($filename, PATHINFO_EXTENSION);
                     $icon = $this->getFileIconClass($extension);
-                    
+
                     $documents[] = [
                         'path' => $path,
                         'name' => $filename,
@@ -479,10 +479,10 @@ class Deal extends Model
                 }
             }
         }
-        
+
         // Также получаем документы Яндекс Диска
         $yandexDiskDocuments = $this->getYandexDiskDocuments();
-        
+
         // Объединяем локальные и яндекс диск документы
         return array_merge($documents, $yandexDiskDocuments);
     }
@@ -496,31 +496,31 @@ class Deal extends Model
     {
         $documents = [];
         $yandexFields = [
-            'execution_order_file', 
-            'measurements_file', 
-            'final_floorplan', 
+            'execution_order_file',
+            'measurements_file',
+            'final_floorplan',
             'final_collage',
-            'final_project_file', 
-            'work_act', 
-            'archicad_file', 
+            'final_project_file',
+            'work_act',
+            'archicad_file',
             'contract_attachment',
-            'plan_final', 
+            'plan_final',
             'chat_screenshot',
             'screenshot_work_1',
             'screenshot_work_2',
             'screenshot_work_3',
             'screenshot_final'
         ];
-        
+
         foreach ($yandexFields as $field) {
             $yandexUrlField = "yandex_url_{$field}";
             $originalNameField = "original_name_{$field}";
-            
+
             if (!empty($this->$yandexUrlField)) {
                 $filename = $this->$originalNameField ?? "{$field}.pdf";
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
                 $icon = $this->getFileIconClass($extension);
-                
+
                 $documents[] = [
                     'name' => $filename,
                     'extension' => $extension,
@@ -529,7 +529,7 @@ class Deal extends Model
                 ];
             }
         }
-        
+
         return $documents;
     }
 
@@ -542,7 +542,7 @@ class Deal extends Model
     private function getFileIconClass($extension)
     {
         $extension = strtolower($extension);
-        
+
         switch ($extension) {
             case 'pdf':
                 return 'fa-file-pdf';
@@ -588,5 +588,24 @@ class Deal extends Model
             default:
                 return 'fa-file';
         }
+    }
+
+    public function getMemberIds(): array
+    {
+        $ids = [];
+
+        // Ролевые ID
+        $ids[] = $this->user_id;
+        $ids[] = $this->architect_id;
+        $ids[] = $this->designer_id;
+        $ids[] = $this->visualizer_id;
+        $ids[] = $this->coordinator_id;
+        $ids[] = $this->office_partner_id;
+
+        // Из связи many-to-many
+        $ids = array_merge($ids, $this->users->pluck('id')->toArray());
+
+        // Убираем null и дубликаты
+        return array_values(array_unique(array_filter($ids)));
     }
 }
