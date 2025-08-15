@@ -7,7 +7,10 @@ export default class ChatClient {
     constructor(userId, userName) {
         this.userId = userId;
         this.userName = userName;
+
         this.currentChatId = null;
+        this.currentChatType = null;
+
         this.onlineUsers = null;
         this.echo = null;
         this.globalChannel = null;
@@ -225,11 +228,16 @@ export default class ChatClient {
     }
 
     leaveChat(userId) {
-
+        return $.post(`/chats/${this.currentChatId}/leave`, {
+            user_id: userId,
+            _method: 'DELETE'
+        });
     }
 
     deleteChat(chatId) {
-
+        return $.post(`/chats/${chatId}`, {
+            _method: 'DELETE'
+        });
     }
 
     observeReadReceipts(container) {

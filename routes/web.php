@@ -355,6 +355,8 @@ Route::middleware('auth')->group(function () {
         Route::post('{chatId}/messages', 'getMessages')->name('chats.messages');
         Route::post('/', 'store')->name('chats.store');
 
+        Route::delete('/{chatId}', 'destroy')->name('chats.destroy')->middleware('admin');
+        Route::delete('/{chatId}/leave', 'leaveFromChat')->name('chats.leave');
         //Admin
         Route::get('/{userId}', 'showUserChats')->middleware('admin')->name('chats.show-user-chats');
     });
@@ -367,7 +369,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('read', 'readMessage');
     });
 
-    Route::delete('/userChats/{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
+    Route::prefix('userChats')->controller(UserChatController::class)->group(function () {
+        Route::delete('{chatId}/users/remove', [UserChatController::class, 'removeUserFromChat']);
+        Route::post('{chatId}/users/add', [UserChatController::class, 'addUserToChat']);
+    });
+
+
     // routes/api.php или web.php
     Route::post('/fcm/register', [FCMTokenController::class, 'store'])->middleware('auth');
 });

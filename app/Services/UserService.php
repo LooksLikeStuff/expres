@@ -20,6 +20,11 @@ class UserService
 
     }
 
+    public function getById(int $userId)
+    {
+        return User::find($userId);
+    }
+
     public function getIdByName(string $name): ?int
     {
         return User::select(['id'])

@@ -34,4 +34,13 @@ class UserChatService
         // Вставляем сразу все записи
         return UserChat::insert($data);
     }
+
+    public function addUserToChat(int $chatId, int $userId)
+    {
+        //Создаем или обновляем запись, устанавливаем left_at = null
+        return UserChat::updateOrCreate([
+            'chat_id' => $chatId,
+            'user_id' => $userId,
+        ], ['left_at' => null, 'joined_at' => now()]);
+    }
 }

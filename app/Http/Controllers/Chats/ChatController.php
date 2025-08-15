@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Chats;
 use App\DTO\ChatDTO;
 use App\Enums\ChatType;
 use App\Events\ChatCreated;
+use App\Events\ChatDeleted;
+use App\Events\UserLeftFromChat;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chats\CreateChatRequest;
 use App\Models\ChatGroup;
@@ -40,6 +42,7 @@ class ChatController extends Controller
         $user = auth()->user();
 
         $chats = $this->chatService->getUserChats($user->id);
+
         $user->setRelation('chats', $chats);
 
         if (request()->ajax()) {
@@ -103,6 +106,18 @@ class ChatController extends Controller
         ]);
     }
 
+    public function destroy(int $chatId)
+    {
+        $result = $this->chatService->disableChat($chatId);
+
+        if ($result) {
+            broadcast(new ChatDeleted());
+        }
+
+        return response()->json([
+            'result' => $result,
+        ]);
+    }
     public function getMessages(int $chatId, Request $request)
     {
         $messages = $this->messageService->getPaginatedMessagesByChatId(chatId: $chatId, page: $request->get('page') ?? 1);
@@ -125,6 +140,19 @@ class ChatController extends Controller
         $user->setRelation('chats', $chats);
 
         return view('chats.index', compact('user'));
+    }
+
+    public function leaveFromChat(int $chatId)
+    {
+        $result = $this->userChatService->removeUser($chatId, auth()->id());
+
+        if ($result) {
+            broadcast(new UserLeftFromChat());
+        }
+
+        return response()->json([
+            'result' => $result,
+        ]);
     }
 
 }

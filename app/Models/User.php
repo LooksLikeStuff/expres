@@ -173,6 +173,7 @@ class User extends Authenticatable
     public function chats()
     {
         return $this->belongsToMany(Chat::class, 'user_chats')
+            ->whereNull('chats.deleted_at')
             ->wherePivotNull('left_at');
     }
 

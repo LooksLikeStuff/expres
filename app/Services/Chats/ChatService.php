@@ -37,7 +37,6 @@ class ChatService
 
     public function getUserChats(int $userId)
     {
-
         $chats = Chat::with([
             'users:id,name,avatar_url',
             'lastMessage',
@@ -54,6 +53,7 @@ class ChatService
             })
             ->leftJoin('messages as lm', 'lm.id', '=', \DB::raw('(SELECT id FROM messages WHERE messages.chat_id = chats.id ORDER BY created_at DESC LIMIT 1)'))
             ->orderByRaw('COALESCE(lm.created_at, chats.created_at) ASC')
+            ->whereNull('deleted_at')
             ->get();
 
         return $chats;
@@ -80,4 +80,10 @@ class ChatService
             ->first();
     }
 
+
+    public function disableChat(int $chatId)
+    {
+        return Chat::where('id', $chatId)
+            ->update(['deleted_at' => now()]);
+    }
 }

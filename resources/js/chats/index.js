@@ -77,59 +77,6 @@ $(document).ready(function() {
         $(window).on('resize', handleResize);
     }
 
-    // Load chats from API
-    function loadChats(filter = 'all') {
-        $.ajax({
-            url: '/api/chats',
-            method: 'GET',
-            data: { filter: filter },
-            success: function(chats) {
-                renderChats(chats);
-            },
-            error: function() {
-                console.error('Failed to load chats');
-            }
-        });
-    }
-
-    // Render chats in sidebar
-    function renderChats(chats) {
-        const chatList = $('#chatList');
-        chatList.empty();
-
-        chats.forEach(chat => {
-            const chatItem = createChatItem(chat);
-            chatList.append(chatItem);
-        });
-    }
-
-    // Create chat item element
-    function createChatItem(chat) {
-        const template = $('#chatItemTemplate').html();
-        const $item = $(template);
-
-        $item.attr('data-chat-id', chat.id);
-        $item.find('img').attr('src', getAvatarUrl(chat.avatar, chat.name));
-        $item.find('.chat-item-name').text(chat.name);
-        $item.find('.chat-item-message').text(chat.last_message);
-        $item.find('.chat-item-time').text(chat.last_message_time);
-
-        // Online indicator
-        const onlineIndicator = $item.find('.online-indicator');
-        if (onlineUsers.includes(chat.id)) {
-            onlineIndicator.removeClass('offline');
-        } else {
-            onlineIndicator.addClass('offline');
-        }
-
-        // Unread count
-        if (chat.unread_count > 0) {
-            $item.find('.unread-count').text(chat.unread_count).show();
-        }
-
-        return $item;
-    }
-
     // Mobile menu functions
     function toggleMobileMenu() {
         const sidebar = $('#sidebar');
@@ -217,83 +164,6 @@ $(document).ready(function() {
 let currentChatData = null;
 let selectedMembers = [];
 
-// Initialize modal functionality
-function initModalFunctionality() {
-    // Chat header click to open modal
-    $(document).on('click', '#chatHeader .chat-info', function() {
-        openChatInfoModal();
-    });
-
-    // Modal close buttons
-    $('#closeChatInfo, #closeAddMember').on('click', function() {
-        closeModals();
-    });
-
-    // Modal overlay click to close
-    $('.modal-overlay').on('click', function(e) {
-        if (e.target === this) {
-            closeModals();
-        }
-    });
-
-    // Edit chat name
-    $('#editNameBtn').on('click', function() {
-        toggleChatNameEdit();
-    });
-
-    // Add member button
-    $('#addMemberBtn').on('click', function() {
-        openAddMemberModal();
-    });
-
-    // Done adding members
-    $('#doneAddMember').on('click', function() {
-        addSelectedMembers();
-    });
-
-    // Member search
-    $('#memberSearchInput').on('input', function() {
-        const query = $(this).val().toLowerCase();
-        filterContacts(query);
-    });
-
-    // Contact selection
-    $(document).on('click', '.contact-item', function() {
-        toggleContactSelection($(this));
-    });
-
-    // Remove member
-    $(document).on('click', '.remove-member-btn', function(e) {
-        e.stopPropagation();
-        const memberId = $(this).closest('.member-item').data('member-id');
-        removeMember(memberId);
-    });
-
-    // Escape key to close modals
-    $(document).on('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModals();
-        }
-    });
-}
-
-// Open chat info modal
-function openChatInfoModal() {
-    if (!currentChatData) return;
-
-    // Populate modal with current chat data
-    $('#modalChatAvatar').attr('src', currentChatData.avatar);
-    $('#chatNameInput').val(currentChatData.name);
-    $('#chatDescription').text(currentChatData.type === 'group' ? 'Групповой чат' : 'Личный чат');
-
-    // Load members
-    loadChatMembers();
-
-    // Show modal
-    $('#chatInfoModal').addClass('active');
-    $('body').addClass('modal-open');
-}
-
 // Close all modals
 function closeModals() {
     $('.modal-overlay').removeClass('active');
@@ -343,60 +213,6 @@ function openAddMemberModal() {
 }
 
 // Load chat members
-function loadChatMembers() {
-    const members = [
-        {
-            id: 1,
-            name: 'Администратор',
-            avatar: 'https://via.placeholder.com/48',
-            status: 'онлайн',
-            role: 'admin'
-        },
-        {
-            id: 2,
-            name: 'Иван Петров',
-            avatar: 'https://via.placeholder.com/48',
-            status: 'был недавно',
-            role: 'member'
-        },
-        {
-            id: 3,
-            name: 'Мария Сидорова',
-            avatar: 'https://via.placeholder.com/48',
-            status: 'онлайн',
-            role: 'member'
-        },
-        {
-            id: 4,
-            name: 'Команда разработки',
-            avatar: 'https://via.placeholder.com/48',
-            status: 'была вчера',
-            role: 'member'
-        }
-    ];
-
-    const membersList = $('#membersList');
-    membersList.empty();
-
-    members.forEach(member => {
-        const memberHtml = `
-                <div class="member-item" data-member-id="${member.id}">
-                    <img src="${member.avatar}" alt="${member.name}" class="member-avatar">
-                    <div class="member-info">
-                        <h6 class="member-name">${member.name}</h6>
-                        <p class="member-status">${member.status}</p>
-                    </div>
-                    <div class="member-actions">
-                        <span class="member-role">${member.role === 'admin' ? 'Админ' : 'Участник'}</span>
-                        ${member.role !== 'admin' ? '<button class="remove-member-btn"><i class="bi bi-x"></i></button>' : ''}
-                    </div>
-                </div>
-            `;
-        membersList.append(memberHtml);
-    });
-
-    $('#membersCount').text(members.length);
-}
 
 // Load available contacts
 function loadAvailableContacts() {
@@ -459,44 +275,6 @@ function toggleContactSelection(contactItem) {
         checkbox.addClass('checked');
         selectedMembers.push(contactId);
     }
-}
-
-// Add selected members
-function addSelectedMembers() {
-    if (selectedMembers.length === 0) {
-        closeModals();
-        return;
-    }
-
-    // Simulate adding members
-    selectedMembers.forEach(memberId => {
-        const contactItem = $(`.contact-item[data-contact-id="${memberId}"]`);
-        const name = contactItem.find('.contact-name').text();
-        const avatar = contactItem.find('.contact-avatar').attr('src');
-
-        // Add to members list
-        const memberHtml = `
-                <div class="member-item" data-member-id="${memberId}">
-                    <img src="${avatar}" alt="${name}" class="member-avatar">
-                    <div class="member-info">
-                        <h6 class="member-name">${name}</h6>
-                        <p class="member-status">только что добавлен</p>
-                    </div>
-                    <div class="member-actions">
-                        <span class="member-role">Участник</span>
-                        <button class="remove-member-btn"><i class="bi bi-x"></i></button>
-                    </div>
-                </div>
-            `;
-        $('#membersList').append(memberHtml);
-    });
-
-    // Update members count
-    const currentCount = parseInt($('#membersCount').text());
-    $('#membersCount').text(currentCount + selectedMembers.length);
-
-    showNotification(`Добавлено участников: ${selectedMembers.length}`, 'success');
-    closeModals();
 }
 
 // Remove member
@@ -804,13 +582,6 @@ function startChatWithContact(contactId, contactName) {
     // You can add logic here to actually create/open the chat
     // For now, we'll just show a notification
 }
-
-// Initialize all new functionality
-$(document).ready(function() {
-    initModalFunctionality();
-   // initSwipeFunctionality();
-});
-
 
 // Push Notifications System
 let notificationPermission = 'default';

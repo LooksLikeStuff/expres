@@ -27,6 +27,7 @@ export default class ChatInterface {
         this.chatClient = chatClient;
 
         this.chatList = $('#chatList');
+        this.membersList = $('#membersList');
         this.newChatModalElem = $('#newChatModal');
 
         this.showSidebarButton = $('.mobile-menu-btn');
@@ -230,21 +231,6 @@ export default class ChatInterface {
             document.body.removeChild(link);
         });
 
-        // Анимация появления элементов при загрузке
-        $('#chatInfoModal').on('shown.bs.modal', function () {
-            setTimeout(() => {
-                $('.member-item, .setting-item, .attachment-item').each(function (index) {
-                    $(this).css({
-                        'opacity': '0',
-                        'transform': 'translateY(20px)'
-                    }).animate({
-                        'opacity': '1',
-                        'transform': 'translateY(0)'
-                    }, 300 + (index * 50));
-                });
-            }, 100);
-        });
-
         // Обработчик Enter в поле названия чата
         $('#chatNameInput').on('keypress', function (e) {
             if (e.which === 13) {
@@ -337,10 +323,9 @@ export default class ChatInterface {
         // Удаление участника
         this.setupDangerAction('.kick-member-btn', ($container, $button) => {
             const $memberItem = $button.closest('.member-item');
-            const userId = $memberItem.data('member-id');
-            const chatId = this.chatClient.currentChatId;
+            const userId = $memberItem.attr('data-member-id');
 
-            this.chatClient.removeUser(chatId, userId)
+            this.chatClient.removeUser(userId)
                 .done(() => {
                     $memberItem.remove();
                     const memberCount = $(`#chat-${chatId} .member-item`).length;
@@ -353,18 +338,19 @@ export default class ChatInterface {
         this.setupDangerAction('#leaveChatBtn', ($container) => {
             const chatId = this.chatClient.currentChatId;
             this.chatClient.leaveChat(chatId)
-                .done(() => {
-                    $container.closest('.chat-container').remove();
+                .done((data) => {
+                    this.leaveFromCurrentChat();
                 })
                 .fail(() => alert('Ошибка при выходе из чата'));
         });
 
         // Удалить чат
         this.setupDangerAction('#deleteChatBtn', ($container) => {
+
             const chatId = this.chatClient.currentChatId;
             this.chatClient.deleteChat(chatId)
                 .done(() => {
-                    $container.closest('.chat-container').remove();
+                    this.leaveFromCurrentChat();
                 })
                 .fail(() => alert('Ошибка при удалении чата'));
         });
@@ -406,8 +392,9 @@ export default class ChatInterface {
                 }
 
                 // AJAX через ChatClient
-                this.chatClient.addUser(selectedId).done(() => {
-                    alert('Пользователь добавлен');
+                this.chatClient.addUser(selectedId).done((data) => {
+                    this.addMember(data.user);
+
                     $actions.empty();
                     $button.removeClass('d-none');
                     $selectContainer.addClass('d-none');
@@ -471,13 +458,13 @@ export default class ChatInterface {
     }
 
     initPageFocusHandler() {
-//        document.addEventListener('visibilitychange', () => {
-        //     if (document.visibilityState === 'visible') {
-        //         console.log('Вкладка снова активна — обновляем чат');
-        //         this.refreshChatsState();
-        //         this.refreshChatData();
-        //     }
-        // });
+       document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('Вкладка снова активна — обновляем чат');
+                this.refreshChatsState();
+                this.refreshChatData();
+            }
+        });
     }
 
     async refreshChatsState() {
@@ -500,6 +487,8 @@ export default class ChatInterface {
             this.updateChatInfo(data)
         });
     }
+
+
 
     async refreshChatData() {
         try {
@@ -525,38 +514,52 @@ export default class ChatInterface {
         if (chat.type === 'private') {
             $('.chat-add-user').addClass('d-none');
             $('#leaveChatBtn').addClass('d-none');
-            $('#addMemberBtn').addClass('d-none');
         } else {
             $('.chat-add-user').removeClass('d-none');
             $('#leaveChatBtn').removeClass('d-none');
-            $('#addMemberBtn').removeClass('d-none');
         }
 
-        this.loadMembers(chat.users, chat.type);
+        if (
+            (this.chatClient.currentUserStatus === ChatInterface.UserRole.ADMIN || this.chatClient.currentUserStatus === ChatInterface.UserRole.COORDINATOR)
+            && chat.type !== 'private'
+        ) {
+            $('#showAddMemberBtn').removeClass('d-none');
+        } else {
+            $('#showAddMemberBtn').addClass('d-none');
+        }
+
+
+        this.loadMembers(chat.users);
         this.loadAttachments(chat.attachments);
     }
 
-    loadMembers(members, chatType) {
-        const membersList = $('#membersList');
-        membersList.empty();
+    loadMembers(members) {
+        this.membersList.empty();
 
+        members.forEach(member => this.addMember(member));
+    }
+
+    addMember(member) {
+        const elem = this.createMemberElement(member, this.chatClient.currentChatType);
+        this.membersList.append(elem);
+    }
+    createMemberElement(member) {
         const onlineUserIds = this.chatClient.onlineUsers || new Set();
         const currentUserStatus = this.chatClient.currentUserStatus; // статус текущего пользователя
 
-        members.forEach(member => {
-            const isMemberOnline = onlineUserIds.has(member.id);
-            const statusIndicator = isMemberOnline ? 'online' : 'offline';
-            const statusText = isMemberOnline ? 'в сети' : `был(а) недавно`;
-            // Используем маппинг для красивого вывода роли
-            const memberLabel = ChatInterface.UserRoleLabel[member.status] || member.status;
+        const isMemberOnline = onlineUserIds.has(member.id);
+        const statusIndicator = isMemberOnline ? 'online' : 'offline';
+        const statusText = isMemberOnline ? 'в сети' : `был(а) недавно`;
+        // Используем маппинг для красивого вывода роли
+        const memberLabel = ChatInterface.UserRoleLabel[member.status] || member.status;
 
-            const showKickButton =
-                currentUserStatus !== ChatInterface.UserRole.CLIENT
-                && currentUserStatus !== ChatInterface.UserRole.VISUALIZER
-                && chatType !== 'private' //В личных чатах не показываем кнопки удаленя пользователей
+        const showKickButton =
+            currentUserStatus !== ChatInterface.UserRole.CLIENT
+            && currentUserStatus !== ChatInterface.UserRole.VISUALIZER
+            && this.chatClient.currentChatType !== 'private' //В личных чатах не показываем кнопки удаленя пользователей
 
 
-            const memberHtml = `
+        const memberHtml = `
             <div class="member-item" data-member-id="${member.id}" data-role="${member.status}">
                 <img src="${member.profile_avatar}" alt="${member.name}" class="member-avatar">
                 <div class="member-info">
@@ -578,8 +581,7 @@ export default class ChatInterface {
             </div>
         `;
 
-            membersList.append(memberHtml);
-        });
+        return memberHtml;
     }
 
     loadAttachments(attachments) {
@@ -946,6 +948,29 @@ export default class ChatInterface {
 
     }
 
+    leaveFromCurrentChat() {
+        let chatId = this.chatClient.currentChatId;
+        if (!chatId) return;
+
+        this.hideSearchElems(); //Прячем поиск
+        this.loadedPages = new Set();
+        this.loadedMessageIds = new Set();
+
+        $('.sidebar').addClass('active');
+        $('.mobile__ponel').removeClass('d-none');
+        $('.chat-item').removeClass('active');
+        $(`.chat-item[data-chat-id="${chatId}"]`).remove();
+        $('#chatInfoModal').hide();
+
+        // Hide welcome screen and show chat window
+        $('#welcomeScreen').show();
+        $('#chatWindow').hide();
+        this.messagesList.html('');
+
+        this.chatClient.leaveCurrentChat();
+        this.updateOnlineStatus();
+    }
+
     async loadChatInfo(chatId) {
         // Find chat in current list
         const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
@@ -958,8 +983,9 @@ export default class ChatInterface {
         $.ajax({
             url: `/chats/${chatId}`,
             method: 'post',
-            success: (data) => {
-                this.setChatInfoModal(data, chatName, avatarSrc);
+            success: (chat) => {
+                this.setChatInfoModal(chat, chatName, avatarSrc);
+                this.chatClient.currentChatType = chat.type;
             },
         });
     }
