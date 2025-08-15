@@ -134,17 +134,6 @@ export default class ChatInterface {
             }
         });
 
-        //Обработчики кнопки удалить
-        document.querySelector('body').addEventListener('click', async (event) => {
-            // Проверяем, нажата ли кнопка удаления
-            if (event.target.matches('.chats__userlist-remove button')) {
-                event.preventDefault();
-
-                const userId = event.target.getAttribute('data-user-id');
-
-                await this.chatClient.removeUserFromCurrentChat(userId);
-            }
-        });
 
     }
 
@@ -338,58 +327,157 @@ export default class ChatInterface {
     }
 
     initChatInfoModal() {
-        $('#addParticipantSelect').select2({
-            dropdownParent: $('#chatInfoModal')
-        })
-            .on('change', function () {
-                const userId = $(this).val();
+        $('#addMembersSelect').select2({
+            dropdownParent: $('#chatInfoModal'),
+            theme: 'bootstrap-5',
+            placeholder: 'Выберите пользователя',
+            width: '100%',
+        });
 
-            });
-
-
-        $('body').on('click', '.remove-participant', (e) => {
-            const $participantItem = $(e.currentTarget).closest('.participant-item');
-            const userId = $participantItem.data('user-id');
+        // Удаление участника
+        this.setupDangerAction('.kick-member-btn', ($container, $button) => {
+            const $memberItem = $button.closest('.member-item');
+            const userId = $memberItem.data('member-id');
             const chatId = this.chatClient.currentChatId;
 
-            const $confirmDiv = $(`<div class="confirm-remove d-flex gap-2">
-                <button class="btn btn-sm btn-danger confirm-remove-btn">Вы уверены, что хотите исключить пользователя из чата?</button>
-                <button class="btn btn-sm btn-secondary cancel-remove-btn">Отмена</button>
-            </div>`);
+            this.chatClient.removeUser(chatId, userId)
+                .done(() => {
+                    $memberItem.remove();
+                    const memberCount = $(`#chat-${chatId} .member-item`).length;
+                    $('#memberCountBadge').text(memberCount);
+                })
+                .fail(() => alert('Ошибка при удалении участника'));
+        });
 
-            $confirmDiv.on('click', '.confirm-remove-btn', function () {
-                $.ajax({
-                    url: `/userChats/${chatId}/users/remove`,
-                    type: 'DELETE',
-                    data: {
-                        user_id: userId,
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        // Убираем участника из DOM
-                        $participantItem.remove();
+        // Выйти из чата
+        this.setupDangerAction('#leaveChatBtn', ($container) => {
+            const chatId = this.chatClient.currentChatId;
+            this.chatClient.leaveChat(chatId)
+                .done(() => {
+                    $container.closest('.chat-container').remove();
+                })
+                .fail(() => alert('Ошибка при выходе из чата'));
+        });
 
-                        // Тут эвент UserLeft должен отработать через бродкаст
-                        console.log(`User ${userId} removed from chat ${chatId}`);
-                    },
-                    error: function () {
-                        alert('Ошибка при удалении участника');
-                    }
-                });
+        // Удалить чат
+        this.setupDangerAction('#deleteChatBtn', ($container) => {
+            const chatId = this.chatClient.currentChatId;
+            this.chatClient.deleteChat(chatId)
+                .done(() => {
+                    $container.closest('.chat-container').remove();
+                })
+                .fail(() => alert('Ошибка при удалении чата'));
+        });
+
+
+        $('#showAddMemberBtn').on('click', (e) => {
+            const $button = $(e.currentTarget);
+            const $container = $button.closest('.members-add');
+            const $actions = $container.find('.member-select-actions');
+            const $selectContainer = $container.find('.members-select');
+            const $select = $container.find('.members-select select');
+
+            console.log($button, $container, $actions, $select);
+            // Скрываем основную кнопку
+            $button.addClass('d-none');
+            $selectContainer.removeClass('d-none');
+
+
+            // Вставляем кнопки подтверждения
+            const $actionButtons = $(`
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success confirm-btn add-member-btn" title="Добавить">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary confirm-btn cancel-add-btn" title="Отмена">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+            `);
+
+            $actions.html($actionButtons);
+
+            // Кнопка "Добавить"
+            $actionButtons.on('click', '.add-member-btn', () => {
+                const selectedId = $select.val(); // одно значение
+                if (!selectedId) {
+                    alert('Выберите пользователя');
+                    return;
+                }
+
+                // AJAX через ChatClient
+                this.chatClient.addUser(selectedId).done(() => {
+                    alert('Пользователь добавлен');
+                    $actions.empty();
+                    $button.removeClass('d-none');
+                    $selectContainer.addClass('d-none');
+
+                }).fail(() => alert('Ошибка при добавлении пользователя'));
             });
 
-            $participantItem.replaceWith($confirmDiv);
+            // Кнопка "Отмена"
+            $actionButtons.on('click', '.cancel-add-btn', () => {
+                $actions.empty();
+                $button.removeClass('d-none');
+                $selectContainer.addClass('d-none');
+            });
+        });
+    }
+
+    // Универсальный обработчик для любых опасных кнопок
+    setupDangerAction(selector, onConfirmCallback) {
+        // HTML блока подтверждения — один и тот же для всех
+        const CONFIRM_HTML = `
+                <div class="d-flex gap-2 confirm-block">
+                    <button class="btn btn-sm btn-danger kick-confirm-btn confirm-remove-btn" title="Подтвердить">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary kick-confirm-btn cancel-remove-btn" title="Отмена">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+        `;
+
+        $('body').on('click', selector, function() {
+            const $button = $(this);
+            const $container = $button.closest('.leave-chat, .delete-chat, .member-actions');
+
+            // Закрываем все уже открытые confirm-блоки
+            $('.confirm-block').each(function() {
+                const $existingConfirm = $(this);
+                const $parentContainer = $existingConfirm.parent();
+                $existingConfirm.remove();
+                $parentContainer.find('> button').removeClass('d-none'); // показываем скрытые кнопки
+            });
+
+            $button.addClass('d-none'); // скрываем основную кнопку
+
+            // Вставляем общий confirm блок
+            const $confirmDiv = $(CONFIRM_HTML);
+            $container.append($confirmDiv);
+
+            // Подтверждение
+            $confirmDiv.on('click', '.confirm-remove-btn', function() {
+                onConfirmCallback($container, $button);
+                $confirmDiv.remove();
+            });
+
+            // Отмена
+            $confirmDiv.on('click', '.cancel-remove-btn', function() {
+                $confirmDiv.remove();
+                $button.removeClass('d-none'); // возвращаем основную кнопку
+            });
         });
     }
 
     initPageFocusHandler() {
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                console.log('Вкладка снова активна — обновляем чат');
-                this.refreshChatsState();
-                this.refreshChatData();
-            }
-        });
+//        document.addEventListener('visibilitychange', () => {
+        //     if (document.visibilityState === 'visible') {
+        //         console.log('Вкладка снова активна — обновляем чат');
+        //         this.refreshChatsState();
+        //         this.refreshChatData();
+        //     }
+        // });
     }
 
     async refreshChatsState() {
@@ -436,15 +524,19 @@ export default class ChatInterface {
 
         if (chat.type === 'private') {
             $('.chat-add-user').addClass('d-none');
+            $('#leaveChatBtn').addClass('d-none');
+            $('#addMemberBtn').addClass('d-none');
         } else {
             $('.chat-add-user').removeClass('d-none');
+            $('#leaveChatBtn').removeClass('d-none');
+            $('#addMemberBtn').removeClass('d-none');
         }
 
-        this.loadMembers(chat.users);
+        this.loadMembers(chat.users, chat.type);
         this.loadAttachments(chat.attachments);
     }
 
-    loadMembers(members) {
+    loadMembers(members, chatType) {
         const membersList = $('#membersList');
         membersList.empty();
 
@@ -458,8 +550,10 @@ export default class ChatInterface {
             // Используем маппинг для красивого вывода роли
             const memberLabel = ChatInterface.UserRoleLabel[member.status] || member.status;
 
-            const showKickButton = currentUserStatus !== ChatInterface.UserRole.CLIENT &&
-                currentUserStatus !== ChatInterface.UserRole.VISUALIZER; // пример: кто может кикать
+            const showKickButton =
+                currentUserStatus !== ChatInterface.UserRole.CLIENT
+                && currentUserStatus !== ChatInterface.UserRole.VISUALIZER
+                && chatType !== 'private' //В личных чатах не показываем кнопки удаленя пользователей
 
 
             const memberHtml = `
@@ -473,10 +567,10 @@ export default class ChatInterface {
                     </div>
                 </div>
                 <div class="member-role ${member.status}">${memberLabel}</div>
+                 <div class="member-kick-confirm"></div>
                 <div class="member-actions">
                     ${showKickButton && member.status !== ChatInterface.UserRole.ADMIN ? `
-                        <button class="btn btn-sm btn-outline-danger kick-member-btn"
-                                data-member-id="${member.id}" data-member-name="${member.name}">
+                        <button class="btn btn-sm btn-outline-danger kick-member-btn">
                             <i class="fas fa-user-times"></i>
                         </button>
                     ` : ''}

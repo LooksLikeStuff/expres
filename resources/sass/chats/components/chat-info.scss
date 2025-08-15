@@ -1,8 +1,45 @@
 @import "../variables";
 
+
 #chatInfoModal {
     button {
+        margin: 0;
         min-height: auto;
+
+        i {
+            padding: 0;
+            margin: 0;
+        }
+
+
+        &.kick-confirm-btn {
+            min-width: auto;
+            min-height: auto;
+            max-width: 40px;
+            max-height: 40px;
+            background: transparent;
+
+            &.btn-danger {
+                color: #dc3545;
+            }
+            &.btn-primary {
+                color: #0d6efd;
+                border-color: #0d6efd;
+            }
+        }
+
+        &.confirm-btn {
+            background: transparent;
+
+            &.btn-success {
+                color: #198754;
+                border-color: #198754;
+            }
+        }
+
+        &.btn-light {
+            background: transparent;
+        }
     }
     &.show {
         transition: opacity 0.5s ease-in-out;
@@ -251,6 +288,12 @@
     margin-bottom: 2rem;
 }
 
+.members-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .members-list {
     .member-item {
         display: flex;
@@ -340,6 +383,11 @@
                 font-size: 0.75rem;
                 border-color: $danger;
                 color: $danger;
+                background: transparent;
+
+                i {
+                    margin: 0;
+                }
 
                 &:hover {
                     background: $danger;
@@ -347,6 +395,7 @@
                 }
             }
         }
+
     }
 }
 
@@ -419,6 +468,7 @@
         .btn {
             flex: 1;
             min-width: 150px;
+            margin: 0;
         }
     }
 }
@@ -695,6 +745,7 @@
         .btn {
             min-width: 100%;
         }
+
     }
 
     .attachment-item {
@@ -743,7 +794,6 @@
    .danger-actions {
        display: flex;
        align-items: center;
-       justify-content: space-between;
        gap: 10px;
    }
 }

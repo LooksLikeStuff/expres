@@ -43,12 +43,23 @@
                                         <span class="member-count" id="memberCountBadge">0</span>
                                     </h6>
 
-                                    @if($user->isStaff())
-                                        <button class="btn btn-sm btn-outline-light" id="addMemberBtn">
-                                            <i class="fas fa-user-plus me-1"></i>
-                                            Добавить
-                                        </button>
-                                    @endif
+                                    <div class="members-add">
+                                        <div class="members-select d-none">
+                                                <select class="form-select" id="addMembersSelect" name="user_id" aria-label="Выберите пользователя">
+                                                    @foreach($users as $member)
+                                                        <option value="{{$member->id}}">{{$member->name}}</option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="member-select-actions">
+                                                </div>
+                                            </div>
+                                        <div class="member-add-actions">
+                                            <button class="btn btn-light" id="showAddMemberBtn">
+                                                <i class="fas fa-user-plus me-1"></i>
+                                                Добавить
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="members-list" id="membersList">
@@ -60,14 +71,18 @@
                                 <!-- Опасная зона -->
                                 <div class="danger-zone">
                                     <div class="danger-actions">
-                                        <button class="btn btn-outline-danger" id="leaveChatBtn">
-                                            <i class="fas fa-sign-out-alt me-2"></i>
-                                            Покинуть чат
-                                        </button>
-                                        <button class="btn btn-danger" id="deleteChatBtn">
-                                            <i class="fas fa-trash me-2"></i>
-                                            Удалить чат
-                                        </button>
+                                        <div class="leave-chat">
+                                            <button class="btn btn-danger" id="leaveChatBtn">
+                                                <i class="fas fa-sign-out-alt me-2"></i>
+                                                Покинуть чат
+                                            </button>
+                                        </div>
+                                        <div class="delete-chat">
+                                            <button class="btn btn-danger" id="deleteChatBtn">
+                                                <i class="fas fa-trash me-2"></i>
+                                                Удалить чат
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             @endif

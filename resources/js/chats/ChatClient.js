@@ -212,27 +212,24 @@ export default class ChatClient {
         return parseInt(this.userId);
     }
 
-    async removeUserFromCurrentChat(userId) {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        const response = await fetch(`/userChats/${this.currentChatId}/users/remove`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                '_method': 'DELETE',
-            })
+    addUser(userId) {
+        return $.post(`/userChats/${this.currentChatId}/users/add`, {
+            user_id: userId,
         });
+    }
+    removeUser(userId) {
+        return $.post(`/userChats/${this.currentChatId}/users/remove`, {
+            user_id: userId,
+            _method: 'DELETE'
+        });
+    }
 
-        if (response.ok) {
-            const li = document.querySelector(`.chats__userlist-item[data-user-id="${userId}"]`);
-            if (li) li.remove();
-        } else {
-            console.error('Ошибка при удалении пользователя');
-        }
+    leaveChat(userId) {
+
+    }
+
+    deleteChat(chatId) {
+
     }
 
     observeReadReceipts(container) {
@@ -338,5 +335,10 @@ export default class ChatClient {
                 }
             }
         });
+    }
+
+
+    async leaveFromChat(chatId) {
+
     }
 }

@@ -16,7 +16,13 @@ class UserChatController extends Controller
 
     public function removeUserFromChat(int $chatId, RemoveUserFromChatRequest $request)
     {
-        $this->userChatService->removeUser($chatId, $request->validated('user_id'));
+        $result = $this->userChatService->removeUser($chatId, $request->validated('user_id'));
+    }
+
+
+    public function addUserToChat()
+    {
+
     }
 
 }

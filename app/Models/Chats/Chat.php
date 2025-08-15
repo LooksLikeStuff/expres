@@ -25,7 +25,8 @@ class Chat extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_chats');
+        return $this->belongsToMany(User::class, 'user_chats')
+            ->wherePivotNull('left_at');
     }
 
 
