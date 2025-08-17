@@ -1,6 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
+// 🔥 Инициализация Firebase в воркере
 firebase.initializeApp({
     apiKey: "AIzaSyBFrkGJgs8g3OzVCv-g1J8pCkZo-QLTZqY",
     authDomain: "mypersonal-38208.firebaseapp.com",
@@ -12,37 +13,44 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Обработчик фоновых сообщений
+messaging.onBackgroundMessage(function (payload) {
+    console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
+
+    const notificationTitle = payload.notification?.title || 'Новое уведомление';
+    const notificationOptions = {
+        body: payload.notification?.body || '',
+        icon: '/favicon.ico',
+    };
+
+    console.log('[firebase-messaging-sw.js] Заголовок:', notificationTitle);
+    console.log('[firebase-messaging-sw.js] Опции уведомления:', notificationOptions);
+
+    self.registration.showNotification(notificationTitle, notificationOptions)
+        .then(() => {
+            console.log('[firebase-messaging-sw.js] Уведомление показано успешно');
+        })
+        .catch(err => {
+            console.error('[firebase-messaging-sw.js] Ошибка показа уведомления:', err);
+        });
+});
+// Обработка клика по уведомлению
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
-
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
             for (const client of windowClients) {
-                // Если окно с нужным URL уже открыто, переключаемся на него
-                if (client.url === event.notification.click_action && 'focus' in client) {
+                if (client.url === event.notification.data.url && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // Иначе открываем новое окно с нужным URL
             if (clients.openWindow) {
-                return clients.openWindow(event.notification.click_action);
+                return clients.openWindow(event.notification.data.url);
             }
         })
     );
 });
 
-messaging.onBackgroundMessage(function(payload) {
-    console.log('[firebase-messaging-sw.js] Получено сообщение:', payload);
-
-    // const notificationTitle = payload.notification.title;
-    // const notificationOptions = {
-    //     body: payload.notification.body,
-    //     icon: '/img/chats/notification.png',
-    //     data: {
-    //         url: '/chats',
-    //     }
-    // };
-    //
-    // // 💡 ВАЖНО: Используем waitUntil, чтобы воркер дождался показа уведомления
-    // self.registration.showNotification(notificationTitle, notificationOptions);
-});
+// Авто-обновление воркера
+self.addEventListener('install', event => self.skipWaiting());
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));

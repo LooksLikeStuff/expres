@@ -40,66 +40,76 @@ export default class ChatClient {
         };
 
         const app = initializeApp(firebaseConfig);
-        getAnalytics(app);
-        const messaging = getMessaging(app);
+        this.messaging = getMessaging(app);
 
-        if ('serviceWorker' in navigator) {
-            try {
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-                console.log('Service Worker зарегистрирован');
+        if (!('serviceWorker' in navigator)) {
+            console.warn("Service Worker не поддерживается");
+            return;
+        }
 
-                Notification.requestPermission().then(async (permission) => {
-                    if (permission === 'granted') {
-                        try {
-                            const currentToken = await getToken(messaging, {
-                                vapidKey: 'BEgwA4ZZgZw5TABmL4ndYRgcXHpdvs0eAfQviId0ZzTVFVgE57T5UNCNPOxy-v60YlOjakP3XEUl6PwlWt9ovTI',
-                                serviceWorkerRegistration: registration // важно!
-                            });
+        try {
+            const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+            console.log("✅ Service Worker зарегистрирован");
 
-                            if (currentToken) {
-                                this.registerFirebaseToken(currentToken);
-                            } else {
-                                console.warn('Нет токена. Запроси разрешение на уведомления.');
-                            }
-                        } catch (err) {
-                            console.error('Ошибка при получении токена:', err);
-                        }
-                    } else {
-                        console.warn('Пользователь запретил уведомления:', permission);
-                    }
-                });
+            const permission = await Notification.requestPermission();
 
-                onMessage(messaging, (payload) => {
-                    console.log('Получено сообщение FCM:', payload);
-                    this.onFirebaseMessage(payload);
-                });
-            } catch (error) {
-                console.error('Ошибка регистрации Service Worker:', error);
+            if (permission !== "granted") {
+                console.warn("Пользователь запретил уведомления");
+                return;
             }
-        } else {
-            console.warn('Service Worker не поддерживается в этом браузере');
+
+            // --- Получаем токен
+            await this.updateToken(registration);
+
+            // --- Слушаем сообщения в активной вкладке
+            onMessage(this.messaging, (payload) => {
+                console.log("📩 Получено сообщение в активной вкладке:", payload);
+                this.onFirebaseMessage(payload);
+            });
+
+        } catch (error) {
+            console.error("Ошибка инициализации Firebase:", error);
         }
     }
 
+    // --- Получение/обновление токена
+    async updateToken(registration) {
+        try {
+            const token = await getToken(this.messaging, {
+                vapidKey: "BEgwA4ZZgZw5TABmL4ndYRgcXHpdvs0eAfQviId0ZzTVFVgE57T5UNCNPOxy-v60YlOjakP3XEUl6PwlWt9ovTI",
+                serviceWorkerRegistration: registration,
+            });
 
+            if (token) {
+                console.log("🔥 FCM токен:", token);
+                await this.registerFirebaseToken(token);
+            } else {
+                console.warn("⚠️ Не удалось получить токен");
+            }
+        } catch (err) {
+            console.error("Ошибка при получении токена:", err);
+        }
+    }
+
+    // --- Отправляем токен на сервер
     async registerFirebaseToken(fcmToken) {
         try {
-            const response = await fetch('/fcm/register', {
-                method: 'POST',
+            const response = await fetch("/fcm/register", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
                 },
                 body: JSON.stringify({ token: fcmToken }),
             });
 
-            // if (!response.ok) {
-            //     console.error('Ошибка регистрации FCM токена:', response.status, await response.text());
-            // } else {
-            //     console.log('FCM токен успешно зарегистрирован');
-            // }
+            if (!response.ok) {
+                console.error("Ошибка регистрации FCM токена:", response.status);
+            } else {
+                console.log("✅ FCM токен сохранён на сервере");
+            }
         } catch (error) {
-            console.error('Ошибка при регистрации FCM токена:', error);
+            console.error("Ошибка при отправке токена на сервер:", error);
         }
     }
 
