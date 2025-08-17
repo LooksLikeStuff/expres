@@ -71,7 +71,7 @@ services:
             - '${FORWARD_RABBITMQ_PORT:-5672}:5672'
             - '${FORWARD_RABBITMQ_DASHBOARD_PORT:-15672}:15672'
         environment:
-            RABBITMQ_HOST: '%{RABBITMQ_HOST}'
+            RABBITMQ_HOST: '${RABBITMQ_HOST}'
             RABBITMQ_USER: '${RABBITMQ_USER}'
             RABBITMQ_PASSWORD: '${RABBITMQ_PASSWORD}'
             RABBITMQ_VHOST: '${RABBITMQ_VHOST}'
