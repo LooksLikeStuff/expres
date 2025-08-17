@@ -28,7 +28,7 @@ export default class ChatClient {
         this.currentUserStatus = $('#userStatus').val();
     }
 
-    initFirebase() {
+    async initFirebase() {
         const firebaseConfig = {
             apiKey: "AIzaSyBFrkGJgs8g3OzVCv-g1J8pCkZo-QLTZqY",
             authDomain: "mypersonal-38208.firebaseapp.com",
@@ -43,30 +43,42 @@ export default class ChatClient {
         getAnalytics(app);
         const messaging = getMessaging(app);
 
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                getToken(messaging, {
-                    vapidKey: 'BEgwA4ZZgZw5TABmL4ndYRgcXHpdvs0eAfQviId0ZzTVFVgE57T5UNCNPOxy-v60YlOjakP3XEUl6PwlWt9ovTI'
-                }).then((currentToken) => {
-                    if (currentToken) {
-                        this.registerFirebaseToken(currentToken);
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('Service Worker зарегистрирован');
+
+                Notification.requestPermission().then(async (permission) => {
+                    if (permission === 'granted') {
+                        try {
+                            const currentToken = await getToken(messaging, {
+                                vapidKey: 'BEgwA4ZZgZw5TABmL4ndYRgcXHpdvs0eAfQviId0ZzTVFVgE57T5UNCNPOxy-v60YlOjakP3XEUl6PwlWt9ovTI',
+                                serviceWorkerRegistration: registration // важно!
+                            });
+
+                            if (currentToken) {
+                                this.registerFirebaseToken(currentToken);
+                            } else {
+                                console.warn('Нет токена. Запроси разрешение на уведомления.');
+                            }
+                        } catch (err) {
+                            console.error('Ошибка при получении токена:', err);
+                        }
                     } else {
-                        console.warn('Нет токена. Запроси разрешение на уведомления.');
+                        console.warn('Пользователь запретил уведомления:', permission);
                     }
-                }).catch((err) => {
-                    console.error('Ошибка при получении токена:', err);
                 });
-            } else {
-                console.warn('Пользователь запретил уведомления:', permission);
+
+                onMessage(messaging, (payload) => {
+                    console.log('Получено сообщение FCM:', payload);
+                    this.onFirebaseMessage(payload);
+                });
+            } catch (error) {
+                console.error('Ошибка регистрации Service Worker:', error);
             }
-        });
-
-
-        onMessage(messaging, (payload) => {
-            console.log(payload);
-            this.onFirebaseMessage(payload);
-        });
-
+        } else {
+            console.warn('Service Worker не поддерживается в этом браузере');
+        }
     }
 
 
