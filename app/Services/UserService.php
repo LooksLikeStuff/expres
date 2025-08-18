@@ -48,4 +48,10 @@ class UserService
     {
         return User::select(['id', 'name'])->get();
     }
+
+    public function getByClientPhone(string $phone): ?User
+    {
+        return User::where('phone', $phone)
+            ->firstOrFail();
+    }
 }

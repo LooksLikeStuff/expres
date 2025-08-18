@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Chats\Chat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,6 +26,7 @@ class Deal extends Model
     ];
 
     protected $fillable = [
+        'chat_id',
         'common_id',
         'commercial_id',
         'client_name',
@@ -151,6 +153,11 @@ class Deal extends Model
         'deleted_designer_id',
         'deleted_visualizer_id',
     ];
+
+    public function chat()
+    {
+        return $this->belongsTo(Chat::class);
+    }
 
     // Отношение к пользователю (клиенту)
     public function user()
@@ -592,8 +599,6 @@ class Deal extends Model
 
     public function getMemberIds(): array
     {
-        $ids = [];
-
         // Ролевые ID
         $ids[] = $this->user_id;
         $ids[] = $this->architect_id;

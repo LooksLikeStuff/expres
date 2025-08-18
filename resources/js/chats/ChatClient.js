@@ -63,7 +63,7 @@ export default class ChatClient {
 
             // --- Слушаем сообщения в активной вкладке
             onMessage(this.messaging, (payload) => {
-                console.log("📩 Получено сообщение в активной вкладке:", payload);
+                //console.log("📩 Получено сообщение в активной вкладке:", payload);
                 this.onFirebaseMessage(payload);
             });
 
@@ -81,7 +81,7 @@ export default class ChatClient {
             });
 
             if (token) {
-                console.log("🔥 FCM токен:", token);
+                //console.log("🔥 FCM токен:", token);
                 await this.registerFirebaseToken(token);
             } else {
                 console.warn("⚠️ Не удалось получить токен");
@@ -146,8 +146,7 @@ export default class ChatClient {
             .listenForWhisper('typing', (e) => {
                 if (parseInt(e.user_id) === this.getUserId()) return;
                 callback('typing', e);
-            })
-        ;
+            });
     }
 
     joinGlobalChannel(callback) {
