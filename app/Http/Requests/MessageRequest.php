@@ -23,7 +23,7 @@ class MessageRequest extends FormRequest
     {
         return [
             'chat_id' => 'required|integer',
-            'content' => 'required|string',
+            'content' => 'required_without:attachments|nullable|string',
             'reply_to_id' => 'nullable|integer,exists:messages,id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240',

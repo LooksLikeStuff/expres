@@ -75,14 +75,14 @@ class SendMessagePushNotificationJob implements ShouldQueue
                                 'token' => $token->token,
                                 'notification' => [
                                     'title' => 'Новое сообщение от - ' . $sender->name,
-                                    'body' => $this->message->content,
+                                    'body' => $this->message->getContentForFront(),
                                     'image' => asset('img/chats/notification.png'),
                                 ],
                                 'data' => [
                                     'chat_id' => (string)$chat->id,
                                     'unread_count' => (string)$chat->unreadCountForUser($user->id),
                                     'formatted_time' => (string)$this->message->formatted_time,
-                                    'body' => $this->message->content,
+                                    'body' => $this->message->getContentForFront(),
                                 ],
                                 'android' => [
                                     'priority' => 'high',

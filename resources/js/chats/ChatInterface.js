@@ -38,6 +38,8 @@ export default class ChatInterface {
         this.messagesContainer = $('.messages-container');
         this.messagesList = $('#messagesList');
         this.messageInput = $('#messageInput');
+        this.messageSending = false;
+
         //Файлы вложения
         this.attachPreviewContainer = document.getElementById('attach__container')
         this.attachInput = $('#fileInput');
@@ -110,13 +112,33 @@ export default class ChatInterface {
 
 
         $('#sendBtn').click(async () => {
+            // Если уже идёт отправка — игнорируем клик
+            if (this.messageSending) return;
+
             const content = this.getMessageContent();
-            if (content) {
-                await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.selectedFiles);
-                this.messageInput.val('');
-                this.clearAllFiles();
+
+            if (content || this.selectedFiles.length > 0) {
+                this.messageSending = true;
+                $('#sendBtn').prop('disabled', true);
+
+                try {
+                    await this.chatClient.sendMessage(
+                        this.chatClient.currentChatId,
+                        content,
+                        this.selectedFiles
+                    );
+
+                    this.messageInput.val('');
+                    this.clearAllFiles();
+                } catch (err) {
+                    console.error('Ошибка отправки:', err);
+                } finally {
+                    this.messageSending = false;
+                    $('#sendBtn').prop('disabled', false);
+                    this.messageInput.focus();
+                }
             }
-        });
+        });;
 
         this.messageInput.on('input', () => this.chatClient.sendTypingEvent());
 
@@ -126,11 +148,31 @@ export default class ChatInterface {
             if (e.which === 13 && !e.shiftKey) {
                 e.preventDefault();
 
+                // если уже идёт отправка — игнорируем Enter
+                if (this.messageSending) return;
+
                 const content = this.messageInput.val().trim();
-                if (content) {
-                    await this.chatClient.sendMessage(this.chatClient.currentChatId, content, this.selectedFiles);
-                    this.messageInput.val('');
-                    this.clearAllFiles();
+
+                if (content || this.selectedFiles.length > 0) {
+                    this.messageSending = true;
+                    $('#sendBtn').prop('disabled', true);
+
+                    try {
+                        await this.chatClient.sendMessage(
+                            this.chatClient.currentChatId,
+                            content,
+                            this.selectedFiles
+                        );
+
+                        this.messageInput.val('');
+                        this.clearAllFiles();
+                    } catch (err) {
+                        console.error('Ошибка отправки:', err);
+                    } finally {
+                        this.messageSending = false;
+                        $('#sendBtn').prop('disabled', false);
+                        this.messageInput.focus();
+                    }
                 }
             }
         });

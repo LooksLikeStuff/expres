@@ -10,7 +10,7 @@ class MessageDTO
     public function __construct(
         public readonly int $senderId,
         public readonly int $chatId,
-        public readonly string $content,
+        public readonly ?string $content,
         public readonly MessageType $type,
         public readonly ?int $replyToId,
     )

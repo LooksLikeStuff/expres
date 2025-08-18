@@ -41,7 +41,7 @@ class MessageSent implements ShouldBroadcast
 
         return [
             'id' => $this->message->id,
-            'content' => $this->message->content,
+            'content' => $this->message->getContentForFront(),
             'attachments' => $this->message->attachments,
             'type' => $this->message->type->value,
             'sender_id' => $this->message->sender_id,

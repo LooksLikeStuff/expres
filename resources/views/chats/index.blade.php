@@ -135,7 +135,7 @@
                                         <span class="chat-item-time">{{ $chat->lastMessage?->formatted_time }}</span>
                                     </div>
                                     <div class="chat-item-footer">
-                                        <p class="chat-item-message">{{ $chat->lastMessage?->content }}</p>
+                                        <p class="chat-item-message">{{ $chat->lastMessage ? $chat->lastMessage->getContentForFront() : ''}}</p>
                                         <div class="chat-item-badges">
                                             @if ($chat->unread_count > 0)
                                                 <span class="unread-count">{{ $chat->unread_count }}</span>

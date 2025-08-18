@@ -122,4 +122,16 @@ class Message extends Model
             $this->update(['read_at' => now()]);
         }
     }
+
+    public function getContentForFront(): string
+    {
+        if ($this->content) return $this->content;
+
+        return 'Файлы: '. $this->getAttachmentsCount();
+    }
+
+    public function getAttachmentsCount(): int
+    {
+        return $this->attachments()->count();
+    }
 }
