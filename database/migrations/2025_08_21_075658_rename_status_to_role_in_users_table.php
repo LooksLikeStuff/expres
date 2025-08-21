@@ -12,11 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-//            $table->boolean('is_online')->default(false)->after('firebase_token');
-//            $table->timestamp('last_seen_at')->nullable()->after('is_online');
-//
-//            $table->index('is_online');
-//            $table->index('last_seen_at');
+            //
         });
     }
 
@@ -26,9 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex(['is_online']);
-            $table->dropIndex(['last_seen_at']);
-            $table->dropColumn(['is_online', 'last_seen_at']);
+            //
         });
     }
 };

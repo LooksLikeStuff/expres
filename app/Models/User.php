@@ -268,11 +268,6 @@ class User extends Authenticatable
             ->wherePivot('role', 'coordinator');
     }
 
-    public function tokens()
-    {
-        return $this->hasMany(UserToken::class);
-    }
-
     /**
      * Сообщения, отправленные пользователем
      */

@@ -2,8 +2,10 @@
 namespace App\Providers;
 use App\Models\Chats\Message;
 use App\Models\Deal;
+use App\Models\User;
 use App\Observers\DealObserver;
 use App\Observers\MessageObserver;
+use App\Observers\UserObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;

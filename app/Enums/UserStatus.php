@@ -10,7 +10,7 @@ enum UserStatus: string
     case ARCHITECT = 'architect';
     case DESIGNER = 'designer';
     case VISUALIZER = 'visualizer';
-    case CLIENT = 'user';
+    case CLIENT = 'client';
 
     public function label(): string
     {

@@ -1619,7 +1619,6 @@ export default class ChatInterface {
             this.downloadFile(url);
         });
     }
-
     downloadFile(url) {
         const a = document.createElement('a');
         a.href = url;
