@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('title');
             $table->text('description');
-            $table->string('status')->default(\App\Enums\BriefStatus::DRAFT->value);
+            $table->string('status')->default(\App\Enums\Briefs\BriefStatus::DRAFT->value);
 
             $table->foreignId('user_id')
                 ->constrained('users')

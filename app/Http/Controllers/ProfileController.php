@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -31,7 +31,7 @@ class ProfileController extends Controller
     // 2. Просмотр профиля другого пользователя
     /**
      * Отображает профиль указанного пользователя
-     * 
+     *
      * @param int $id ID пользователя для просмотра
      * @return \Illuminate\View\View
      */
@@ -39,27 +39,27 @@ class ProfileController extends Controller
     {
         // Найти пользователя по ID
         $target = \App\Models\User::findOrFail($id);
-        
+
         // Получаем текущего пользователя (тот, кто просматривает профиль)
         $viewer = auth()->user();
-        
+
         // Получаем дополнительную информацию о рейтинге и проектах, если это специалист
         if (in_array($target->status, ['architect', 'designer', 'executor', 'coordinator', 'visualizer'])) {
             // Количество активных проектов
             $target->active_projects_count = $target->deals()->whereNotIn('status', ['Проект готов', 'Проект завершен'])->count();
-            
+
             // Количество завершенных проектов
             $target->completed_projects_count = $target->deals()->whereIn('status', ['Проект готов', 'Проект завершен'])->count();
-            
+
             // Средний рейтинг (если у пользователя еще нет свойства rating)
             if (!isset($target->rating)) {
                 $target->rating = $target->receivedRatings()->avg('score') ?: 0;
             }
         }
-        
+
         // Установить заголовок страницы
         $title_site = "Профиль пользователя {$target->name} | Личный кабинет";
-        
+
         // Передать данные в представление (добавляем $viewer)
         return view('profile_view', compact('target', 'title_site', 'viewer'));
     }
@@ -73,20 +73,20 @@ class ProfileController extends Controller
         if ($viewer->id === $target->id) {
             return true;
         }
-    
+
         $viewerStatus = strtolower(trim($viewer->status));
         $targetStatus = strtolower(trim($target->status));
-    
+
         if (in_array($viewerStatus, ['admin', 'coordinator'])) {
             return true;
         }
-        
+
         // Исполнители не могут просматривать другие профили исполнителей
         $executorStatuses = ['architect', 'designer', 'executor', 'visualizer'];
         if (in_array($viewerStatus, $executorStatuses) && in_array($targetStatus, $executorStatuses)) {
             return false;
         }
-    
+
         switch ($viewerStatus) {
             case 'user':
                 return in_array($targetStatus, ['partner', 'coordinator', 'architect', 'designer', 'executor', 'visualizer']);
@@ -111,7 +111,7 @@ class ProfileController extends Controller
 
         $user = Auth::user();
         $rawPhone = preg_replace('/\D/', '', $request->input('phone'));
-        
+
         // Проверка правильности номера телефона
         if (strlen($rawPhone) < 10) {
             Log::error('Неверный формат номера телефона', ['phone' => $rawPhone, 'user_id' => $user->id]);
@@ -120,12 +120,12 @@ class ProfileController extends Controller
                 'message' => 'Неверный формат номера телефона.'
             ]);
         }
-        
-        $formattedPhone = '+7 (' . substr($rawPhone, 1, 3) . ') ' 
-                         . substr($rawPhone, 4, 3) 
-                         . '-' 
-                         . substr($rawPhone, 7, 2) 
-                         . '-' 
+
+        $formattedPhone = '+7 (' . substr($rawPhone, 1, 3) . ') '
+                         . substr($rawPhone, 4, 3)
+                         . '-'
+                         . substr($rawPhone, 7, 2)
+                         . '-'
                          . substr($rawPhone, 9);
 
         $verificationCode = rand(1000, 9999);
@@ -157,7 +157,7 @@ class ProfileController extends Controller
                     'response' => $response->body(),
                     'status' => $response->status()
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Ошибка при отправке SMS.'
@@ -168,7 +168,7 @@ class ProfileController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка при отправке SMS: ' . $e->getMessage()
@@ -184,12 +184,12 @@ class ProfileController extends Controller
                     'verification_code_expires_at' => now()->addMinutes(10),
                     'temp_phone' => $rawPhone // Сохраняем во временное поле
                 ]);
-                
+
             Log::info('Верификационный код успешно сохранен в БД', [
                 'user_id' => $user->id,
                 'verification_code' => $verificationCode
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Код подтверждения отправлен.',
@@ -201,7 +201,7 @@ class ProfileController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при сохранении данных: ' . $e->getMessage()
@@ -220,12 +220,12 @@ class ProfileController extends Controller
         $user = Auth::user();
         $verificationCode = $request->input('verification_code');
 
-        if ($user->verification_code == $verificationCode 
-            && now()->lessThanOrEqualTo($user->verification_code_expires_at)) 
+        if ($user->verification_code == $verificationCode
+            && now()->lessThanOrEqualTo($user->verification_code_expires_at))
         {
             // Получаем сохраненный временный номер телефона
             $rawPhone = $user->temp_phone ?: preg_replace('/\D/', '', $request->input('phone'));
-            
+
             $formattedPhone = '+7 (' . substr($rawPhone, 1, 3) . ') '
                             . substr($rawPhone, 4, 3) . '-'
                             . substr($rawPhone, 7, 2) . '-'
@@ -238,7 +238,7 @@ class ProfileController extends Controller
             $user->save();
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Номер телефона успешно обновлен.'
             ]);
         }
@@ -283,7 +283,7 @@ class ProfileController extends Controller
                 'user_id' => $user->id,
                 'exception' => $e
             ]);
-            
+
             return back()->with('error', 'Не удалось обновить аватар: ' . $e->getMessage());
         }
     }
@@ -299,9 +299,9 @@ class ProfileController extends Controller
             $request->validate([
                 'password' => 'required',
             ]);
-            
+
             $user = Auth::user();
-            
+
             // Проверка пароля перед удалением
             if (!Hash::check($request->password, $user->password)) {
                 return redirect()
@@ -309,29 +309,29 @@ class ProfileController extends Controller
                     ->with('error', 'Неверный пароль. Аккаунт не был удален.');
             }
         }
-        
+
         $user = Auth::user();
-        
+
         // Проверяем, является ли аккаунт тестовым по номеру телефона
         $testPhone = '+7 (000) 000-00-01';
         if ($user->phone === $testPhone || preg_replace('/\D/', '', $user->phone) === '70000000001') {
             // Для тестового аккаунта только завершаем сессию, но не удаляем аккаунт
             \Log::info("Попытка удаления тестового аккаунта ID:{$user->id} ({$user->email}) - аккаунт сохранен.");
-            
+
             // Выходим из системы
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            
+
             // Перенаправляем на страницу логина с информационным сообщением
             return redirect()->route('login.password')
                 ->with('success', 'Вы вышли из системы. Тестовый аккаунт не может быть удален.');
         }
-        
+
         try {
             // Начинаем транзакцию для безопасного обновления всех связанных записей
             \DB::beginTransaction();
-            
+
             // Сохраняем данные пользователя перед удалением для использования в сделках
             $userData = [
                 'id' => $user->id,
@@ -339,7 +339,7 @@ class ProfileController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone
             ];
-            
+
             // Обновляем брифы - сохраняем ID удаляемого пользователя
             \DB::table('commons')
                 ->where('user_id', $user->id)
@@ -347,14 +347,14 @@ class ProfileController extends Controller
                     'user_id_before_deletion' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             \DB::table('commercials')
                 ->where('user_id', $user->id)
                 ->update([
                     'user_id_before_deletion' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Обновляем сделки, где пользователь был основным владельцем
             \DB::table('deals')
                 ->where('user_id', $user->id)
@@ -365,7 +365,7 @@ class ProfileController extends Controller
                     'deleted_user_phone' => $userData['phone'],
                     'updated_at' => now(),
                 ]);
-                
+
             // Обновляем сделки, где пользователь был в разных ролях
             \DB::table('deals')
                 ->where('coordinator_id', $user->id)
@@ -373,47 +373,47 @@ class ProfileController extends Controller
                     'deleted_coordinator_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             \DB::table('deals')
                 ->where('architect_id', $user->id)
                 ->update([
                     'deleted_architect_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             \DB::table('deals')
                 ->where('designer_id', $user->id)
                 ->update([
                     'deleted_designer_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             \DB::table('deals')
                 ->where('visualizer_id', $user->id)
                 ->update([
                     'deleted_visualizer_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Сохраняем информацию об удаленном пользователе в pivot-таблицу
-            \DB::table('deal_user')
+            \DB::table('deal_users')
                 ->where('user_id', $user->id)
                 ->update([
                     'deleted_user_data' => json_encode($userData),
                     'updated_at' => now(),
                 ]);
-            
+
             // Логируем удаление аккаунта для аудита
             \Log::info("Пользователь ID:{$user->id} ({$user->email}) удалил свой аккаунт");
-            
+
             // Мягкое удаление пользователя
             $user->delete();
-            
+
             \DB::commit();
-            
+
             // Выходим из системы
             Auth::logout();
-            
+
             // Перенаправляем на страницу логина с сообщением об успехе
             return redirect()->route('login.password')
                 ->with('success', 'Ваш аккаунт был успешно удален. Все ваши проекты сохранены в системе.');
@@ -423,7 +423,7 @@ class ProfileController extends Controller
                 'user_id' => $user->id,
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()->back()
                 ->with('error', 'Произошла ошибка при удалении аккаунта. Пожалуйста, попробуйте позже или обратитесь в поддержку.');
         }
@@ -442,16 +442,16 @@ class ProfileController extends Controller
             $user->save();
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Пароль успешно изменен!'
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка валидации: ' . implode(', ', $e->errors())
             ], 422);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при смене пароля: ' . $e->getMessage());
             return response()->json([
@@ -483,16 +483,16 @@ class ProfileController extends Controller
             $user->save();
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Данные успешно обновлены!'
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка валидации: ' . implode(', ', $e->errors())
             ], 422);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при обновлении профиля: ' . $е->getMessage());
             return response()->json([
@@ -508,10 +508,10 @@ class ProfileController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Отменяем проверку политики authorization, которая может вызывать ошибку
             // $this->authorize('update', $user);
-            
+
             // Общие правила валидации
             $rules = [
                 'name'         => 'nullable|string|max:255',
@@ -553,7 +553,7 @@ class ProfileController extends Controller
                     $user->$field = $request->$field;
                 }
             }
-            
+
             if ($request->filled('new_password')) {
                 $user->password = Hash::make($request->new_password);
             }
@@ -587,20 +587,20 @@ class ProfileController extends Controller
                 'success' => true,
                 'message' => 'Данные успешно обновлены!'
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Ошибка валидации при обновлении профиля', [
                 'errors' => $e->errors(),
                 'user_id' => Auth::id()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка валидации: ' . implode(', ', array_map(function($errors) {
                     return implode(', ', $errors);
                 }, $e->errors()))
             ], 422);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при обновлении профиля: ' . $е->getMessage(), [
                 'exception' => get_class($e),
@@ -609,7 +609,7 @@ class ProfileController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при обновлении профиля: ' . $е->getMessage(),
@@ -617,7 +617,7 @@ class ProfileController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Обновление полей для партнера
      */
@@ -659,7 +659,7 @@ class ProfileController extends Controller
 
     /**
      * Обновление профиля пользователя администратором
-     * 
+     *
      * @param Request $request
      * @param int $id ID пользователя для обновления
      * @return \Illuminate\Http\JsonResponse
@@ -674,10 +674,10 @@ class ProfileController extends Controller
                     'message' => 'У вас нет прав для выполнения этого действия'
                 ], status: 403);
             }
-            
+
             // Находим пользователя
             $user = User::findOrFail($id);
-            
+
             // Общие правила валидации
             $rules = [
                 'name'         => 'nullable|string|max:255',
@@ -713,29 +713,29 @@ class ProfileController extends Controller
                     $user->$field = $request->$field;
                 }
             }
-            
+
             // Обновляем статус пользователя
             if ($request->filled('status') && $request->status !== $user->status) {
                 $user->status = $request->status;
             }
-            
+
             // Обновляем дополнительные поля в зависимости от статуса
             if ($request->filled('portfolio_link')) {
                 $user->portfolio_link = $request->portfolio_link;
             }
-            
+
             if ($request->filled('contract_number')) {
                 $user->contract_number = $request->contract_number;
             }
-            
+
             if ($request->filled('comment')) {
                 $user->comment = $request->comment;
             }
-            
+
             if ($request->filled('active_projects_count')) {
                 $user->active_projects_count = $request->active_projects_count;
             }
-            
+
             // Изменение пароля (если указан)
             if ($request->filled('new_password')) {
                 $user->password = Hash::make($request->new_password);
@@ -753,21 +753,21 @@ class ProfileController extends Controller
                 'success' => true,
                 'message' => 'Профиль пользователя успешно обновлен'
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Ошибка валидации при обновлении профиля пользователя администратором', [
                 'errors' => $e->errors(),
                 'admin_id' => Auth::id(),
                 'user_id' => $id
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка валидации: ' . implode(', ', array_map(function($errors) {
                     return implode(', ', $errors);
                 }, $e->errors()))
             ], 422);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при обновлении профиля пользователя администратором: ' . $e->getMessage(), [
                 'exception' => get_class($e),
@@ -777,7 +777,7 @@ class ProfileController extends Controller
                 'admin_id' => Auth::id(),
                 'user_id' => $id
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при обновлении профиля пользователя: ' . $e->getMessage(),

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Briefs\BriefController;
 use App\Http\Controllers\Chats\FCMTokenController;
 use App\Http\Controllers\Chats\MessageController;
 use App\Http\Controllers\Chats\ReadReceiptController;
@@ -310,9 +311,7 @@ Route::get('/cities.json', function () {
 
     // Если файла нет, вернём пустой массив
     return response()->json([]);
-});if (app()->environment('production')) {
-    URL::forceScheme('https');
-}
+});
 
 // Маршруты для работы с брифами в сделках
 Route::post('/find-briefs-by-user-id', [App\Http\Controllers\DealsController::class, 'findBriefsByUserId'])->middleware('auth');
@@ -346,6 +345,8 @@ Route::get('/test/document-system', function () {
 
 
 
+
+Route::resource('briefs', BriefController::class);
 
 //Chats
 Route::middleware('auth')->group(function () {

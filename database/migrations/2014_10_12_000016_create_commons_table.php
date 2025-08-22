@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->string('title', 255);
             $table->text('description');
-            $table->string('status')->default(\App\Enums\BriefStatus::DRAFT);
+            $table->string('status')->default(\App\Enums\Briefs\BriefStatus::DRAFT);
             $table->string('edit_status', 255)->nullable();
 
             $table->string('article', 15)->nullable();

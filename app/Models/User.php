@@ -182,7 +182,7 @@ class User extends Authenticatable
      */
     public function deals()
     {
-        return $this->belongsToMany(Deal::class, 'deal_user')
+        return $this->belongsToMany(Deal::class, 'deal_users')
             ->withPivot('role')
             ->withTimestamps();
     }
@@ -263,7 +263,7 @@ class User extends Authenticatable
 
     public function coordinatorDeals()
     {
-        return $this->belongsToMany(Deal::class, 'deal_user')
+        return $this->belongsToMany(Deal::class, 'deal_users')
             ->withPivot('role')
             ->wherePivot('role', 'coordinator');
     }
@@ -385,30 +385,6 @@ class User extends Authenticatable
             ->count();
     }
 
-    /**
-     * Проверяет, находится ли пользователь в сети
-     * Пользователь считается онлайн, если был активен за последние 5 минут
-     *
-     * @return bool
-     */
-    public function isOnline()
-    {
-        if (!$this->last_seen_at) {
-            return false;
-        }
-
-        // Считаем пользователя онлайн, если он был активен в последние 5 минут
-        return $this->last_seen_at->gt(now()->subMinutes(5));
-    }
-
-    /**
-     * Обновляет время последней активности пользователя
-     */
-    public function updateLastSeen()
-    {
-        $this->last_seen_at = now();
-        $this->save();
-    }
 
     /**
      * Оценки, полученные пользователем
@@ -501,7 +477,7 @@ class User extends Authenticatable
     public function awards()
     {
         return $this->belongsToMany(Award::class, 'user_awards')
-            ->withPivot('awarded_by', 'comment', 'awarded_at')
+            ->withPivot('awarded_by_id', 'comment', 'awarded_at')
             ->withTimestamps();
     }
 

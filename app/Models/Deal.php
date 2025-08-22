@@ -239,7 +239,7 @@ class Deal extends Model
 
     public function responsibles()
     {
-        return $this->belongsToMany(User::class, 'deal_user');
+        return $this->belongsToMany(User::class, 'deal_users');
     }
 
     public function allUsers()

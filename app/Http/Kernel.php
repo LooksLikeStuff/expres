@@ -32,7 +32,6 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\UpdateUserLastSeen::class, // Добавляем обновление статуса пользователя
         ],
         'api' => [
             \App\Http\Middleware\EncryptCookies::class,
@@ -54,7 +53,6 @@ class Kernel extends HttpKernel
         'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
         'status' => \App\Http\Middleware\CheckUserStatus::class,
         'check.chat.access' => \App\Http\Middleware\CheckChatAccess::class,
-        'update.last.seen' => \App\Http\Middleware\UpdateUserLastSeen::class,
     ];
 
 
