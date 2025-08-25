@@ -1,4 +1,6 @@
+@section('title', 'Страница входа по коду в Личный кабинет Экспресс-дизайн')
 @extends('layouts.auth')
+
 @section('content')
 <div class="container-auth">
     <div class="auth__body flex center">
@@ -10,14 +12,14 @@
                 @csrf
                 <div id="phone-section">
                     <label for="phone">
-                        
+
                         <input type="phone" name="phone" id="phone" class="form-control maskphone" placeholder="Введите телефон" value="{{ old('phone') }}"  maxlength="50" required>
                         <div id="phone-error" class="error-message"></div>
                     </label>
                     <button type="button" id="send-code-btn" class="btn btn-primary">Получить код</button>
                     <ul class="auth__form__link">
-                       
-                        <li class="politic__info" style="text-align: center">Нажимая кнопку «Получить код», вы принимаете 
+
+                        <li class="politic__info" style="text-align: center">Нажимая кнопку «Получить код», вы принимаете
                  <a href=""> условия пользовательского соглашения</a></li>
                     </ul>
                 </div>
@@ -28,7 +30,7 @@
                         @endfor
                     </div>
                     <input type="hidden" name="code" id="code" value="">
-                    <div id="code-error" class="error-message"></div> 
+                    <div id="code-error" class="error-message"></div>
                     <div class="code-section-link">
                         <a href="#" id="resend-code-link" class="disabled-link">Отправить код повторно</a>
                         <p id="resend-timer" style="display: none;">Получить код повторно можно через <span id="resend-countdown">60</span> секунд.</p>
@@ -38,7 +40,7 @@
             <ul class="auth__form__link">
                 <li class="else__auth">---------- или ----------</li>
                 <li><a href="{{ route('login.password') }}">Войти с паролем</a></li>
-          
+
                 <li><a href="{{ route('register') }}">Регистрация</a></li>
             </ul>
         </div>
@@ -50,7 +52,7 @@
         display: flex;
         gap: 5px;
     }
-  
+
     .error-message {
         color: red;
         font-size: 0.875rem;
@@ -76,7 +78,7 @@
             phoneError.textContent = 'Введите номер телефона!';
             return Promise.reject('Номер телефона отсутствует.');
         }
-        phoneError.textContent = '';  
+        phoneError.textContent = '';
         return fetch("{{ route('send.code') }}", {
             method: "POST",
             headers: {
@@ -113,7 +115,7 @@
     resendLink.addEventListener('click', function (e) {
         e.preventDefault();
         if (resendLink.classList.contains('disabled-link')) {
-            return; 
+            return;
         }
         const phone = document.getElementById('phone').value;
         sendCode(phone)

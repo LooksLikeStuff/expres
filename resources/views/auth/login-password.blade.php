@@ -1,3 +1,5 @@
+@section('title', 'Страница входа по паролю в Личный кабинет Экспресс-дизайн')
+
 @extends('layouts.auth')
 @section('content')
 <div class="container-auth">
@@ -9,14 +11,14 @@
             <form action="{{ route('login.password.post') }}" method="POST">
                 @csrf
                 <label for="phone">
-                    
+
                     <input type="phone" name="phone" id="phone" class="form-control maskphone"placeholder="Введите телефон"  value="{{ old('phone') }}"  maxlength="50" required>
                     @error('phone')
                         <div class="alert alert-danger">{{ $message }}</div>
                     @enderror
                 </label>
                 <label for="password">
-                    
+
                     <input type="password" name="password" id="password" placeholder="Пароль"   maxlength="50" class="form-control" required>
                     @error('password')
                         <div class="alert alert-danger">{{ $message }}</div>

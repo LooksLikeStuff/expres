@@ -1,3 +1,5 @@
+@section('title', 'Страница Регистрации в Личный кабинет Экспресс-дизайн')
+
 @extends('layouts.auth')
 @section('content')
     <div class="container-auth">
@@ -9,7 +11,7 @@
                 <form action="{{ route('register.post') }}" method="POST">
                     @csrf
                     <label for="name">
-                       
+
                         <input type="text" name="name" id="name" placeholder="Имя и фамилия"  class="form-control" value="{{ old('name') }}"
                            maxlength="50" required>
                         @error('name')
@@ -17,7 +19,7 @@
                         @enderror
                     </label>
                     <label for="phone">
-                        
+
                         <input type="phone" name="phone" id="phone" class="form-control maskphone" placeholder="Введите телефон"  value="{{ old('phone') }}"
                             required>
                         @error('phone')
@@ -25,14 +27,14 @@
                         @enderror
                     </label>
                     <label for="password">
-                        
+
                         <input type="password" name="password" id="password" class="form-control" placeholder="Пароль"  maxlength="50" required>
                         @error('password')
                             <div class="alert alert-danger">{{ $message }}</div>
                         @enderror
                     </label>
                     <label for="password_confirmation">
-                       
+
                         <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Подтвердите пароль"  maxlength="50" class="form-control"
                             required>
                     </label>

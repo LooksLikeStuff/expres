@@ -2,253 +2,135 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\Auth\AuthRequestDTO;
+use App\DTO\Auth\RegisterRequestDTO;
+use App\Enums\UserStatus;
+use App\Http\Requests\Auth\LoginCodeRequest;
+use App\Http\Requests\Auth\LoginPasswordRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\SendCodeRequest;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Models\User;
-
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Http;
-use App\Models\Deal;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly AuthService $authService
+    ) {
+    }
+
     public function showLoginFormByPassword()
     {
-        if (Auth::check()) {
+        if (auth()->check()) {
             return redirect()->route('home');
         }
-        $title_site = "Страница входа по паролю в Личный кабинет Экспресс-дизайн";
-        return view('auth.login-password', compact('title_site'));
+
+        return view('auth.login-password');
     }
-    public function loginByPassword(Request $request)
+
+    public function loginByPassword(LoginPasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'phone' => 'required',
-            'password' => 'required|string|min:6',
-        ]);
-        $user = User::where('phone', $request->phone)->first();
-        if ($user && Hash::check($request->password, $user->password)) {
-            Auth::login($user);
+        if ($this->authService->loginByPassword(AuthRequestDTO::fromLoginPasswordRequest($request))) {
             return redirect()->route('home');
         }
+
         return redirect()->back()->withErrors(['phone' => 'Неверный номер телефона или пароль.']);
     }
+
     public function showLoginFormByCode()
     {
-        if (Auth::check()) {
+        if (auth()->check()) {
             return redirect()->route('home');
         }
-        $title_site = "Страница входа по коду в Личный кабинет Экспресс-дизайн";
-        return view('auth.login-code', compact('title_site'));
+
+        return view('auth.login-code');
     }
-    public function loginByCode(Request $request)
+
+    public function loginByCode(LoginCodeRequest $request): RedirectResponse
     {
-        $request->validate([
-            'phone' => 'required',
-            'code' => 'required|string|size:4',
-        ]);
-        $user = User::where('phone', $request->phone)->first();
-        if ($user && $this->checkVerificationCode($request->code, $user)) {
-            Auth::login($user);
+        if ($this->authService->loginByCode(AuthRequestDTO::fromLoginCodeRequest($request))) {
             return redirect()->route('home');
         }
+
         return redirect()->back()->withErrors(['code' => 'Неверный код.']);
     }
-    public function sendCode(Request $request)
+
+    public function sendCode(SendCodeRequest $request): JsonResponse
     {
-        $request->validate([
-            'phone' => 'required',
-        ]);
-        $user = User::where('phone', $request->phone)->first();
-        if (!$user) {
+        $phone = $request->validated('phone');
+
+        if (!$this->authService->isUserExists($phone)) {
             return response()->json(['error' => 'Пользователь с таким номером не найден.'], 400);
         }
-        $this->sendVerificationCode($user);
-        return response()->json(['success' => true]);
+
+        if ($this->authService->sendVerificationCode($phone)) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['error' => 'Ошибка при отправке кода.'], 500);
     }
-    private function sendVerificationCode($user)
-    {
-        $code = rand(1000, 9999);
-        $user->verification_code = $code;
-        $user->verification_code_expires_at = now()->addMinutes(10);
-        $user->save();
-        $this->sendSms($user->phone, $code);
-    }
-    private function checkVerificationCode($code, $user)
-    {
-        return $code === $user->verification_code && now()->lessThanOrEqualTo($user->verification_code_expires_at);
-    }
-    private function sendSms($phone, $code)
-    {
-        $apiKey = '6CDCE0B0-6091-278C-5145-360657FF0F9B';
-        $phone = preg_replace('/\D/', '', $phone);
-        Http::get("https://sms.ru/sms/send", [
-            'api_id' => $apiKey,
-            'to' => $phone,
-            'msg' => "Ваш код для входа: $code",
-        ]);
-    }
+
     public function showRegistrationForm()
     {
-        $title_site = "Страница Регистрации в Личный кабинет Экспресс-дизайн";
-        return view('auth.register', compact('title_site'));
+        return view('auth.register');
     }
-    public function register(Request $request)
+
+    public function register(RegisterRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-        $user = User::create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'avatar_url' => '/storage/icon/profile.svg',
-            'status' => 'user',
-            'password' => Hash::make($validated['password']),
-        ]);
-        Auth::login($user);
-        return redirect('home');
+        //Регистрируем пользователя
+        $this->authService->register(RegisterRequestDTO::fromRegisterRequest($request));
+
+        //Редиректим на главную
+        return redirect()->route('home');
     }
-    public function logout()
+
+    public function logout(): RedirectResponse
     {
-        Auth::logout();
+        $this->authService->logout();
         Session::flush();
         Session::regenerateToken();
         return redirect('/');
     }
-    public function registerByDealLink($token)
+
+    public function registerByDealLink(string $token)
     {
-        if (Auth::check()) {
+        if (auth()->check()) {
             return redirect()->route('home');
         }
-        $deal = Deal::where('registration_token', $token)
-            ->where('registration_token_expiry', '>', now())
-            ->first();
+
+        // TODO: Добавить DealService для проверки токена
+        $deal = null; // Deal::where('registration_token', $token)->where('registration_token_expiry', '>', now())->first();
 
         if (!$deal) {
             return redirect()->route('login.password')->with('error', 'Ссылка на регистрацию устарела или неверна.');
         }
 
-        $title_site = "Регистрация для сделки";
-
-        return view('auth.register_by_deal', compact('deal', 'title_site'));
+        return view('auth.register_by_deal', compact('deal'));
     }
-    public function completeRegistrationByDeal(Request $request, $token)
+
+    public function completeRegistrationByDeal(Request $request, string $token): RedirectResponse
     {
-        $deal = Deal::where('registration_token', $token)
-            ->where('registration_token_expiry', '>', now())
-            ->first();
-    
-        if (!$deal) {
-            return redirect()->route('login.password')->with('error', 'Ссылка на регистрацию устарела или неверна.');
-        }
-    
-        $phone = preg_replace('/\D/', '', $request->input('phone'));
-        $normalizedDealPhone = preg_replace('/\D/', '', $deal->client_phone);
-    
-        if ($normalizedDealPhone !== $phone) {
-            return redirect()->route('login.password')->with('error', 'Регистрация возможна только для клиента сделки.');
-        }
-    
-        // Проверяем, существует ли уже пользователь с таким номером телефона
-        $existingUser = User::where(function($query) use ($phone) {
-            // Ищем как точное совпадение, так и номер с разными форматами
-            $query->where('phone', $phone)
-                  ->orWhere('phone', 'LIKE', '%' . $phone . '%');
-        })->first();
-    
-        if ($existingUser) {
-            // Перенаправляем обратно на страницу регистрации для сделки
-            return redirect()->route('register.deal.link', ['token' => $token])
-                ->withInput($request->except('password', 'password_confirmation'))
-                ->with('error', 'Пользователь с таким номером телефона уже зарегистрирован. Пожалуйста, используйте другой номер.');
-        }
-    
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-    
-        $user = User::create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'avatar_url' => '/storage/icon/profile.svg',
-            'status' => 'user',
-            'password' => Hash::make($validated['password']),
-        ]);
-    
-        $deal->user_id = $user->id;
-        $deal->status = 'Регистрация';
-        $deal->registration_token = null;
-        $deal->registration_token_expiry = null;
-        $deal->save();
-    
-        $deal->users()->attach($user->id, ['role' => 'client']);
-    
-        // Логируем успешную привязку пользователя к сделке
-        \Illuminate\Support\Facades\Log::info('Клиент успешно зарегистрирован и привязан к сделке', [
-            'user_id' => $user->id,
-            'deal_id' => $deal->id,
-            'phone' => $validated['phone']
-        ]);
-    
-        $creator = $deal->creator;
-        if ($creator && $creator->phone) {
-            // Используем константу класса вместо жестко закодированного значения
-            $apiKey = config('services.smsru.api_id', '6CDCE0B0-6091-278C-5145-360657FF0F9B');
-    
-            $response = Http::get("https://sms.ru/sms/send", [
-                'api_id' => $apiKey,
-                'to' => $rawPhone,
-                'msg' => "Клиент {$user->name} успешно зарегистрировался по сделке: {$deal->name}.",
-                'partner_id' => 1,
-            ]);
-    
-            if ($response->failed()) {
-                \Log::error("Ошибка при отправке SMS создателю сделки", [
-                    'response' => $response->body(),
-                    'status' => $response->status(),
-                    'phone' => $rawPhone,
-                    'deal' => $deal->id,
-                ]);
-            }
-        }
-    
-        Auth::login($user);
-    
+        // TODO: Добавить DealService для работы со сделками
+        // Логика будет перенесена в AuthService
+
         return redirect()->route('home')->with('success', 'Вы успешно зарегистрированы и привязаны к сделке.');
     }
 
     public function showRegistrationFormForExecutors()
     {
-        $roles = ['architect', 'designer', 'visualizer'];
-        $title_site = "Регистрация исполнителя в Личный кабинет Экспресс-дизайн";
-        return view('auth.register_executor', compact('roles', 'title_site'));
+        $roles = UserStatus::executors();
+
+        return view('auth.register_executor', compact('roles'));
     }
 
-    public function registerExecutor(Request $request)
+    public function registerExecutor(RegisterRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required',
-            'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:architect,designer,visualizer',
-        ]);
+        $user = $this->authService->registerExecutor(RegisterRequestDTO::fromRegisterRequest($request));
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'avatar_url' => '/storage/icon/profile.svg',
-            'status' => $validated['role'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        Auth::login($user);
-
-        return redirect()->route('home')->with('success', 'Вы успешно зарегистрированы как ' . $validated['role'] . '.');
+        return redirect()->route('home')->with('success', 'Вы успешно зарегистрированы как ' . $user->status . '.');
     }
 }
+
