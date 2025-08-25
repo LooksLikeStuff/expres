@@ -18,4 +18,12 @@ enum BriefStatus: string
             self::COMPLETED => 'Завершенный',
         };
     }
+
+    public function isActive(): bool
+    {
+        return match ($this) {
+            self::DRAFT, self::ACTIVE, self::EDITING => true,
+            self::COMPLETED => false,
+        };
+    }
 }

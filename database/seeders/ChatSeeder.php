@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\DTO\ChatDTO;
+use App\DTO\Briefs\ChatDTO;
 use App\Enums\ChatType;
 use App\Services\Chats\ChatService;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ChatSeeder extends Seeder

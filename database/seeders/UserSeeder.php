@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\DTO\UserDTO;
+use App\DTO\Briefs\UserDTO;
 use App\Enums\Status;
 use App\Services\UserService;
 use Illuminate\Database\Seeder;

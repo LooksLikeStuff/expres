@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Brief;
 use App\Models\Deal;
 
 class DealService
@@ -17,4 +18,5 @@ class DealService
         return Deal::where('id', $dealId)
             ->update(['chat_id' => $chatId]);
     }
+
 }

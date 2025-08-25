@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chats;
 
-use App\DTO\ChatDTO;
+use App\DTO\Briefs\ChatDTO;
 use App\Enums\ChatType;
 use App\Events\ChatCreated;
 use App\Events\ChatDeleted;
@@ -11,18 +11,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Chats\CreateChatRequest;
 use App\Models\ChatGroup;
 use App\Models\Chats\Chat;
-use App\Models\Chats\Message;
-use App\Models\User;
 use App\Services\Chats\ChatService;
 use App\Services\Chats\MessageService;
 use App\Services\Chats\UserChatService;
 use App\Services\Chats\Utilities\FileService;
 use App\Services\UserService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 // Добавляем импорт модели ChatGroup
 

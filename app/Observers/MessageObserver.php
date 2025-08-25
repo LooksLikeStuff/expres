@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\DTO\ReadReceiptDTO;
+use App\DTO\Briefs\ReadReceiptDTO;
 use App\Jobs\SendMessagePushNotificationJob;
 use App\Models\Chats\Message;
 use App\Services\Chats\ReadReceiptService;

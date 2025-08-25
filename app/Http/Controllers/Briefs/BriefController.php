@@ -2,17 +2,30 @@
 
 namespace App\Http\Controllers\Briefs;
 
-use App\DTO\BriefDTO;
+use App\DTO\Briefs\BriefAnswerDTO;
+use App\DTO\Briefs\BriefDTO;
+use App\DTO\Briefs\BriefRoomDTO;
+use App\Enums\Briefs\BriefType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Briefs\AnswerRequest;
 use App\Http\Requests\Briefs\CreateRequest;
+use App\Http\Requests\Briefs\StoreRoomsRequest;
 use App\Models\Brief;
+use App\Models\User;
+use App\Services\Briefs\BriefAnswerService;
+use App\Services\Briefs\BriefQuestionService;
+use App\Services\Briefs\BriefRoomService;
 use App\Services\Briefs\BriefService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BriefController extends Controller
 {
     public function __construct(
         private readonly BriefService $briefService,
+        private readonly BriefQuestionService $briefQuestionService,
+        private readonly BriefRoomService $briefRoomService,
+        private readonly BriefAnswerService $briefAnswerService,
     )
     {
     }
@@ -22,15 +35,28 @@ class BriefController extends Controller
      */
     public function index()
     {
+        $briefs = $this->briefService->getUserBriefs(auth()->id());
 
+        //Если у пользователя нет брифов, показываем ему страницу создания брифа
+        if ($briefs->isEmpty()) return view('briefs.create');
+
+        $activeBriefs = $briefs->filter(fn($brief) => $brief->isActive());
+        $inactiveBriefs = $briefs->filter(fn(Brief $brief) => $brief->isFinished());
+        $commonBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommon());
+        $commercialBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommercial());
+
+        return view('briefs.index', compact('briefs', 'activeBriefs', 'inactiveBriefs', 'commonBriefs', 'commercialBriefs'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        //Получаем тип из GET параметра и сразу проверяем - валидный ли он
+        $type = $request->has('type') ? BriefType::tryFrom($request->get('type')) : null;
+
+        return view('briefs.create', compact('type'));
     }
 
     /**
@@ -38,7 +64,21 @@ class BriefController extends Controller
      */
     public function store(CreateRequest $request)
     {
-        $this->briefService->updateOrCreate(BriefDTO::fromCreateRequest($request));
+        $user = auth()->user();
+
+        //Получаем тип брифа для создания
+        $type = BriefType::from($request->validated('type'));
+
+        //Создаем пустой бриф с выбранным типом для авторизованного пользователя
+        $brief = $this->briefService->createEmptyBrief(BriefDTO::fromType($type, $user->id));
+
+        //Если бриф общий, то редиректим на страницу заполнения комнат
+        if ($brief->isCommon()) {
+            return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
+        } else {
+            // Иначе сразу редиректим на страницу с вопросами
+            return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => 1]);
+        }
     }
 
     /**
@@ -71,5 +111,60 @@ class BriefController extends Controller
     public function destroy(Brief $brief)
     {
         //
+    }
+
+    //Страница создания комнат для общего брифа
+    public function createRooms(Brief $brief)
+    {
+        //Проверяем что бриф является общим
+        if (!$brief->isCommon()) {
+            return redirect()->route('briefs.index')->with('error', 'Комнаты необходимо указывать только для общего брифа.');
+        }
+
+        $rooms = $this->briefRoomService->getBriefAndDefaultRooms($brief->id);
+
+        return view('briefs.rooms', compact('brief', 'rooms'));
+    }
+
+    public function storeRooms(Brief $brief, StoreRoomsRequest $request)
+    {
+        $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromStoreRoomsRequest($request));
+
+        return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => 1]);
+    }
+
+    /**
+     * Унифицированная страница вопросов брифа.
+     */
+    public function questions(Brief $brief, int $page)
+    {
+        //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с комнатами
+        if ($brief->isCommon() && $page <= 0) {
+           return redirect()->route('briefs.rooms.create');
+        }
+
+        $questions = $this->briefQuestionService->getQuestionsByTypeAndPage($brief->type, $page);
+
+        if ($brief->isCommon()) {
+            if ($page === 3) $brief->load('rooms');
+
+            return view('briefs.questions', ['questions' => $questions, 'page' => $page, 'totalPages' => 5, 'brief' => $brief]);
+        } else {
+            $user = User::find($brif->user_id) ?: Auth::user();
+            $zones = $brif->zones ? json_decode($brif->zones, true) : [];
+            $preferences = $brif->preferences ? json_decode($brif->preferences, true) : [];
+            $budget = $brif->price ?? 0;
+            $zoneBudgets = $brif->zone_budgets ? json_decode($brif->zone_budgets, true) : [];
+
+            return view('briefs.questions', ['page' => $page, 'zones' => $zones, 'preferences' => $preferences, 'budget' => $budget, 'zoneBudgets' => $zoneBudgets, 'user' => $user, 'title_site' => $titles[$page] ?? 'Вопрос', 'description' => $descriptions[$page] ?? '', 'brif' => $brif, 'totalPages' => count($titles), 'questions' => $questions,]);
+
+        }
+    }
+
+    public function answers(Brief $brief, AnswerRequest $request)
+    {
+       $this->briefAnswerService->create($brief, BriefAnswerDTO::fromStoreRoomsRequest($request));
+
+       dd($request->get('page'));
     }
 }

@@ -19,6 +19,12 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
+            $table->foreignId('room_id')
+                ->nullable()
+                ->constrained('brief_rooms')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+
             $table->string('question_key')->index();
             $table->text('answer_text')->nullable();
             $table->json('answer_json')->nullable();

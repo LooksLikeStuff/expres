@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\DTO\Briefs\Briefs\BriefQuestionDTO;
 use App\Services\Briefs\BriefQuestionService;
-use App\DTO\Briefs\BriefQuestionDTO;
+use Illuminate\Database\Seeder;
 
 class BriefQuestionSeeder extends Seeder
 {
@@ -36,6 +35,7 @@ class BriefQuestionSeeder extends Seeder
     private function commonQuestions(): array
     {
         return [
+
             // Стр.1 Общая информация
             ['brief_type' => 'common', 'page' => 1, 'key' => 'question_1_1', 'title' => 'Сколько человек будет проживать в квартире?', 'subtitle' => 'Укажите количество жильцов, их пол и возраст для понимания потребностей каждого члена семьи', 'input_type' => 'textarea', 'placeholder' => 'Пример: семейная пара с ребенком (0 лет), в будущем планируем еще детей', 'format' => 'default', 'class' => null],
             ['brief_type' => 'common', 'page' => 1, 'key' => 'question_1_2', 'title' => 'Есть ли у вас домашние животные и комнатные растения?', 'subtitle' => 'Укажите вид и количество животных или растений, чтобы мы могли учесть их потребности при проектировании пространства.', 'input_type' => 'textarea', 'placeholder' => 'Пример: среднеразмерная собака бигль...', 'format' => 'default', 'class' => null],
@@ -52,19 +52,7 @@ class BriefQuestionSeeder extends Seeder
             ['brief_type' => 'common', 'page' => 2, 'key' => 'price', 'title' => 'Бюджет проекта', 'subtitle' => 'Ориентировочная сумма', 'input_type' => 'text', 'placeholder' => 'Например: 2 000 000 руб', 'format' => 'price', 'class' => 'price-input'],
 
             // Стр.3 Помещения (FAQ) — базовые комнаты
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_1', 'title' => 'Прихожая', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_2', 'title' => 'Детская', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_3', 'title' => 'Кладовая', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_4', 'title' => 'Кухня и гостиная', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_5', 'title' => 'Гостевой санузел', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_6', 'title' => 'Гостиная', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_7', 'title' => 'Рабочее место', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_8', 'title' => 'Столовая', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_9', 'title' => 'Ванная комната', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_10', 'title' => 'Кухня', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_11', 'title' => 'Кабинет', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_12', 'title' => 'Спальня', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'question_3_13', 'title' => 'Гардеробная', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
+            ['brief_type' => 'common', 'page' => 3, 'key' => 'room_question', 'title' => 'Пожелания по помещению', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
 
             // Стр.4 Отделка
             ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_1', 'title' => 'Напольные покрытия', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],

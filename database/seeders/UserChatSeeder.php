@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\DTO\UserChatDTO;
+use App\DTO\Briefs\UserChatDTO;
 use App\Services\Chats\ChatService;
 use App\Services\Chats\UserChatService;
 use App\Services\UserService;

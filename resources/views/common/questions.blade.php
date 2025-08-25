@@ -1,4 +1,6 @@
+@section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн');
 @extends('layouts.brifapp')
+
 @section('content')
 <div class="container">
     <div class="main__flex">

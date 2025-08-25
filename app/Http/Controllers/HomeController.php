@@ -30,7 +30,7 @@ class HomeController extends Controller
             case 'user':
             case 'client':
                 // Клиенты перенаправляются на страницу со своими сделками
-                return redirect()->route('brifs.index');
+                return redirect()->route('briefs.index');
             case 'coordinator':
             case 'architect':
             case 'designer':

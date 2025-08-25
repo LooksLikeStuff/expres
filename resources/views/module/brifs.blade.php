@@ -1,7 +1,7 @@
 @if ($activeBrifs->isEmpty() && $inactiveBrifs->isEmpty())
     {{-- Если пользователь не имеет никаких брифов --}}
 
-    <form action="{{ route('brifs.store') }}" method="POST" class="div__create_form" id="step-3" >
+    <form action="{{ route('briefs.store') }}" method="POST" class="div__create_form" id="step-3" >
         @csrf
         <div class="div__create_block">
             <h1>
@@ -17,7 +17,7 @@
     <script>
         window.onload = function() {
             console.log("Размер экрана:", window.innerWidth);
-    
+
             if (window.innerWidth > 768) {
                 console.log("Проверка обучения для десктопа...");
                 if (!localStorage.getItem('tutorial_seen_desktop')) {
@@ -64,7 +64,7 @@
                                 intro: 'Кнопки которые отвечают за зполнение бриф-опросника.',
                                 position: 'top'
                             }
-                            
+
                         ],
                         showStepNumbers: true,
                         exitOnOverlayClick: false,
@@ -134,13 +134,13 @@
                 }
             }
         };
-    
+
         // Функция для сброса обучения
         function clearTutorialData() {
             console.log('Очистка данных обучения...');
             localStorage.removeItem('tutorial_seen_desktop');
             localStorage.removeItem('tutorial_seen_mobile');
-    
+
             location.reload();
         }
     </script>
@@ -179,16 +179,17 @@
                 <ul class="brifs__list">
                     @foreach ($activeBrifs as $brif)
                     <li class="brif"
-                    onclick="window.location.href='{{ route(
-                        $brif instanceof \App\Models\Common
-                            ? 'common.questions'
-                            : 'commercial.questions',
-                        [
-                            'id'   => $brif->id,
-                            'page' => $brif->current_page
-                        ]
-                    ) }}'">
-                    
+{{--                    onclick="window.location.href='{{ route(--}}
+{{--                        $brif instanceof \App\Models\Common--}}
+{{--                            ? 'common.questions'--}}
+{{--                            : 'commercial.questions',--}}
+{{--                        [--}}
+{{--                            'id'   => $brif->id,--}}
+{{--                            'page' => $brif->current_page--}}
+{{--                        ]--}}
+{{--                    ) }}'"--}}
+                    >
+
                     <h4>{{ $brif->title }} #{{ $brif->id }}</h4>
                     <div class="brif__body flex">
                         <ul>
@@ -208,7 +209,7 @@
                     <div class="button__brifs flex">
                         <!-- Кнопка заполнения (без изменений) -->
                         <button class="button__variate2">
-                            <img src="/storage/icon/create__info.svg" alt=""> 
+                            <img src="/storage/icon/create__info.svg" alt="">
                             <span>Заполнить</span>
                         </button>
                         <!-- Кнопка удаления с event.stopPropagation() и вызовом confirmDelete -->
@@ -221,16 +222,16 @@
                         <span>{{ $brif->created_at->format('H:i') }}</span>
                         <span>{{ $brif->created_at->format('d.m.Y') }}</span>
                     </p>
-                
+
                 </div>
-                   
+
                     <!-- Скрытая форма для удаления -->
                     <form id="delete-form-{{ $brif->id }}" action="{{ route('brifs.destroy', $brif->id) }}" method="POST" style="display: none;">
                         @csrf
                         @method('DELETE')
                     </form>
                 </li>
-                
+
                     @endforeach
                 </ul>
             @endif
@@ -252,9 +253,9 @@
                                     : 'commercial.show',
                                 $brif->id
                             ) }}'">
-                            
+
                             <h4>{{ $brif->title }} #{{ $brif->id }}</h4>
-                            
+
                             <div class="button__brifs flex">
                                 <button class="button__variate2"><img src="/storage/icon/create__info.svg" alt=""> <span>Посмотреть</span></button>
                                 <button class="button__variate2" onclick="event.stopPropagation(); window.location.href='{{ route(
@@ -277,6 +278,7 @@
         </div>
     </div>
 @endif
+
 <script>
     function confirmDelete(brifId) {
         if (confirm("Вы действительно хотите удалить этот бриф? Это действие нельзя будет отменить.")) {
