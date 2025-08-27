@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title_site }}</title>
+    <title>@yield('title')</title>
     @vite([ 'resources/css/style.css', 'resources/css/font.css', 'resources/css/element.css', 'resources/css/animation.css', 'resources/css/mobile.css', 'resources/js/bootstrap.js',  'resources/js/success.js', 'resources/js/mask.js', 'resources/js/login.js'])</head>
     <link rel="stylesheet" href="resources/css/animate.css">
     <script src="resources/js/wow.js"></script>
@@ -17,7 +17,7 @@
      <link type="image/png" sizes="32x32" rel="icon" href="{{ asset('/icons/favicon-32x32.png') }}">
      <link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/favicon-96x96.png') }}">
      <link type="image/png" sizes="120x120" rel="icon" href="{{ asset('/icons/favicon-120x120.png') }}">
- 
+
      <!-- Иконки для Android -->
      <link type="image/png" sizes="72x72" rel="icon" href="{{ asset('/icons/android-icon-72x72.png') }}">
      <link type="image/png" sizes="96x96" rel="icon" href="{{ asset('/icons/android-icon-96x96.png') }}">
@@ -25,7 +25,7 @@
      <link type="image/png" sizes="192x192" rel="icon" href="{{ asset('/icons/android-icon-192x192.png') }}">
      <link type="image/png" sizes="512x512" rel="icon" href="{{ asset('/icons/android-icon-512x512.png') }}">
      <link rel="manifest" href="{{ asset('/manifest.json') }}">
- 
+
      <!-- Иконки для iOS (Apple) -->
      <link sizes="57x57" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-57x57.png') }} ">
      <link sizes="60x60" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-60x60.png') }} ">
@@ -36,10 +36,10 @@
      <link sizes="144x144" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-144x144.png') }} ">
      <link sizes="152x152" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-152x152.png') }} ">
      <link sizes="180x180" rel="apple-touch-icon" href="{{ asset('/icons/apple-touch-icon-180x180.png') }} ">
- 
+
      <!-- Иконки для MacOS (Apple) -->
      <link color="#e52037" rel="mask-icon" href="./safari-pinned-tab.svg">
- 
+
      <!-- Иконки и цвета для плиток Windows -->
      <meta name="msapplication-TileColor" content="#2b5797">
      <meta name="msapplication-TileImage" content="./mstile-144x144.png">
@@ -50,7 +50,7 @@
      <meta name="application-name" content="My Application">
      <meta name="msapplication-config" content="./browserconfig.xml">
 
-     
+
     <script>
         // Регистрация сервис-воркера для PWA
         if ('serviceWorker' in navigator) {
@@ -58,7 +58,7 @@
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
                         console.log('ServiceWorker зарегистрирован:', registration.scope);
-                        
+
                         // Передаем CSRF токен в сервис-воркер
                         if (registration.active) {
                             registration.active.postMessage({
@@ -82,7 +82,7 @@
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
                         console.log('Разрешение на уведомления получено');
-                        
+
                         // Подписываемся на push-уведомления
                         if (registration && registration.pushManager) {
                             registration.pushManager.subscribe({
@@ -135,7 +135,7 @@
             for (let i = 0; i < rawData.length; ++i) {
                 outputArray[i] = rawData.charCodeAt(i);
             }
-            
+
             return outputArray;
         }
     </script>
@@ -164,11 +164,11 @@
             {{ session('error') }}
         </div>
     @endif
-   
- 
+
+
         @yield('content')
-        
-   
+
+
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

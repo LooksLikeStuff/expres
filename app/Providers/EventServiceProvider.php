@@ -1,7 +1,10 @@
 <?php
 namespace App\Providers;
+use App\Models\Brief;
 use App\Models\Chats\Message;
 use App\Models\Deal;
+use App\Models\User;
+use App\Observers\BriefObserver;
 use App\Observers\DealObserver;
 use App\Observers\MessageObserver;
 use Illuminate\Auth\Events\Registered;
@@ -27,6 +30,7 @@ class EventServiceProvider extends ServiceProvider
     {
         Message::observe(MessageObserver::class);
         Deal::observe(DealObserver::class);
+        Brief::observe(BriefObserver::class);
     }
     /**
      * Determine if events and listeners should be automatically discovered.

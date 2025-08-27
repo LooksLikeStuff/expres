@@ -13,19 +13,36 @@ return new class extends Migration
      */
     public function up()
     {
-//        Schema::create('users', function (Blueprint $table) {
-//            $table->id();
-//            $table->string('name');
-//            $table->string('email')->unique()->nullable();
-//            $table->string('phone')->unique();
-//            $table->string('status')->default('user');
-//            $table->timestamp('email_verified_at')->nullable();
-//            $table->string('password');
-//            $table->string('firebase_token')->nullable();
-//            $table->timestamp('deleted_at')->nullable();
-//            $table->rememberToken();
-//            $table->timestamps();
-//        });
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name', 255);
+            $table->string('role', 255)->nullable();
+            $table->string('avatar_url', 1000)->nullable();
+
+            $table->string('email', 255)->nullable()->index();
+            $table->timestamp('email_verified_at')->nullable();
+
+            $table->string('phone', 255)->nullable()->index();
+            $table->string('temp_phone', 191)->nullable();
+            $table->string('cod', 255)->nullable();
+
+
+            $table->string('password', 255);
+            $table->string('remember_token', 100)->nullable();
+            $table->string('verification_code', 255)->nullable();
+            $table->timestamp('verification_code_expires_at')->nullable();
+
+            $table->string('link', 255)->nullable();
+            $table->string('city', 255)->nullable();
+            $table->string('contract_number', 255)->nullable();
+            $table->text('comment')->nullable();
+            $table->string('portfolio_link', 255)->nullable();
+            $table->string('experience', 255)->nullable();
+
+
+            $table->softDeletes();
+            $table->timestamps();
+        });
     }
 
     /**

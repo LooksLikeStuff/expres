@@ -24,55 +24,55 @@ class BriefSearchController extends Controller
         try {
             $clientPhone = $request->input('client_phone');
             $dealId = $deal; // Используем ID из URL маршрута
-            
+
             Log::info('Поиск брифов по номеру телефона', [
                 'phone' => $clientPhone,
                 'deal_id' => $dealId
             ]);
-            
+
             if (empty($clientPhone)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Номер телефона клиента не указан'
                 ]);
             }
-            
+
             // Нормализация номера телефона (удаление всех нецифровых символов)
             $normalizedPhone = preg_replace('/[^0-9]/', '', $clientPhone);
-            
+
             Log::info('Нормализованный телефон: ' . $normalizedPhone);
-            
+
             // Поиск пользователей по номеру телефона
             $users = User::where(function($query) use ($normalizedPhone, $clientPhone) {
                 // Поиск по оригинальному формату телефона
                 $query->where('phone', 'like', '%' . $clientPhone . '%');
-                
+
                 // Поиск по нормализованному номеру
                 if ($normalizedPhone !== $clientPhone) {
                     $query->orWhere('phone', 'like', '%' . $normalizedPhone . '%');
                 }
-                
+
                 // Поиск по последним 10 цифрам (без кода страны)
                 if (strlen($normalizedPhone) >= 10) {
                     $lastTenDigits = substr($normalizedPhone, -10);
                     $query->orWhere('phone', 'like', '%' . $lastTenDigits . '%');
                 }
             })->get();
-            
+
             Log::info('Найдено пользователей: ' . $users->count(), [
                 'user_ids' => $users->pluck('id')->toArray()
             ]);
-            
+
             if ($users->isEmpty()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Пользователь с указанным номером телефона не найден'
                 ]);
             }
-            
+
             // Получаем ID пользователей для поиска брифов
             $userIds = $users->pluck('id')->toArray();
-            
+
             // Проверяем наличие моделей Common и Commercial
             if (!class_exists('App\Models\Common')) {
                 Log::error('Класс App\Models\Common не существует');
@@ -81,7 +81,7 @@ class BriefSearchController extends Controller
                     'message' => 'Ошибка конфигурации системы: модель брифа не найдена'
                 ]);
             }
-            
+
             if (!class_exists('App\Models\Commercial')) {
                 Log::error('Класс App\Models\Commercial не существует');
                 return response()->json([
@@ -89,12 +89,12 @@ class BriefSearchController extends Controller
                     'message' => 'Ошибка конфигурации системы: модель коммерческого брифа не найдена'
                 ]);
             }
-            
+
             // Проверяем, привязан ли уже бриф к сделке
             $deal = Deal::find($dealId);
             $hasAttachedBrief = false;
             $attachedBriefType = null;
-            
+
             if ($deal) {
                 if ($deal->common_id) {
                     $hasAttachedBrief = true;
@@ -104,7 +104,7 @@ class BriefSearchController extends Controller
                     $attachedBriefType = 'commercial';
                 }
             }
-            
+
             try {
                 // Ищем общие брифы по ID пользователей (только завершенные и отредактированные)
                 $commonBriefs = Common::whereIn('user_id', $userIds)
@@ -114,7 +114,7 @@ class BriefSearchController extends Controller
                     ->map(function($brief) use ($dealId) {
                         // Проверяем, привязан ли бриф к любой сделке
                         $alreadyLinked = Deal::where('common_id', $brief->id)->exists();
-                        
+
                         return [
                             'id' => $brief->id,
                             'title' => $brief->name ?? $brief->title ?? ('Общий бриф #' . $brief->id),
@@ -125,7 +125,7 @@ class BriefSearchController extends Controller
                             'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
                         ];
                     });
-                
+
                 Log::info('Найдено общих брифов (завершенные и отредактированные): ' . $commonBriefs->count(), [
                     'briefs' => $commonBriefs->toArray()
                 ]);
@@ -135,7 +135,7 @@ class BriefSearchController extends Controller
                 ]);
                 $commonBriefs = collect([]);
             }
-            
+
             try {
                 // Ищем коммерческие брифы по ID пользователей (только завершенные и отредактированные)
                 $commercialBriefs = Commercial::whereIn('user_id', $userIds)
@@ -145,7 +145,7 @@ class BriefSearchController extends Controller
                     ->map(function($brief) use ($dealId) {
                         // Проверяем, привязан ли бриф к любой сделке
                         $alreadyLinked = Deal::where('commercial_id', $brief->id)->exists();
-                        
+
                         return [
                             'id' => $brief->id,
                             'title' => $brief->name ?? $brief->title ?? ('Коммерческий бриф #' . $brief->id),
@@ -156,7 +156,7 @@ class BriefSearchController extends Controller
                             'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
                         ];
                     });
-                
+
                 Log::info('Найдено коммерческих брифов (завершенные и отредактированные): ' . $commercialBriefs->count(), [
                     'briefs' => $commercialBriefs->toArray()
                 ]);
@@ -166,7 +166,7 @@ class BriefSearchController extends Controller
                 ]);
                 $commercialBriefs = collect([]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'users' => $users->map(function($user) {
@@ -184,12 +184,12 @@ class BriefSearchController extends Controller
                 'total_found' => $commonBriefs->count() + $commercialBriefs->count(),
                 'message' => 'Найдено доступных для привязки брифов: ' . ($commonBriefs->count() + $commercialBriefs->count())
             ]);
-            
+
         } catch (Exception $e) {
             Log::error('Ошибка в методе findBriefsByClientPhone: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при поиске брифов: ' . $e->getMessage()
@@ -208,21 +208,21 @@ class BriefSearchController extends Controller
             $dealId = $deal; // Используем ID из URL маршрута
             $briefId = $request->input('brief_id');
             $briefType = $request->input('brief_type');
-            
+
             Log::info('Запрос на привязку брифа', [
                 'deal_id' => $dealId,
                 'brief_id' => $briefId,
                 'brief_type' => $briefType,
                 'all_params' => $request->all()
             ]);
-            
+
             if (!$dealId || !$briefId || !$briefType) {
                 Log::warning('Отсутствуют обязательные параметры для привязки брифа', [
                     'deal_id' => $dealId,
                     'brief_id' => $briefId,
                     'brief_type' => $briefType
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Не указаны обязательные параметры',
@@ -233,9 +233,9 @@ class BriefSearchController extends Controller
                     ]
                 ]);
             }
-            
+
             $deal = Deal::find($dealId);
-            
+
             if (!$deal) {
                 Log::warning('Сделка не найдена при привязке брифа', ['deal_id' => $dealId]);
                 return response()->json([
@@ -243,7 +243,7 @@ class BriefSearchController extends Controller
                     'message' => 'Сделка не найдена'
                 ]);
             }
-            
+
             // Проверяем тип брифа
             if (!in_array($briefType, ['common', 'commercial'])) {
                 Log::warning('Неверный тип брифа', ['brief_type' => $briefType]);
@@ -252,7 +252,7 @@ class BriefSearchController extends Controller
                     'message' => 'Неверный тип брифа. Допустимые значения: common, commercial'
                 ]);
             }
-            
+
             // Привязываем бриф к сделке в зависимости от типа
             if ($briefType === 'common') {
                 $brief = Common::find($briefId);
@@ -263,16 +263,16 @@ class BriefSearchController extends Controller
                         'message' => 'Общий бриф не найден'
                     ]);
                 }
-                
+
                 $deal->common_id = $briefId;
                 $deal->has_brief = true; // Устанавливаем флаг наличия брифа
                 $deal->save();
-                
+
                 Log::info('Общий бриф успешно привязан', [
                     'deal_id' => $dealId,
                     'brief_id' => $briefId
                 ]);
-                
+
             } elseif ($briefType === 'commercial') {
                 $brief = Commercial::find($briefId);
                 if (!$brief) {
@@ -282,17 +282,17 @@ class BriefSearchController extends Controller
                         'message' => 'Коммерческий бриф не найден'
                     ]);
                 }
-                
+
                 $deal->commercial_id = $briefId;
                 $deal->has_brief = true; // Устанавливаем флаг наличия брифа
                 $deal->save();
-                
+
                 Log::info('Коммерческий бриф успешно привязан', [
                     'deal_id' => $dealId,
                     'brief_id' => $briefId
                 ]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Бриф успешно привязан к сделке',
@@ -304,7 +304,7 @@ class BriefSearchController extends Controller
                     'has_brief' => $deal->has_brief
                 ]
             ]);
-            
+
         } catch (Exception $e) {
             Log::error('Ошибка при привязке брифа: ' . $e->getMessage(), [
                 'deal_id' => $deal ?? null,
@@ -314,7 +314,7 @@ class BriefSearchController extends Controller
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при привязке брифа: ' . $e->getMessage(),
@@ -330,22 +330,24 @@ class BriefSearchController extends Controller
      *
      * @param Request $request
      * @param int $deal ID сделки из маршрута
-     * @return \Illuminate\Http\JsonResponse
-     */      public function unlinkBriefFromDeal(Request $request, $deal)
+     * @return \Illuminate\Http\JsonRespons
+       *
+       * */
+    public function unlinkBriefFromDeal(Request $request, $deal)
     {
         try {
             $dealId = $deal; // Используем ID из URL маршрута
             $briefType = $request->input('brief_type');
-            
+
             Log::info('Запрос на отвязку брифа', [
                 'deal_id' => $dealId,
                 'brief_type' => $briefType,
                 'all_params' => $request->all()
             ]);
-            
+
             // Находим сделку
             $deal = Deal::find($dealId);
-            
+
             if (!$deal) {
                 Log::warning('Сделка не найдена при отвязке брифа', ['deal_id' => $dealId]);
                 return response()->json([
@@ -353,7 +355,7 @@ class BriefSearchController extends Controller
                     'message' => 'Сделка не найдена'
                 ]);
             }
-            
+
             // Проверяем, есть ли брифы, привязанные к сделке
             if (!$deal->common_id && !$deal->commercial_id) {
                 Log::warning('К сделке не привязан ни один бриф', ['deal_id' => $dealId]);
@@ -362,7 +364,7 @@ class BriefSearchController extends Controller
                     'message' => 'К сделке не привязан ни один бриф'
                 ]);
             }
-            
+
             // Автоматически определяем тип брифа, если не указан
             if (!$briefType) {
                 // Проверяем, какой тип брифа привязан к сделке
@@ -374,7 +376,7 @@ class BriefSearchController extends Controller
                     Log::info('Автоопределен тип брифа: commercial');
                 }
             }
-            
+
             // Проверяем тип брифа
             if (!in_array($briefType, ['common', 'commercial'])) {
                 Log::warning('Неверный тип брифа при отвязке', ['brief_type' => $briefType]);
@@ -391,7 +393,7 @@ class BriefSearchController extends Controller
                         'common_id_before' => $deal->common_id
                     ]);
                       $deal->common_id = null;
-                    
+
                     // Проверяем наличие поля has_brief перед обновлением
                     $tableColumns = Schema::getColumnListing('deals');
                     if (in_array('has_brief', $tableColumns)) {
@@ -400,22 +402,22 @@ class BriefSearchController extends Controller
                     if (in_array('brief_attached_at', $tableColumns)) {
                         $deal->brief_attached_at = null;
                     }
-                    
+
                     $deal->save();
-                    
+
                     Log::info('Общий бриф успешно отвязан', [
                         'deal_id' => $deal->id,
                         'has_brief_field_exists' => in_array('has_brief', $tableColumns),
                         'has_brief' => isset($deal->has_brief) ? $deal->has_brief : 'поле отсутствует'
                     ]);
-                    
+
                 } elseif ($briefType === 'commercial') {
                     // Логируем текущее состояние
                     Log::info('Отвязка коммерческого брифа', [
                         'deal_id' => $deal->id,
                         'commercial_id_before' => $deal->commercial_id
                     ]);
-                    
+
                     $deal->commercial_id = null;
                       // Проверяем наличие поля has_brief перед обновлением
                     $tableColumns = Schema::getColumnListing('deals');
@@ -425,9 +427,9 @@ class BriefSearchController extends Controller
                             $deal->brief_attached_at = null;
                         }
                     }
-                    
+
                     $deal->save();
-                    
+
                     Log::info('Коммерческий бриф успешно отвязан', [
                         'deal_id' => $deal->id,
                         'has_brief_field_exists' => in_array('has_brief', $tableColumns),
@@ -439,10 +441,10 @@ class BriefSearchController extends Controller
                         'common_id_before' => $deal->common_id,
                         'commercial_id_before' => $deal->commercial_id
                     ]);
-                    
+
                     $deal->common_id = null;
                     $deal->commercial_id = null;
-                    
+
                     // Проверяем наличие полей перед обновлением
                     $tableColumns = Schema::getColumnListing('deals');
                     if (in_array('has_brief', $tableColumns)) {
@@ -451,9 +453,9 @@ class BriefSearchController extends Controller
                     if (in_array('brief_attached_at', $tableColumns)) {
                         $deal->brief_attached_at = null;
                     }
-                    
+
                     $deal->save();
-                    
+
                     Log::info('Все брифы успешно отвязаны', [
                         'deal_id' => $deal->id
                     ]);
@@ -464,7 +466,7 @@ class BriefSearchController extends Controller
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Ошибка при сохранении сделки: ' . $e->getMessage()
@@ -481,7 +483,7 @@ class BriefSearchController extends Controller
                     'brief_attached_at' => $deal->brief_attached_at
                 ]
             ]);
-            
+
         } catch (Exception $e) {
             Log::error('Ошибка при отвязке брифа: ' . $e->getMessage(), [
                 'deal_id' => $deal ?? null,
@@ -490,7 +492,7 @@ class BriefSearchController extends Controller
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при отвязке брифа: ' . $e->getMessage(),
@@ -501,7 +503,7 @@ class BriefSearchController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Безопасное обновление полей брифа в сделке
      * Проверяет наличие полей перед обновлением
@@ -511,7 +513,7 @@ class BriefSearchController extends Controller
         try {
             // Получаем список колонок таблицы deals
             $tableColumns = Schema::getColumnListing('deals');
-            
+
             // Безопасно обновляем только существующие поля
             foreach ($updateData as $field => $value) {
                 if (in_array($field, $tableColumns)) {
@@ -520,10 +522,10 @@ class BriefSearchController extends Controller
                     Log::warning("Поле $field не существует в таблице deals, пропускаем обновление");
                 }
             }
-            
+
             $deal->save();
             return true;
-            
+
         } catch (Exception $e) {
             Log::error('Ошибка при безопасном обновлении полей брифа', [
                 'deal_id' => $deal->id,

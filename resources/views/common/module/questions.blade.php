@@ -109,7 +109,7 @@
                     <button type="button" id="add-custom-room" class="btn btn-primary">Добавить</button>
                 </div>
             </div>
-            @foreach ($questions as $room)
+            @foreach ($defaultBriefRooms as $room)
                 <div class="checkpoint flex wrap">
                     <div class="radio">
                         <input type="checkbox" id="room_{{ $room['key'] }}" class="custom-checkbox"

@@ -1,3 +1,5 @@
+@section('title', 'Регистрация исполнителя в Личный кабинет Экспресс-дизайн')
+
 @extends('layouts.auth')
 @section('content')
     <div class="container-auth">

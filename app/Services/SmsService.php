@@ -12,8 +12,8 @@ class SmsService
     
     public function __construct()
     {
-        // Получаем API-ключ из конфигурации
-        $this->apiKey = config('services.smsru.api_key');
+        // Получаем API-ключ из конфигурации (поддерживаем оба варианта)
+        $this->apiKey = config('services.smsru.api_key') ?: config('services.smsru.api_id');
         $this->apiUrl = 'https://sms.ru/sms/send';
     }
     
@@ -21,10 +21,10 @@ class SmsService
      * Отправка SMS на указанный номер
      *
      * @param string $phone Номер телефона в формате 79XXXXXXXXX
-     * @param string $message Текст сообщения
+     * @param string $code Код подтверждения
      * @return bool Результат отправки
      */
-    public function sendSms(string $phone, string $message): bool
+    public function sendSms(string $phone, string $code): bool
     {
         // Проверяем наличие API-ключа
         if (empty($this->apiKey)) {
@@ -40,6 +40,8 @@ class SmsService
             Log::error("Invalid phone number format: {$phone}");
             return false;
         }
+        
+        $message = "Ваш код: {$code}";
         
         try {
             // Отправка запроса к API SMS.RU

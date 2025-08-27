@@ -18,6 +18,18 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Log;
+use App\Models\ChatGroups\ChatGroup;
+use App\Models\ChatGroups\GroupMessage;
+use App\Models\ChatGroups\GroupMessageRead;
+use App\Models\Common;
+use App\Models\Commercial;
+use App\Models\Deal;
+use App\Models\DealUser;
+use App\Models\Rating;
+use App\Models\UserFCMToken;
+use App\Models\VerificationCode;
+use App\Models\UserSession;
+use App\Models\UserToken;
 
 /**
  * @property int $id
@@ -33,9 +45,7 @@ use Log;
  * @property int|null $experience
  * @property float|null $rating
  * @property int|null $active_projects_count
- * @property string|null $firebase_token
- * @property string|null $verification_code
- * @property DateTime|null $verification_code_expires_at
+ * @property string|null $avatar_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -56,12 +66,7 @@ class User extends Authenticatable
         'portfolio_link',
         'experience',
         'rating',
-        'active_projects_count',
-        'firebase_token',
-        'verification_code',
-        'verification_code_expires_at',
-        'fcm_token',
-        'last_seen_at', // Добавляем поле последней активности
+        'avatar_url',
     ];
 
     protected $hidden = [
@@ -72,9 +77,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'string',
-        'verification_code_expires_at' => 'datetime',
-        'last_seen_at' => 'datetime', // Добавляем приведение типа
-        'deleted_at' => 'datetime', // Добавляем приведение типа для мягкого удаления
+        'deleted_at' => 'datetime',
     ];
 
     protected $appends = ['profile_avatar'];
@@ -182,7 +185,7 @@ class User extends Authenticatable
      */
     public function deals()
     {
-        return $this->belongsToMany(Deal::class, 'deal_user')
+        return $this->belongsToMany(Deal::class, 'deal_users')
             ->withPivot('role')
             ->withTimestamps();
     }
@@ -263,14 +266,9 @@ class User extends Authenticatable
 
     public function coordinatorDeals()
     {
-        return $this->belongsToMany(Deal::class, 'deal_user')
+        return $this->belongsToMany(Deal::class, 'deal_users')
             ->withPivot('role')
             ->wherePivot('role', 'coordinator');
-    }
-
-    public function tokens()
-    {
-        return $this->hasMany(UserToken::class);
     }
 
     /**
@@ -390,30 +388,6 @@ class User extends Authenticatable
             ->count();
     }
 
-    /**
-     * Проверяет, находится ли пользователь в сети
-     * Пользователь считается онлайн, если был активен за последние 5 минут
-     *
-     * @return bool
-     */
-    public function isOnline()
-    {
-        if (!$this->last_seen_at) {
-            return false;
-        }
-
-        // Считаем пользователя онлайн, если он был активен в последние 5 минут
-        return $this->last_seen_at->gt(now()->subMinutes(5));
-    }
-
-    /**
-     * Обновляет время последней активности пользователя
-     */
-    public function updateLastSeen()
-    {
-        $this->last_seen_at = now();
-        $this->save();
-    }
 
     /**
      * Оценки, полученные пользователем
@@ -506,12 +480,64 @@ class User extends Authenticatable
     public function awards()
     {
         return $this->belongsToMany(Award::class, 'user_awards')
-            ->withPivot('awarded_by', 'comment', 'awarded_at')
+            ->withPivot('awarded_by_id', 'comment', 'awarded_at')
             ->withTimestamps();
     }
 
     public function fcmTokens()
     {
         return $this->hasMany(UserFCMToken::class);
+    }
+
+    /**
+     * Коды верификации пользователя
+     */
+    public function verificationCodes()
+    {
+        return $this->hasMany(VerificationCode::class);
+    }
+
+    /**
+     * Сессии пользователя
+     */
+    public function sessions()
+    {
+        return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Токены пользователя (Firebase, FCM)
+     */
+    public function tokens()
+    {
+        return $this->hasMany(UserToken::class);
+    }
+
+    /**
+     * Получить активную сессию пользователя
+     */
+    public function getActiveSession()
+    {
+        return $this->sessions()
+            ->where('last_seen_at', '>', now()->subMinutes(30))
+            ->first();
+    }
+
+    /**
+     * Обновить время последней активности
+     */
+    public function updateLastSeen()
+    {
+        $session = $this->getActiveSession();
+
+        if ($session) {
+            $session->updateLastSeen();
+        } else {
+            $this->sessions()->create([
+                'last_seen_at' => now(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        }
     }
 }

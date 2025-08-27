@@ -85,7 +85,10 @@ export default defineConfig(({ mode }) => {
                     'resources/sass/chats/index.scss',
                     'resources/js/chats/index.js',
 
-
+                    //briefs
+                    'resources/js/briefs/create.js',
+                    'resources/js/briefs/questions.js',
+                    'resources/sass/briefs/questions.scss',
                 ],
                 refresh: true,
             }),

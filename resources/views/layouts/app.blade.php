@@ -6,7 +6,7 @@
 <meta name="user-id" content="{{ Auth::id() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ $title_site ?? 'Личный кабинет' }}</title>
+<title>@yield('title', 'Личный кабинет')</title>
 <link rel="stylesheet" href="{{ asset('/css/animate.css') }}">
 <link rel="stylesheet" href="{{ asset('/css/introjs.min.css') }}">
 

@@ -29,7 +29,6 @@ class BrifsController extends Controller
     {
         $title_site = "Ваши брифы | Личный кабинет Экспресс-дизайн";
         $user = Auth::user();
-    
         // Заголовки страниц для типов брифов
         $pageTitlesCommon = [
             'Общая информация',
@@ -38,31 +37,31 @@ class BrifsController extends Controller
             'Пожелания по отделке помещений',
             'Пожелания по оснащению помещений',
         ];
-    
+
         $pageTitlesCommercial = [
             'Зоны и их функционал', 'Метраж зон', 'Зоны и их ', 'Мебилировка зон',
             'Отделочные материалы', 'Освещение зон', 'Кондиционирование',
             'Напольное покрытие зон', 'Отделка стен зон', 'Отделка потолков зон',
             'Категорически неприемлемо', 'Бюджет на помещения', 'Пожелания',
         ];
-    
+
         // Получаем брифы пользователя
         $activeCommon = Common::where('user_id', auth()->id())->where('status', 'Активный')->get();
         $inactiveCommon = Common::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
         $activeCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Активный')->get();
         $inactiveCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
-    
+
         // Объединяем активные брифы в один массив и сортируем по дате создания (новые сверху)
         $activeBrifs = $activeCommon->merge($activeCommercial)->sortByDesc('created_at');
-    
+
         // Объединяем неактивные брифы и сортируем аналогично
         $inactiveBrifs = $inactiveCommon->merge($inactiveCommercial)->sortByDesc('created_at');
-    
+
         return view('brifs', compact(
             'activeBrifs', 'inactiveBrifs', 'pageTitlesCommercial', 'pageTitlesCommon', 'user', 'title_site'
         ));
     }
-    
+
     /**
      * Отображение формы создания брифов.
      *
@@ -76,48 +75,48 @@ class BrifsController extends Controller
     public function common_store(Request $request)
     {
         $user = Auth::user();
-        
+
         // Создаем бриф
         $brif = Common::create([
             'title' => 'Общий бриф',
             'description' => 'Общий бриф представляет собой структурированный опрос, направленный на выявление базовых предпочтений и потребностей клиента. Он включает вопросы о личных предпочтениях, функциональных особенностях помещения, количестве жильцов, а также об основных стилевых решениях. Заполнение этого брифа позволяет нам лучше понять ваш образ жизни и создать проект, который гармонично объединит практичность, уют и эстетическое единство интерьера.',
             'status' => 'Активный',
-            'article' => Str::random(15), 
+            'article' => Str::random(15),
             'user_id' => $user->id,
         ]);
-        
+
         // Ищем сделки по номеру телефона пользователя без привязанных брифов любого типа
         if ($user->phone) {
             // Нормализуем телефон для поиска (убираем все нецифровые символы)
             $normalizedPhone = preg_replace('/\D/', '', $user->phone);
-            
+
             Log::info('Поиск сделки для привязки общего брифа', [
                 'user_id' => $user->id,
                 'normalized_phone' => $normalizedPhone,
                 'brief_id' => $brif->id
             ]);
-            
+
             // Вместо использования REGEXP, получим все сделки без привязанных брифов ЛЮБОГО ТИПА
             $potentialDeals = Deal::whereNull('common_id')
                              ->whereNull('commercial_id') // Добавляем проверку на отсутствие коммерческого брифа
                              ->get();
-        
+
             // Ищем сделку с совпадающим номером телефона
             $availableDeal = null;
             foreach ($potentialDeals as $deal) {
                 $dealPhoneNormalized = preg_replace('/\D/', '', $deal->client_phone);
-                
+
                 // Сравниваем последние N цифр телефона (например, 10 для России)
                 $lastDigitsToCompare = 10;
                 $dealLastDigits = substr($dealPhoneNormalized, -$lastDigitsToCompare);
                 $userLastDigits = substr($normalizedPhone, -$lastDigitsToCompare);
-                
+
                 if ($dealLastDigits == $userLastDigits && strlen($dealLastDigits) == $lastDigitsToCompare) {
                     $availableDeal = $deal;
                     break;
                 }
             }
-            
+
             // Если нашли подходящую сделку, привязываем к ней бриф
             if ($availableDeal) {
                 // Используем транзакцию для атомарного обновления
@@ -125,12 +124,12 @@ class BrifsController extends Controller
                     // Привязываем бриф к сделке
                     $availableDeal->common_id = $brif->id;
                     $availableDeal->save();
-                    
+
                     // Привязываем сделку к брифу
                     $brif->deal_id = $availableDeal->id;
                     $brif->save();
                 });
-                
+
                 // Логируем привязку
                 Log::info('Общий бриф успешно привязан к сделке по номеру телефона', [
                     'brief_id' => $brif->id,
@@ -151,7 +150,7 @@ class BrifsController extends Controller
                 'brief_id' => $brif->id
             ]);
         }
-        
+
         return redirect()->route('common.questions', [
             'id'   => $brif->id,
             'page' => 0 // начинаем с нулевой страницы выбора комнат
@@ -171,18 +170,18 @@ class BrifsController extends Controller
     public function common_show($id)
     {
         $title_site = "Детали брифа | Личный кабинет Экспресс-дизайн";
-        
+
         // Находим бриф
         $brif = Common::findOrFail($id);
-        
+
         // Получаем владельца брифа вместо текущего пользователя
         $user = User::find($brif->user_id);
-        
+
         // Если пользователь не найден, используем текущего пользователя как запасной вариант
         if (!$user) {
             $user = Auth::user();
         }
-        
+
         $pageTitlesCommon = [
             'Общая информация',
             'Интерьер: стиль и предпочтения',
@@ -201,7 +200,7 @@ class BrifsController extends Controller
             ],
             2 => [
                 ['key' => 'question_2_1', 'title' => 'Какой стиль Вы хотите видеть в своем интерьере? Какие цвета должны преобладать в интерьере?', 'subtitle' => 'Укажите предпочтения по стилям (например, современный, классический, минимализм) и цветам, которые вы хотите использовать в интерьере.', 'type' => 'textarea', 'placeholder' => 'Укажите предпочтения по стилям (например, современный, классический, минимализм) и цветам, которые вы хотите использовать в интерьере.', 'format' => 'default'],
-             
+
                 ['key' => 'question_2_2', 'title' => 'Какие имеющиеся предметы обстановки нужно включить в новый интерьер?', 'subtitle' => 'Перечислите мебель и аксессуары, которые вы хотите сохранить', 'type' => 'textarea', 'placeholder' => 'Перечислите мебель и аксессуары, которые вы хотите сохранить', 'format' => 'default'],
                 ['key' => 'question_2_3', 'title' => 'В каком ценовом сегменте предполагается ремонт?', 'subtitle' => 'Укажите выбранный ценовой сегмент: эконом, средний+, бизнес или премиум', 'type' => 'textarea', 'placeholder' => 'Укажите выбранный ценовой сегмент: эконом, средний+, бизнес или премиум', 'format' => 'default'],
                 ['key' => 'question_2_4', 'title' => 'Что не должно быть в вашем интерьере?', 'subtitle' => 'Перечислите элементы или материалы, которые вы не хотите видеть', 'type' => 'textarea', 'placeholder' => 'Перечислите элементы или материалы, которые вы не хотите видеть', 'format' => 'default'],
@@ -240,14 +239,14 @@ class BrifsController extends Controller
                 ['key' => 'question_5_6', 'title' => 'Сети', 'subtitle' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии.', 'type' => 'textarea', 'placeholder' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии', 'format' => 'default'],
             ],
         ];
-        
+
         // Находим бриф
         $brif = Common::findOrFail($id);
-    
+
         // Проверяем, является ли пользователь ответственным за сделку
         $deal = Deal::find($brif->deal_id);
-       
-    
+
+
         // Если бриф активен, перенаправляем на страницу с вопросами
         if ($brif->status === 'Активный') {
             return redirect()->route('common.questions', $brif->current_page);
@@ -255,10 +254,10 @@ class BrifsController extends Controller
         // Получение документов и фотографий
         $documentsPath = storage_path("app/public/brifs/{$id}/documents");
         $photosPath = storage_path("app/public/brifs/{$id}/photos");
-    
+
         $documents = file_exists($documentsPath) ? array_diff(scandir($documentsPath), ['.', '..']) : [];
         $photos = file_exists($photosPath) ? array_diff(scandir($photosPath), ['.', '..']) : [];
-    
+
         // Фильтруем вопросы для комнат (страница 3) на основе выбранных комнат
         $selectedRooms = json_decode($brif->rooms, true) ?? [];
         if (!empty($selectedRooms) && isset($questions[3])) {
@@ -275,35 +274,35 @@ class BrifsController extends Controller
                 return true;
             });
         }
-    
+
         return view('common.show', compact(
             'brif', 'user', 'title_site', 'pageTitlesCommon', 'questions', 'documents', 'photos'
         ));
     }
-    
+
     public function commercial_show($id)
     {
         $title_site = "Детали брифа | Личный кабинет Экспресс-дизайн";
-        
+
         // Находим коммерческий бриф
         $brif = Commercial::findOrFail($id);
-        
+
         // Получаем владельца брифа вместо текущего пользователя
         $user = User::find($brif->user_id);
-        
+
         // Если пользователь не найден, используем текущего пользователя как запасной вариант
         if (!$user) {
             $user = Auth::user();
         }
-    
+
         // Проверяем, является ли пользователь ответственным за сделку
         $deal = Deal::find($brif->deal_id);
-    
+
         // Получаем дополнительные данные, такие как зоны и предпочтения
         $zones = $brif && $brif->zones ? json_decode($brif->zones, true) : [];
         $preferences = $brif && $brif->preferences ? json_decode($brif->preferences, true) : [];
         $documents = $brif && $brif->documents ? json_decode($brif->documents, true) : []; // Декодируем документы
-    
+
         // Вопросы для отображения
         $questions = [
             'zone_1' => "Зоны и их функционал",
@@ -320,7 +319,7 @@ class BrifsController extends Controller
             'zone_12' => "Бюджет на помещения",
             'zone_13' => "Пожелания и комментарии",
         ];
-    
+
         // Формируем предпочтения с названиями вопросов
         $preferencesFormatted = [];
         foreach ($zones as $index => $zone) {
@@ -337,10 +336,10 @@ class BrifsController extends Controller
                 }
             }
         }
-    
+
         return view('commercial.show', compact('brif', 'user', 'title_site', 'zones', 'preferencesFormatted', 'documents'));
     }
-        
+
     public function commercial_store(Request $request)
     {
         $user = Auth::user();
@@ -353,39 +352,39 @@ class BrifsController extends Controller
             'article' => Str::random(15),
             'user_id' => $user->id,
         ]);
-        
+
         // Ищем сделки по номеру телефона пользователя без привязанных брифов любого типа
         if ($user->phone) {
             // Нормализуем телефон для поиска (убираем все нецифровые символы)
             $normalizedPhone = preg_replace('/\D/', '', $user->phone);
-            
+
             Log::info('Поиск сделки для привязки коммерческого брифа', [
                 'user_id' => $user->id,
                 'normalized_phone' => $normalizedPhone,
                 'brief_id' => $brif->id
             ]);
-            
+
             // Вместо использования REGEXP, получим все сделки без привязанных брифов ЛЮБОГО ТИПА
             $potentialDeals = Deal::whereNull('commercial_id')
                              ->whereNull('common_id') // Добавляем проверку на отсутствие общего брифа
                              ->get();
-        
+
             // Ищем сделку с совпадающим номером телефона
             $availableDeal = null;
             foreach ($potentialDeals as $deal) {
                 $dealPhoneNormalized = preg_replace('/\D/', '', $deal->client_phone);
-                
+
                 // Сравниваем последние N цифр телефона (например, 10 для России)
                 $lastDigitsToCompare = 10;
                 $dealLastDigits = substr($dealPhoneNormalized, -$lastDigitsToCompare);
                 $userLastDigits = substr($normalizedPhone, -$lastDigitsToCompare);
-                
+
                 if ($dealLastDigits == $userLastDigits && strlen($dealLastDigits) == $lastDigitsToCompare) {
                     $availableDeal = $deal;
                     break;
                 }
             }
-            
+
             // Если нашли подходящую сделку, привязываем к ней бриф
             if ($availableDeal) {
                 // Используем транзакцию для атомарного обновления
@@ -393,12 +392,12 @@ class BrifsController extends Controller
                     // Привязываем бриф к сделке
                     $availableDeal->commercial_id = $brif->id;
                     $availableDeal->save();
-                    
+
                     // Привязываем сделку к брифу
                     $brif->deal_id = $availableDeal->id;
                     $brif->save();
                 });
-                
+
                 // Логируем привязку
                 Log::info('Коммерческий бриф успешно привязан к сделке по номеру телефона', [
                     'brief_id' => $brif->id,
@@ -419,12 +418,12 @@ class BrifsController extends Controller
                 'brief_id' => $brif->id
             ]);
         }
-        
+
         return redirect()->route('commercial.questions', [
             'id'   => $brif->id,
             'page' => 1
         ]);
-       
+
     }
     /**
      * Отображение конкретного брифа.
@@ -436,9 +435,9 @@ class BrifsController extends Controller
     {
         // Увеличиваем лимит времени выполнения скрипта
         set_time_limit(300);
-    
+
         $type = $request->input('brif_type');
-    
+
         if ($type === 'common') {
             // Создание общего брифа
             $brif = Common::create([
@@ -448,7 +447,7 @@ class BrifsController extends Controller
                 'article'     => Str::random(15),
                 'user_id'     => auth()->id(),
             ]);
-    
+
             return redirect()->route('common.questions', [
                 'id'   => $brif->id,
                 'page' => 0 // изменено: перенаправление на страницу выбора комнат
@@ -462,13 +461,13 @@ class BrifsController extends Controller
                 'article'     => Str::random(15),
                 'user_id'     => auth()->id(),
             ]);
-    
+
             return redirect()->route('commercial.questions', [
                 'id'   => $brif->id,
                 'page' => 1
             ]);
         }
-    
+
         // На случай, если по каким-то причинам brif_type не отправилось
         return redirect()->back()->with('error', 'Не удалось определить тип брифа.');
     }
@@ -476,13 +475,13 @@ class BrifsController extends Controller
 {
     // Попытка найти бриф среди Общих и Коммерческих
     $brif = \App\Models\Common::find($id) ?: \App\Models\Commercial::find($id);
-    
+
     // Проверяем, принадлежит ли бриф текущему пользователю
     if ($brif && $brif->user_id == auth()->id()) {
         $brif->delete();
         return redirect()->back()->with('success', 'Бриф успешно удалён');
     }
-    
+
     return redirect()->back()->with('error', 'Удалить бриф не удалось');
 }
 
@@ -495,18 +494,18 @@ class BrifsController extends Controller
 public function common_download_pdf($id)
 {
     $title_site = "Общий бриф | PDF";
-    
+
     // Находим бриф
     $brif = Common::findOrFail($id);
-    
+
     // Получаем владельца брифа вместо текущего пользователя
     $user = User::find($brif->user_id);
-    
+
     // Если пользователь не найден, используем текущего пользователя как запасной вариант
     if (!$user) {
         $user = Auth::user();
     }
-    
+
     $pageTitlesCommon = [
         'Общая информация',
         'Интерьер: стиль и предпочтения',
@@ -514,7 +513,7 @@ public function common_download_pdf($id)
         'Пожелания по отделке помещений',
         'Пожелания по оснащению помещений',
     ];
-    
+
     // Определяем полный массив вопросов для новой структуры из 5 страниц
     $questions = [
         1 => [
@@ -527,7 +526,7 @@ public function common_download_pdf($id)
         ],
         2 => [
             ['key' => 'question_2_1', 'title' => 'Какой стиль Вы хотите видеть в своем интерьере? Какие цвета должны преобладать в интерьере?', 'subtitle' => 'Укажите предпочтения по стилям (например, современный, классический, минимализм) и цветам, которые вы хотите использовать в интерьере.', 'type' => 'textarea', 'placeholder' => 'Укажите предпочтения по стилям (например, современный, классический, минимализм) и цветам, которые вы хотите использовать в интерьере.', 'format' => 'default'],
-         
+
             ['key' => 'question_2_2', 'title' => 'Какие имеющиеся предметы обстановки нужно включить в новый интерьер?', 'subtitle' => 'Перечислите мебель и аксессуары, которые вы хотите сохранить', 'type' => 'textarea', 'placeholder' => 'Перечислите мебель и аксессуары, которые вы хотите сохранить', 'format' => 'default'],
             ['key' => 'question_2_3', 'title' => 'В каком ценовом сегменте предполагается ремонт?', 'subtitle' => 'Укажите выбранный ценовой сегмент: эконом, средний+, бизнес или премиум', 'type' => 'textarea', 'placeholder' => 'Укажите выбранный ценовой сегмент: эконом, средний+, бизнес или премиум', 'format' => 'default'],
             ['key' => 'question_2_4', 'title' => 'Что не должно быть в вашем интерьере?', 'subtitle' => 'Перечислите элементы или материалы, которые вы не хотите видеть', 'type' => 'textarea', 'placeholder' => 'Перечислите элементы или материалы, которые вы не хотите видеть', 'format' => 'default'],
@@ -566,7 +565,7 @@ public function common_download_pdf($id)
             ['key' => 'question_5_6', 'title' => 'Сети', 'subtitle' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии.', 'type' => 'textarea', 'placeholder' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии', 'format' => 'default'],
         ],
     ];
-    
+
     // Фильтруем вопросы для комнат (страница 3) на основе выбранных комнат
     $selectedRooms = json_decode($brif->rooms, true) ?? [];
     if (!empty($selectedRooms) && isset($questions[3])) {
@@ -583,7 +582,7 @@ public function common_download_pdf($id)
             return true;
         });
     }
-    
+
     // Преобразуем ссылки на файлы в полные URL-адреса
     if ($brif->references) {
         $references = json_decode($brif->references, true) ?? [];
@@ -595,7 +594,7 @@ public function common_download_pdf($id)
         }
         $brif->references = json_encode($references);
     }
-    
+
     if ($brif->documents) {
         $documents = json_decode($brif->documents, true) ?? [];
         foreach ($documents as &$document) {
@@ -606,23 +605,23 @@ public function common_download_pdf($id)
         }
         $brif->documents = json_encode($documents);
     }
-    
+
     // Генерируем PDF из шаблона
     $pdf = PDF::loadView('common.pdf', [
-        'brif' => $brif, 
-        'user' => $user, 
-        'pageTitlesCommon' => $pageTitlesCommon, 
+        'brif' => $brif,
+        'user' => $user,
+        'pageTitlesCommon' => $pageTitlesCommon,
         'questions' => $questions
     ]);
-    
+
     // Устанавливаем кодировку UTF-8 для корректного отображения кириллицы
     $pdf->getDomPDF()->set_option('defaultFont', 'DejaVu Sans');
     $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
     $pdf->getDomPDF()->set_option('isPhpEnabled', true);
-    
+
     // Задаем имя файла для скачивания
     $filename = "common_brief_{$brif->id}.pdf";
-    
+
     try {
         // Возвращаем PDF как скачиваемый файл
         return $pdf->download($filename);
@@ -632,7 +631,7 @@ public function common_download_pdf($id)
             'brif_id' => $brif->id,
             'trace' => $e->getTraceAsString()
         ]);
-        
+
         return redirect()->back()->with('error', 'Не удалось сгенерировать PDF. Ошибка: ' . $e->getMessage());
     }
 }
@@ -646,23 +645,23 @@ public function common_download_pdf($id)
 public function commercial_download_pdf($id)
 {
     $title_site = "Коммерческий бриф | PDF";
-    
+
     // Находим коммерческий бриф
     $brif = Commercial::findOrFail($id);
-    
+
     // Получаем владельца брифа вместо текущего пользователя
     $user = User::find($brif->user_id);
-    
+
     // Если пользователь не найден, используем текущего пользователя как запасной вариант
     if (!$user) {
         $user = Auth::user();
     }
-    
+
     // Получаем дополнительные данные для коммерческого брифа
     $zones = $brif->zones ? json_decode($brif->zones, true) : [];
     $preferences = $brif->preferences ? json_decode($brif->preferences, true) : [];
     $price = $brif->zone_budgets ? json_decode($brif->zone_budgets, true) : [];
-    
+
     // Вопросы для отображения
     $questions = [
         'zone_1' => "Название зоны",
@@ -673,9 +672,9 @@ public function commercial_download_pdf($id)
         'zone_6' => "Предпочтения и ограничения",
         'zone_7' => "Бюджет и документы",
         'zone_8' => "Дополнительные пожелания",
-        
+
     ];
-    
+
     // Преобразуем ссылки на файлы в полные URL-адреса
     if ($brif->documents) {
         $documents = json_decode($brif->documents, true) ?? [];
@@ -687,7 +686,7 @@ public function commercial_download_pdf($id)
         }
         $brif->documents = json_encode($documents);
     }
-    
+
     // Формируем предпочтения с названиями вопросов
     $preferencesFormatted = [];
     foreach ($zones as $index => $zone) {
@@ -704,25 +703,25 @@ public function commercial_download_pdf($id)
             }
         }
     }
-    
+
     try {
         // Генерируем PDF из шаблона
         $pdf = PDF::loadView('commercial.pdf', [
-            'brif' => $brif, 
-            'user' => $user, 
-            'zones' => $zones, 
+            'brif' => $brif,
+            'user' => $user,
+            'zones' => $zones,
             'preferencesFormatted' => $preferencesFormatted,
             'price' => $price
         ]);
-        
+
         // Устанавливаем кодировку UTF-8 для корректного отображения кириллицы
         $pdf->getDomPDF()->set_option('defaultFont', 'DejaVu Sans');
         $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
         $pdf->getDomPDF()->set_option('isPhpEnabled', true);
-        
+
         // Задаем имя файла для скачивания
         $filename = "commercial_brief_{$brif->id}.pdf";
-        
+
         // Возвращаем PDF как скачиваемый файл
         return $pdf->download($filename);
     } catch (\Exception $e) {
@@ -731,7 +730,7 @@ public function commercial_download_pdf($id)
             'brif_id' => $brif->id,
             'trace' => $e->getTraceAsString()
         ]);
-        
+
         return redirect()->back()->with('error', 'Не удалось сгенерировать PDF. Ошибка: ' . $e->getMessage());
     }
 }
@@ -746,18 +745,18 @@ public function commonHistory($id)
 {
     $title_site = "История изменений брифа | Личный кабинет Экспресс-дизайн";
     $user = Auth::user();
-    
+
     $brif = Common::findOrFail($id);
-    
+
     // Проверяем права доступа - пользователь должен быть владельцем брифа или иметь нужную роль
     if ($brif->user_id != auth()->id() && !in_array($user->status, ['admin', 'coordinator', 'partner'])) {
         return redirect()->route('brifs.index')
             ->with('error', 'У вас нет доступа к истории этого брифа.');
     }
-    
+
     // Получаем историю изменений с информацией о редакторе
     $histories = $brif->histories()->with('editor')->orderBy('created_at', 'desc')->get();
-    
+
     return view('common.history', compact('brif', 'histories', 'user', 'title_site'));
 }
 }

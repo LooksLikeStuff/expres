@@ -1,0 +1,126 @@
+.field-error {
+     border: 2px solid #ff0000 !important;
+     background-color: #fff0f0 !important;
+ }
+
+.error-message {
+    color: #ff0000;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+}
+
+.error-placeholder::placeholder {
+    color: #ff0000 !important;
+    opacity: 1;
+}
+
+.edit-mode-notice {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    border-left: 4px solid #ffc107;
+}
+
+.edit-mode-notice i {
+    margin-right: 5px;
+}
+
+ .custom-room-form {
+     width: 100%;
+     margin-top: 20px;
+     padding: 15px;
+     background: var(--fff);
+     border-radius: var(--radius);
+ }
+
+.custom-room-form h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.custom-room-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.custom-room-inputs input {
+    flex-grow: 1;
+}
+
+.delete-room {
+    margin-left: 10px;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 5px;
+    vertical-align: middle;
+}
+
+#custom-rooms-container {
+    width: 100%;
+}
+
+#custom-rooms-container .checkpoint {
+    margin-top: 10px;
+}
+
+ .loader-text {
+     display: flex;
+     flex-direction: column;
+     align-content: center;
+     align-items: center;
+ }
+
+.loader-text {
+    text-align: center !important;
+}
+
+ .pointblock .radio label {
+     background: var(--fff) !important;
+ }
+
+.custom-checkbox:checked+label::before {
+    content: '✔';
+}
+
+.radio label {
+    margin: 0px;
+    width: 100%;
+    font-size: 16px;
+    padding: var(--p20) 20px 20px 50px;
+    -webkit-transition: color 0.3s;
+    border-radius: var(--radius);
+    -o-transition: color 0.3s;
+    font-family: Onest;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 25.5px;
+    letter-spacing: 0%;
+    transition: color 0.3s;
+    background: var(--fff);
+}
+
+.form__body.flex.between.wrap.pointblock {
+    background: var(--blockbody) !important;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    margin-bottom: var(--m20);
+    padding: var(--p20);
+    border-radius: var(--radius);
+    place-content: center space-between;
+}
+
+.pointblock {
+    padding-bottom: var(--p30);
+}
+
+.display-rooms-container {
+    display: flex;
+}
+
+.display-rooms-container .checkpoint button {
+    width: 110px;
+}

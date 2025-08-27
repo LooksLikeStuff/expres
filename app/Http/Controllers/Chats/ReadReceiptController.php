@@ -2,16 +2,12 @@
 
 namespace App\Http\Controllers\Chats;
 
-use App\DTO\ReadReceiptDTO;
+use App\DTO\Briefs\ReadReceiptDTO;
 use App\Events\MessageRead;
-use App\Exceptions\Chats\MessageReadException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chats\ReadReceiptRequest;
 use App\Http\Requests\Chats\UpdateReadReceiptRequest;
-use App\Models\Chats\ReadReceipt;
 use App\Services\Chats\ReadReceiptService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
 
 class ReadReceiptController extends Controller
 {

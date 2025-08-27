@@ -11,15 +11,15 @@ class DealUser extends Pivot
      *
      * @var string
      */
-    protected $table = 'deal_user';
-    
+    protected $table = 'deal_users';
+
     /**
      * Указывает, должна ли модель иметь временные метки.
      *
      * @var bool
      */
     public $timestamps = true;
-    
+
     /**
      * Атрибуты, которые можно массово присваивать.
      *
@@ -46,10 +46,10 @@ class DealUser extends Pivot
     {
         return $this->belongsTo(User::class);
     }
-    
+
     /**
      * Проверяет, может ли пользователь оценить сделку
-     * 
+     *
      * @param int $userId Идентификатор пользователя
      * @param int $dealId Идентификатор сделки
      * @return bool
@@ -60,11 +60,11 @@ class DealUser extends Pivot
         $dealUser = self::where('user_id', $userId)
                         ->where('deal_id', $dealId)
                         ->first();
-        
+
         if (!$dealUser) {
             return false;
         }
-        
+
         // Клиенты, координаторы и партнеры могут оценивать сделки
         return in_array($dealUser->role, ['user', 'coordinator', 'partner']);
     }

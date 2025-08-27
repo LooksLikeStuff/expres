@@ -1,3 +1,4 @@
+@section('title', $title_site ?? ' "Ваши брифы | Личный кабинет Экспресс-дизайн"')
 @extends('layouts.app')
 @section('content')
 <div class="container">

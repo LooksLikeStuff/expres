@@ -22,17 +22,17 @@ class UserController extends BaseAdminController
     {
         $title_site = "Управление пользователями | Личный кабинет Экспресс-дизайн";
         $user = $this->getAdminUser();
-    
+
         // Получение данных
         $usersCount = User::count();
         $commonsCount = Common::count();
         $commercialsCount = Commercial::count();
         $dealsCount = Deal::count();
         $estimatesCount = Estimate::count();
-    
+
         // Создаем запрос для получения пользователей с фильтрацией
         $query = User::query();
-    
+
         // Применяем поиск по тексту
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -42,7 +42,7 @@ class UserController extends BaseAdminController
                   ->orWhere('phone', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         // Применяем фильтр по статусам
         if ($request->filled('status')) {
             $statuses = $request->status;
@@ -51,7 +51,7 @@ class UserController extends BaseAdminController
             }
             $query->whereIn('status', $statuses);
         }
-        
+
         // Применяем фильтр по диапазону дат
         if ($request->filled('date_range')) {
             switch ($request->date_range) {
@@ -144,22 +144,22 @@ class UserController extends BaseAdminController
         if ($request->filled('phone')) {
             // Получаем и декодируем номер телефона
             $phoneInput = urldecode($request->phone);
-            
+
             // Логируем входящие данные для отладки
             Log::info('Фильтр по телефону', [
                 'original_phone' => $request->phone,
                 'url_decoded' => $phoneInput,
                 'raw_input' => $request->input('phone')
             ]);
-            
+
             // Нормализуем номер телефона - оставляем только цифры
             $phoneNumbers = [];
             $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
-            
+
             if (strlen($cleanPhone) >= 7) { // Изменили минимальную длину на 7
                 // Добавляем различные варианты поиска
                 $phoneNumbers[] = $cleanPhone; // Чистые цифры
-                
+
                 // Если номер российский (начинается с 7 или 8)
                 if (strlen($cleanPhone) == 11) {
                     if ($cleanPhone[0] == '7') {
@@ -170,32 +170,32 @@ class UserController extends BaseAdminController
                         $phoneNumbers[] = '+7' . substr($cleanPhone, 1); // Добавляем +7
                     }
                 }
-                
+
                 // Последние 10 цифр для поиска без кода страны
                 if (strlen($cleanPhone) >= 10) {
                     $last10 = substr($cleanPhone, -10);
                     $phoneNumbers[] = $last10;
                 }
-                
+
                 // Форматированный номер как в исходном запросе
                 $phoneNumbers[] = $phoneInput;
-                
+
                 // Добавляем варианты с различными форматами для российских номеров
                 if (strlen($cleanPhone) == 11 && $cleanPhone[0] == '7') {
                     $number = substr($cleanPhone, 1);
                     $phoneNumbers[] = '+7 (' . substr($number, 0, 3) . ') ' . substr($number, 3, 3) . '-' . substr($number, 6, 2) . '-' . substr($number, 8, 2);
                     $phoneNumbers[] = '8 (' . substr($number, 0, 3) . ') ' . substr($number, 3, 3) . '-' . substr($number, 6, 2) . '-' . substr($number, 8, 2);
                 }
-                
+
                 // Убираем дубликаты
                 $phoneNumbers = array_unique($phoneNumbers);
             }
-            
+
             Log::info('Варианты поиска номера телефона', [
                 'cleaned_phone' => $cleanPhone,
                 'search_variants' => $phoneNumbers
             ]);
-            
+
             // Поиск по всем вариантам номера
             if (!empty($phoneNumbers)) {
                 $query->where(function($q) use ($phoneNumbers) {
@@ -207,20 +207,20 @@ class UserController extends BaseAdminController
         }        // Получение SQL запроса для отладки (до выполнения)
         $sqlQuery = $query->toSql();
         $sqlBindings = $query->getBindings();
-        
+
         // Получение отфильтрованных пользователей
         $users = $query->get();
-        
+
         // Добавляем отладочную информацию
         $phoneDebug = null;
         if ($request->filled('phone')) {
             $phoneInput = urldecode($request->phone);
             $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
-            
+
             $phoneNumbers = [];
             if (strlen($cleanPhone) >= 7) {
                 $phoneNumbers[] = $cleanPhone;
-                
+
                 if (strlen($cleanPhone) == 11) {
                     if ($cleanPhone[0] == '7') {
                         $phoneNumbers[] = '8' . substr($cleanPhone, 1);
@@ -230,16 +230,16 @@ class UserController extends BaseAdminController
                         $phoneNumbers[] = '+7' . substr($cleanPhone, 1);
                     }
                 }
-                
+
                 if (strlen($cleanPhone) >= 10) {
                     $last10 = substr($cleanPhone, -10);
                     $phoneNumbers[] = $last10;
                 }
-                
+
                 $phoneNumbers[] = $phoneInput;
                 $phoneNumbers = array_unique($phoneNumbers);
             }
-            
+
             $phoneDebug = [
                 'original_input' => $request->phone,
                 'url_decoded' => $phoneInput,
@@ -268,36 +268,36 @@ class UserController extends BaseAdminController
             'debugInfo'
         ));
     }
-    
+
     /**
      * Обновить информацию о пользователе
      */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
-    
+
         // Проверяем, был ли передан новый пароль
         if ($request->has('password') && !empty($request->password)) {
             $user->password = Hash::make($request->password); // Хешируем пароль перед сохранением
         }
-    
+
         // Обновляем остальные данные пользователя
         $user->update($request->only(['name', 'phone', 'status']));
-    
+
         return response()->json(['success' => true]);
     }
-    
+
     /**
      * Удалить пользователя
      */
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        
+
         try {
             // Начинаем транзакцию для безопасного обновления всех связанных записей
             \DB::beginTransaction();
-            
+
             // Сохраняем данные пользователя перед удалением для использования в сделках
             $userData = [
                 'id' => $user->id,
@@ -305,7 +305,7 @@ class UserController extends BaseAdminController
                 'email' => $user->email,
                 'phone' => $user->phone
             ];
-            
+
             // Обновляем брифы - сохраняем ID удаляемого пользователя
             \DB::table('commons')
                 ->where('user_id', $user->id)
@@ -313,14 +313,14 @@ class UserController extends BaseAdminController
                     'user_id_before_deletion' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             \DB::table('commercials')
                 ->where('user_id', $user->id)
                 ->update([
                     'user_id_before_deletion' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Обновляем сделки, где пользователь был основным владельцем
             \DB::table('deals')
                 ->where('user_id', $user->id)
@@ -331,7 +331,7 @@ class UserController extends BaseAdminController
                     'deleted_user_phone' => $userData['phone'],
                     'updated_at' => now(),
                 ]);
-                
+
             // Обновляем сделки, где пользователь был координатором
             \DB::table('deals')
                 ->where('coordinator_id', $user->id)
@@ -339,7 +339,7 @@ class UserController extends BaseAdminController
                     'deleted_coordinator_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Обновляем сделки, где пользователь был архитектором
             \DB::table('deals')
                 ->where('architect_id', $user->id)
@@ -347,7 +347,7 @@ class UserController extends BaseAdminController
                     'deleted_architect_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Обновляем сделки, где пользователь был дизайнером
             \DB::table('deals')
                 ->where('designer_id', $user->id)
@@ -355,7 +355,7 @@ class UserController extends BaseAdminController
                     'deleted_designer_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Обновляем сделки, где пользователь был визуализатором
             \DB::table('deals')
                 ->where('visualizer_id', $user->id)
@@ -363,20 +363,20 @@ class UserController extends BaseAdminController
                     'deleted_visualizer_id' => $user->id,
                     'updated_at' => now(),
                 ]);
-            
+
             // Сохраняем информацию об удаленном пользователе в pivot-таблицу
-            \DB::table('deal_user')
+            \DB::table('deal_users')
                 ->where('user_id', $user->id)
                 ->update([
                     'deleted_user_data' => json_encode($userData),
                     'updated_at' => now(),
                 ]);
-            
+
             // Мягкое удаление пользователя
             $user->delete();
-            
+
             \DB::commit();
-            
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             \DB::rollBack();
@@ -384,7 +384,7 @@ class UserController extends BaseAdminController
             return response()->json(['success' => false, 'message' => 'Произошла ошибка при удалении пользователя'], 500);
         }
     }
-    
+
     /**
      * Показать брифы пользователя
      */
@@ -424,7 +424,7 @@ class UserController extends BaseAdminController
 
         // Получаем только удаленных пользователей
         $trashed_users = User::onlyTrashed();
-        
+
         // Применяем поиск по тексту
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -434,12 +434,12 @@ class UserController extends BaseAdminController
                   ->orWhere('phone', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         // Применяем фильтр по статусам
         if ($request->filled('statuses') && is_array($request->statuses)) {
             $trashed_users->whereIn('status', $request->statuses);
         }
-        
+
         // Получение отфильтрованных удаленных пользователей
         $trashed_users = $trashed_users->get();
 
@@ -458,10 +458,10 @@ class UserController extends BaseAdminController
         try {
             // Начинаем транзакцию
             \DB::beginTransaction();
-            
+
             // Находим удаленного пользователя
             $user = User::onlyTrashed()->findOrFail($id);
-            
+
             // Восстанавливаем связи в брифах
             \DB::table('commons')
                 ->where('user_id_before_deletion', $user->id)
@@ -470,7 +470,7 @@ class UserController extends BaseAdminController
                     'user_id_before_deletion' => null,
                     'updated_at' => now()
                 ]);
-                
+
             \DB::table('commercials')
                 ->where('user_id_before_deletion', $user->id)
                 ->update([
@@ -478,7 +478,7 @@ class UserController extends BaseAdminController
                     'user_id_before_deletion' => null,
                     'updated_at' => now()
                 ]);
-            
+
             // Восстанавливаем связи в сделках
             $deals = \DB::table('deals')->where('deleted_user_id', $user->id)->get();
             foreach ($deals as $deal) {
@@ -493,7 +493,7 @@ class UserController extends BaseAdminController
                         'updated_at' => now()
                     ]);
             }
-            
+
             // Восстанавливаем связи с координаторами
             \DB::table('deals')
                 ->where('deleted_coordinator_id', $user->id)
@@ -502,7 +502,7 @@ class UserController extends BaseAdminController
                     'deleted_coordinator_id' => null,
                     'updated_at' => now()
                 ]);
-            
+
             // Восстанавливаем связи для архитекторов
             \DB::table('deals')
                 ->where('deleted_architect_id', $user->id)
@@ -511,7 +511,7 @@ class UserController extends BaseAdminController
                     'deleted_architect_id' => null,
                     'updated_at' => now()
                 ]);
-            
+
             // Восстанавливаем связи для дизайнеров
             \DB::table('deals')
                 ->where('deleted_designer_id', $user->id)
@@ -520,7 +520,7 @@ class UserController extends BaseAdminController
                     'deleted_designer_id' => null,
                     'updated_at' => now()
                 ]);
-            
+
             // Восстанавливаем связи для визуализаторов
             \DB::table('deals')
                 ->where('deleted_visualizer_id', $user->id)
@@ -529,16 +529,16 @@ class UserController extends BaseAdminController
                     'deleted_visualizer_id' => null,
                     'updated_at' => now()
                 ]);
-            
+
             // Восстанавливаем пользователя в промежуточных таблицах
-            $dealUsers = \DB::table('deal_user')
+            $dealUsers = \DB::table('deal_users')
                 ->whereNotNull('deleted_user_data')
                 ->get();
-                
+
             foreach ($dealUsers as $dealUser) {
                 $deletedUserData = json_decode($dealUser->deleted_user_data, true);
                 if (isset($deletedUserData['id']) && $deletedUserData['id'] == $user->id) {
-                    \DB::table('deal_user')
+                    \DB::table('deal_users')
                         ->where('id', $dealUser->id)
                         ->update([
                             'user_id' => $user->id,
@@ -547,12 +547,12 @@ class UserController extends BaseAdminController
                         ]);
                 }
             }
-            
+
             // Восстанавливаем пользователя
             $user->restore();
-            
+
             \DB::commit();
-            
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             \DB::rollBack();
@@ -568,10 +568,10 @@ class UserController extends BaseAdminController
     {
         $user = User::onlyTrashed()->findOrFail($id);
         $user->forceDelete();
-        
+
         return response()->json(['success' => true]);
     }
-    
+
     /**
      * Нормализует номер телефона для поиска
      * Удаляет все нецифровые символы, кроме +
@@ -580,20 +580,20 @@ class UserController extends BaseAdminController
     {
         // Удаляем все символы, кроме цифр и +
         $normalizedPhone = preg_replace('/[^0-9+]/', '', $phone);
-        
+
         // Если номер начинается с 8 и его длина 11, меняем на +7
         if (strlen($normalizedPhone) == 11 && $normalizedPhone[0] == '8') {
             $normalizedPhone = '+7' . substr($normalizedPhone, 1);
         }
-        
+
         // Если номер начинается с 7 и нет "+", добавляем "+"
         if (strlen($normalizedPhone) == 11 && $normalizedPhone[0] == '7' && strpos($normalizedPhone, '+') !== 0) {
             $normalizedPhone = '+' . $normalizedPhone;
         }
-        
+
         return $normalizedPhone;
     }
-    
+
     /**
      * Добавляет условия для нечеткого поиска по телефону
      */
@@ -601,12 +601,12 @@ class UserController extends BaseAdminController
     {
         // Удаляем все форматирование для поиска
         $cleanNumber = preg_replace('/[^0-9]/', '', $searchPhone);
-        
+
         // Если мало цифр, нет смысла делать нечеткий поиск
         if (strlen($cleanNumber) < 5) {
             return;
         }
-        
+
         // Разбиваем номер на части для поиска частичных совпадений
         $parts = [];
         for ($i = 0; $i < strlen($cleanNumber) - 3; $i++) {
@@ -614,12 +614,12 @@ class UserController extends BaseAdminController
                 $parts[] = substr($cleanNumber, $i, 4);
             }
         }
-        
+
         foreach ($parts as $part) {
             $query->orWhere(DB::raw('REPLACE(REPLACE(REPLACE(phone, "+", ""), "-", ""), " ", "")'), 'LIKE', '%' . $part . '%');
         }
     }
-    
+
     /**
      * Рассчитывает процент сходства между двумя строками
      */
@@ -628,25 +628,25 @@ class UserController extends BaseAdminController
         // Приводим к нижнему регистру
         $string1 = mb_strtolower($string1);
         $string2 = mb_strtolower($string2);
-        
+
         // Удаляем лишние пробелы
         $string1 = trim($string1);
         $string2 = trim($string2);
-        
+
         // Для коротких строк используем функцию similar_text
         if (strlen($string1) <= 50 && strlen($string2) <= 50) {
             similar_text($string1, $string2, $percent);
             return $percent;
         }
-        
+
         // Для длинных строк используем расчет по алгоритму Левенштейна
         $lev = levenshtein($string1, $string2);
         $maxLen = max(strlen($string1), strlen($string2));
-        
+
         if ($maxLen == 0) return 100; // Обе строки пустые
-        
+
         return (1 - $lev / $maxLen) * 100;
     }
-    
+
     // Другие методы контроллера...
 }

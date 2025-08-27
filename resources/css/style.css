@@ -4829,7 +4829,7 @@ button.button__variate2.icon {
     background: rgb(236, 236, 255);
 }
 
-button.button__icon {
+.button__icon {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -4839,7 +4839,7 @@ button.button__icon {
         align-items: center;
 }
 
-button.button__icon img {
+.button__icon img {
     width: 22px;
     height: 22px;
 }

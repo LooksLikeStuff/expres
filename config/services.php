@@ -34,7 +34,7 @@ return [
     |
     */
     'yandex_disk' => [
-        'token' => env('YANDEX_DISK_TOKEN', 'y0__xD-1-GlqveAAhjblgMgy8zl_BIVhC5iLWbQTnJiXBfnjmS39_7EUA'), 
+        'token' => env('YANDEX_DISK_TOKEN', 'y0__xD-1-GlqveAAhjblgMgy8zl_BIVhC5iLWbQTnJiXBfnjmS39_7EUA'),
         'base_folder' => env('YANDEX_DISK_BASE_FOLDER', 'lk_deals'), // Базовая папка
         'timeout' => env('YANDEX_DISK_TIMEOUT', 0), // Убираем ограичения времени
         'chunk_size' => env('YANDEX_DISK_CHUNK_SIZE', 2097152), // 2MB для новой системы v3.0
@@ -48,9 +48,9 @@ return [
         'connect_timeout' => env('YANDEX_DISK_CONNECT_TIMEOUT', 120), // 2 минуты на соединение
     ],
     'smsru' => [
-        'api_key' => env('SMSRU_API_KEY', '6CDCE0B0-6091-278C-5145-360657FF0F9B'),
-        'api_id' => env('SMS_RU_API_ID', '6CDCE0B0-6091-278C-5145-360657FF0F9B'),
+        'api_key' => env('SMSRU_API_KEY', null),
+        'api_id' => env('SMS_RU_API_ID', null),
     ],
 
-    
+
 ];

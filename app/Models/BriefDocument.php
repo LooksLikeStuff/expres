@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class BriefDocument extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'brief_id',
+        'original_name',
+        'filepath',
+        'mime_type',
+        'file_size',
+    ];
+
+    /**
+     * Связь с брифом
+     */
+    public function brief()
+    {
+        return $this->belongsTo(Brief::class);
+    }
+
+    /**
+     * Получить полный URL файла
+     */
+    public function getFullUrlAttribute(): string
+    {
+        // Если путь уже абсолютный URL
+        if (str_starts_with($this->filepath, ['http://', 'https://'])) {
+            return $this->filepath;
+        }
+
+        // Иначе формируем URL от базового адреса приложения
+        return config('app.url') . '/' . ltrim($this->filepath, '/');
+    }
+
+    /**
+     * Проверка, является ли файл изображением
+     */
+    public function isImage(): bool
+    {
+        return str_starts_with($this->mime_type, 'image/');
+    }
+
+    /**
+     * Проверка, является ли файл PDF
+     */
+    public function isPdf(): bool
+    {
+        return $this->mime_type === 'application/pdf';
+    }
+}

@@ -239,7 +239,7 @@ class Deal extends Model
 
     public function responsibles()
     {
-        return $this->belongsToMany(User::class, 'deal_user');
+        return $this->belongsToMany(User::class, 'deal_users');
     }
 
     public function allUsers()
@@ -258,13 +258,13 @@ class Deal extends Model
     }
 
 
-    /**
-     * Альтернативное отношение для прямого доступа к pivot-таблице.
-     */
-    public function usersPivot()
-    {
-        return $this->hasMany(DealUser::class);
-    }
+//    /**
+//     * Альтернативное отношение для прямого доступа к pivot-таблице.
+//     */
+//    public function usersPivot()
+//    {
+//        return $this->hasMany(DealUser::class);
+//    }
 
     /**
      * Проверяет, поставил ли пользователь оценку другому пользователю в этой сделке

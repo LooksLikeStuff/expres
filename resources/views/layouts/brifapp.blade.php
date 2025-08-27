@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title_site }}</title>
+    <title>@yield('title')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -152,29 +152,29 @@
     {{-- <div class="question_class-button">
         <a href="#top-title" class="top-title"><img src="/storage/icon/send.svg" alt=""></a>
     </div> --}}
-    <script>
-        const unreadCounter = document.getElementById('unread-count');
+{{--    <script>--}}
+{{--        const unreadCounter = document.getElementById('unread-count');--}}
 
-        async function fetchUnreadMessagesCount() {
-            try {
-                const response = await fetch('/messages/unread-total');
-                if (response.ok) {
-                    const data = await response.json();
-                    unreadCounter.textContent = data.total_unread_count || 0;
-                } else {
-                    console.error('Ошибка получения данных о непрочитанных сообщениях');
-                }
-            } catch (error) {
-                console.error('Ошибка запроса:', error);
-            }
-        }
+{{--        async function fetchUnreadMessagesCount() {--}}
+{{--            try {--}}
+{{--                const response = await fetch('/messages/unread-total');--}}
+{{--                if (response.ok) {--}}
+{{--                    const data = await response.json();--}}
+{{--                    unreadCounter.textContent = data.total_unread_count || 0;--}}
+{{--                } else {--}}
+{{--                    console.error('Ошибка получения данных о непрочитанных сообщениях');--}}
+{{--                }--}}
+{{--            } catch (error) {--}}
+{{--                console.error('Ошибка запроса:', error);--}}
+{{--            }--}}
+{{--        }--}}
 
-        // Обновляем данные каждые 10 секунд
-        setInterval(fetchUnreadMessagesCount, 2000);
+{{--        // Обновляем данные каждые 10 секунд--}}
+{{--        setInterval(fetchUnreadMessagesCount, 2000);--}}
 
-        // Первый вызов для немедленного обновления
-        fetchUnreadMessagesCount();
-    </script>
+{{--        // Первый вызов для немедленного обновления--}}
+{{--        fetchUnreadMessagesCount();--}}
+{{--    </script>--}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const successMessage = document.getElementById('success-message');
@@ -373,7 +373,7 @@
 
         // Обновляем токен каждые 30 секунд
         setInterval(refreshCsrfToken, 30000);
-        
+
         // Функция для проверки и обновления токена перед отправкой формы
         async function ensureFreshCsrfToken() {
             try {
@@ -392,16 +392,16 @@
                 form.addEventListener('submit', async function(event) {
                     // Если форма уже обрабатывается - пропускаем
                     if (form.dataset.processing === 'true') return;
-                    
+
                     // Проверяем, есть ли в форме индикатор необходимости проверки CSRF
                     if (form.classList.contains('csrf-check')) {
                         event.preventDefault();
                         form.dataset.processing = 'true';
-                        
+
                         // Обновляем токен перед отправкой
                         const success = await ensureFreshCsrfToken();
                         form.dataset.processing = 'false';
-                        
+
                         if (success) {
                             // Если токен успешно обновлен, отправляем форму
                             form.submit();
@@ -510,22 +510,22 @@
         function preventInputZoom() {
             // Проверяем, является ли устройство iOS
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
+
             if (isIOS) {
                 // Запоминаем исходное значение метатега viewport
                 const originalViewport = document.querySelector('meta[name="viewport"]').getAttribute('content');
-                
+
                 // Находим все поля ввода
                 const inputElements = document.querySelectorAll('input, select, textarea');
-                
+
                 // Добавляем обработчики событий для каждого поля ввода
                 inputElements.forEach(input => {
                     // При фокусе запрещаем масштабирование
                     input.addEventListener('focus', function() {
-                        document.querySelector('meta[name="viewport"]').setAttribute('content', 
+                        document.querySelector('meta[name="viewport"]').setAttribute('content',
                             'width=device-width, initial-scale=1, maximum-scale=1');
                     });
-                    
+
                     // При потере фокуса восстанавливаем исходные настройки
                     input.addEventListener('blur', function() {
                         setTimeout(function() {
@@ -535,7 +535,7 @@
                 });
             }
         }
-        
+
         // Вызываем функцию при загрузке страницы
         document.addEventListener('DOMContentLoaded', preventInputZoom);
     </script>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Briefs\BriefController;
 use App\Http\Controllers\Chats\FCMTokenController;
 use App\Http\Controllers\Chats\MessageController;
 use App\Http\Controllers\Chats\ReadReceiptController;
@@ -57,15 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/brifs/store', [BrifsController::class, 'store'])->name('brifs.store');
     Route::delete('/brifs/{brif}', [BrifsController::class, 'destroy'])->name('brifs.destroy');
 
-    Route::get('/common/questions/{id}/{page}', [CommonController::class, 'questions'])->name('common.questions');
-    Route::post('/common/questions/{id}/{page}', [CommonController::class, 'saveAnswers'])->name('common.saveAnswers');
+
     Route::get('/common/create', [BrifsController::class, 'common_create'])->name('common.create');
     Route::post('/common', [BrifsController::class, 'common_store'])->name('common.store');
     Route::get('/common/{id}', [BrifsController::class, 'common_show'])->name('common.show');
     Route::get('/common/{id}/download-pdf', [BrifsController::class, 'common_download_pdf'])->name('common.download.pdf');
 
-    Route::get('/commercial/questions/{id}/{page}', [CommercialController::class, 'questions'])->name('commercial.questions');
-    Route::post('/commercial/questions/{id}/{page}', [CommercialController::class, 'saveAnswers'])->name('commercial.saveAnswers');
+    // TODO: после объединения saveAnswers также сведём в единый метод
     Route::get('/commercial/create', [BrifsController::class, 'commercial_create'])->name('commercial.create');
     Route::post('/commercial', [BrifsController::class, 'commercial_store'])->name('commercial.store');
     Route::get('/commercial/{id}', [BrifsController::class, 'commercial_show'])->name('commercial.show');
@@ -310,9 +309,7 @@ Route::get('/cities.json', function () {
 
     // Если файла нет, вернём пустой массив
     return response()->json([]);
-});if (app()->environment('production')) {
-    URL::forceScheme('https');
-}
+});
 
 // Маршруты для работы с брифами в сделках
 Route::post('/find-briefs-by-user-id', [App\Http\Controllers\DealsController::class, 'findBriefsByUserId'])->middleware('auth');
@@ -347,8 +344,21 @@ Route::get('/test/document-system', function () {
 
 
 
-//Chats
+
 Route::middleware('auth')->group(function () {
+
+    Route::resource('briefs', BriefController::class);
+
+    Route::prefix('briefs')->controller(BriefController::class)->middleware('brief.access')->group(function () {
+        Route::get('{brief}/questions/{page}','questions')->name('briefs.questions');
+        Route::get('{brief}/rooms','createRooms')->name('briefs.rooms.create');
+        Route::post('{brief}/rooms','storeRooms')->name('briefs.rooms.store');
+        Route::post('{brief}/answers','answers')->name('briefs.answers');
+        Route::get('{brief}/pdf','pdf')->name('briefs.pdf');
+    });
+
+
+    //Chats
     Route::prefix('chats')->controller(ChatController::class)->group(function () {
         Route::get('/', 'index')->name('chats.index');
         Route::post('{chat}/', 'show')->name('chats.show');

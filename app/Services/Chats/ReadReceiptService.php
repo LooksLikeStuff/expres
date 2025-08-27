@@ -2,10 +2,9 @@
 
 namespace App\Services\Chats;
 
-use App\DTO\ReadReceiptDTO;
+use App\DTO\Briefs\ReadReceiptDTO;
 use App\Exceptions\Chats\MessageReadException;
 use App\Models\Chats\ReadReceipt;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReadReceiptService
 {

@@ -15,7 +15,7 @@
         </li>
         @if(!in_array(Auth::user()->status, ['architect', 'designer', 'visualizer']))
             <li>
-                <button onclick="location.href='{{ url('/brifs') }}'" id="step-4" title="Просмотр и управление вашими брифами">
+                <button onclick="location.href='{{ url('/briefs') }}'" id="step-4" title="Просмотр и управление вашими брифами">
                     <img src="/storage/icon/brif.svg" alt=""><span>Ваши брифы </span>
                 </button>
             </li>

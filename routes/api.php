@@ -28,35 +28,6 @@ Route::match(['GET', 'HEAD'], '/keepalive', function () {
     return response()->json(['status' => 'alive', 'timestamp' => time()]);
 });
 
-// Маршруты для чата с защитой аутентификации
-// Проверка аутентификации через web (cookie-сессии)
-// Route::middleware(['auth:web', CheckChatAccess::class])->group(function () {
-//     // Базовые маршруты чата
-//     Route::get('/contacts', [ChatController::class, 'getContacts']);
-//     Route::get('/chats/{id}/messages', [ChatController::class, 'getMessages']);
-//     Route::get('/chats/{id}/new-messages', [ChatController::class, 'getNewMessages']);
-//     Route::post('/chats/{id}/messages', [ChatController::class, 'sendMessage']);
-//     Route::get('/unread-count', [ChatController::class, 'getUnreadCount']);
-
-//     // Маршруты для групповых чатов
-//     Route::get('/chat-groups', [ChatController::class, 'getChatGroups']);
-//     Route::post('/chat-groups', [ChatController::class, 'createChatGroup']);
-//     Route::get('/chat-groups/{id}', [ChatController::class, 'getChatGroup']);
-//     Route::put('/chat-groups/{id}', [ChatController::class, 'updateChatGroup']);
-//     Route::delete('/chat-groups/{id}', [ChatController::class, 'deleteChatGroup']);
-//     Route::get('/chat-groups/{id}/messages', [ChatController::class, 'getGroupMessages']);
-//     Route::get('/chat-groups/{id}/new-messages', [ChatController::class, 'getNewGroupMessages']);
-//     Route::post('/chat-groups/{id}/messages', [ChatController::class, 'sendGroupMessage']);
-//     Route::post('/chat-groups/{id}/users', [ChatController::class, 'addChatGroupUser']);
-//     Route::delete('/chat-groups/{id}/users/{user_id}', [ChatController::class, 'removeChatGroupUser']);
-
-//     // Проверка новых сообщений
-//     Route::get('/chats/check-new-messages', [ChatController::class, 'checkNewMessagesInChats']);
-//     Route::get('/chat-groups/check-new-messages', [ChatController::class, 'checkNewMessagesInGroups']);
-
-//     // Поиск сообщений
-//     Route::get('/messages/search', [ChatController::class, 'searchMessages']);
-
 // Маршруты для поиска и привязки брифов к сделкам
 Route::middleware('auth:web')->group(function () {
     // Поиск брифов по номеру телефона клиента

@@ -10,7 +10,21 @@ enum UserStatus: string
     case ARCHITECT = 'architect';
     case DESIGNER = 'designer';
     case VISUALIZER = 'visualizer';
-    case CLIENT = 'user';
+    case CLIENT = 'client';
+
+    /**
+     * Вернёт список кейсов, которые являются исполнителями.
+     *
+     * @return array<string>
+     */
+    public static function executors(): array
+    {
+        return [
+            self::ARCHITECT->value,
+            self::DESIGNER->value,
+            self::VISUALIZER->value,
+        ];
+    }
 
     public function label(): string
     {

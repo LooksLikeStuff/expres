@@ -3,7 +3,6 @@
 namespace App\Models\Chats;
 
 use App\Enums\MessageType;
-use App\Models\ChatGroup;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

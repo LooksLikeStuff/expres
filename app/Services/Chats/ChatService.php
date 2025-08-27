@@ -2,10 +2,9 @@
 
 namespace App\Services\Chats;
 
-use App\DTO\ChatDTO;
+use App\DTO\Briefs\ChatDTO;
 use App\Enums\ChatType;
 use App\Models\Chats\Chat;
-use Illuminate\Support\Facades\DB;
 
 class ChatService
 {

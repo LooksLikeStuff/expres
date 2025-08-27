@@ -21,7 +21,23 @@ use App\Http\Controllers\Traits\NotifyExecutorsTrait;
 class DealsController extends Controller
 {
     use NotifyExecutorsTrait;
-    
+
+    public function __construct(YandexDiskService $yandexDiskService)
+    {
+        $this->yandexDiskService = $yandexDiskService;
+
+        // ВРЕМЕННО ОТКЛЮЧЕНО: Проверяем валидность токена при инициализации
+        // if (!$this->yandexDiskService->checkAuth()) {
+        //     Log::error("Ошибка авторизации в Яндекс.Диск при инициализации DealsController");
+        // }
+
+        // Убираем ограничения для загрузки больших файлов
+        ini_set('upload_max_filesize', '0'); // Без ограничений
+        ini_set('post_max_size', '0'); // Без ограничений
+        ini_set('max_execution_time', '0'); // Без ограничений времени
+        ini_set('max_input_time', '0'); // Без ограничений времени ввода
+        ini_set('memory_limit', '2048M'); // 2 ГБ для больших файлов
+    }
     /**
      * Загрузка файла на Яндекс.Диск
      */
@@ -108,7 +124,7 @@ class DealsController extends Controller
 
             $files = $request->file('documents');
             $dealId = $request->input('deal_id');
-            
+
             Log::info('🚀 Начинаем быструю загрузку файлов на Яндекс.Диск', [
                 'files_count' => count($files),
                 'deal_id' => $dealId
@@ -138,7 +154,7 @@ class DealsController extends Controller
             // Загружаем файлы
             foreach ($files as $file) {
                 $result = $yandexService->uploadFile($file, $folderPath);
-                
+
                 if ($result['success']) {
                     $uploadResults[] = [
                         'success' => true,
@@ -213,16 +229,16 @@ class DealsController extends Controller
             'png' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
             'gif' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
             'webp' => ['screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'chat_screenshot', 'screenshot_final'],
-            
+
             // Документы и проекты
             'pdf' => ['final_project_file', 'work_act', 'execution_order_file'],
             'doc' => ['final_project_file', 'work_act', 'execution_order_file'],
             'docx' => ['final_project_file', 'work_act', 'execution_order_file'],
-            
+
             // Архитектурные файлы
             'dwg' => ['archicad_file'],
             'pln' => ['archicad_file'],
-            
+
             // Измерения
             'xlsx' => ['measurements_file'],
             'xls' => ['measurements_file'],
@@ -249,7 +265,7 @@ class DealsController extends Controller
             // Если по имени не определили, используем расширение
             if (isset($extensionToFieldMap[$extension])) {
                 $possibleFields = $extensionToFieldMap[$extension];
-                
+
                 // Находим первое пустое поле
                 foreach ($possibleFields as $field) {
                     $yandexField = 'yandex_url_' . $field;
@@ -258,7 +274,7 @@ class DealsController extends Controller
                         break;
                     }
                 }
-                
+
                 // Если все поля заняты, используем первое
                 if (!$targetField) {
                     $targetField = $possibleFields[0];
@@ -270,10 +286,10 @@ class DealsController extends Controller
         if ($targetField) {
             $yandexUrlField = 'yandex_url_' . $targetField;
             $originalNameField = 'original_name_' . $targetField;
-            
+
             $deal->$yandexUrlField = $yandexUrl;
             $deal->$originalNameField = $originalName;
-            
+
             Log::info('📎 Обновлено поле сделки', [
                 'field' => $targetField,
                 'original_name' => $originalName,
@@ -286,25 +302,9 @@ class DealsController extends Controller
             ]);
         }
     }
-    
+
     protected $yandexDiskService;
 
-    public function __construct(YandexDiskService $yandexDiskService)
-    {
-        $this->yandexDiskService = $yandexDiskService;
-
-        // ВРЕМЕННО ОТКЛЮЧЕНО: Проверяем валидность токена при инициализации
-        // if (!$this->yandexDiskService->checkAuth()) {
-        //     Log::error("Ошибка авторизации в Яндекс.Диск при инициализации DealsController");
-        // }
-
-        // Убираем ограничения для загрузки больших файлов
-        ini_set('upload_max_filesize', '0'); // Без ограничений
-        ini_set('post_max_size', '0'); // Без ограничений  
-        ini_set('max_execution_time', '0'); // Без ограничений времени
-        ini_set('max_input_time', '0'); // Без ограничений времени ввода
-        ini_set('memory_limit', '2048M'); // 2 ГБ для больших файлов
-    }
 
     /**
      * Отображение списка сделок.
@@ -385,7 +385,7 @@ class DealsController extends Controller
         if ($dateFrom) $query->whereDate('created_date', '>=', $dateFrom);
         if ($dateTo) $query->whereDate('created_date', '<=', $dateTo);
         // partnerId и coordinatorId обрабатываются в логике ролей выше
-        
+
         // Применяем сортировку
         if ($sortBy) {
             switch ($sortBy) {
@@ -407,7 +407,7 @@ class DealsController extends Controller
                 $q->where('status', 'client');
             });
         }]);
-        
+
         // Добавляем среднее значение клиентских оценок
         $query->withAvg(['ratings as client_rating_avg' => function($query) {
             $query->whereHas('raterUser', function($q) {
@@ -449,10 +449,10 @@ class DealsController extends Controller
     {
         $deal = Deal::findOrFail($id);
         $user = Auth::user();
-        
+
         // Сохраняем оригинальные значения для логирования
         $original = $deal->getAttributes();
-        
+
         // Получаем валидированные данные - убираем ограничения размера файлов
         $validatedData = $request->validate([
             'client_name' => 'required|string|max:255', // Добавляем валидацию для имени клиента
@@ -500,27 +500,27 @@ class DealsController extends Controller
             'project_photos' => 'nullable|array',
             'project_photos.*' => 'file', // Убрали все ограничения размера
         ]);
-        
+
         // Убираем поля файлов из массива для обновления
         $fileFields = [
-            'execution_order_file', 'measurements_file', 'final_floorplan', 
-            'final_collage', 'final_project_file', 'work_act', 
+            'execution_order_file', 'measurements_file', 'final_floorplan',
+            'final_collage', 'final_project_file', 'work_act',
             'archicad_file', 'contract_attachment', 'plan_final', 'chat_screenshot', 'avatar_path',
             'screenshot_work_1', 'screenshot_work_2', 'screenshot_work_3', 'screenshot_final',
             'project_photos'  // Добавляем наше поле с фотографиями
         ];
-        
+
         $dataToUpdate = array_diff_key($validatedData, array_flip($fileFields));
-        
+
         // Обновляем данные сделки без файлов
         $deal->update($dataToUpdate);
-        
+
         // СТАРАЯ система для файлов документов ОТКЛЮЧЕНА - используется новая система v3.0 через API
         // Файлы документов теперь загружаются через YandexDiskController API
-        
+
         // Загрузка фотографий проекта (оставляем старую систему для массовой загрузки фотографий)
         $this->handleProjectPhotosUpload($request, $deal);
-        
+
         // Обработка загрузки аватара
         if ($request->hasFile('avatar_path')) {
             $avatarFile = $request->file('avatar_path');
@@ -528,32 +528,32 @@ class DealsController extends Controller
             $deal->avatar_path = $avatarPath;
             $deal->save();
         }
-        
+
         // Проверяем, изменился ли статус сделки
         $statusChanged = $original['status'] !== $deal->status;
         $changedToCompleted = $statusChanged && $deal->status === 'Проект завершен';
-        
+
         // Логирование изменений
         $this->logDealChanges($deal, $original, $deal->getAttributes());
-        
+
         // Проверяем, изменились ли исполнители в сделке
-        $executorsChanged = 
+        $executorsChanged =
             ($original['architect_id'] != $deal->architect_id && $deal->architect_id) ||
             ($original['designer_id'] != $deal->designer_id && $deal->designer_id) ||
             ($original['visualizer_id'] != $deal->visualizer_id && $deal->visualizer_id);
-            
+
         // Уведомляем исполнителей, если они были изменены
         if ($executorsChanged) {
             // Загружаем связанные модели исполнителей для получения номеров телефонов
             $deal->loadMissing(['architect', 'designer', 'visualizer']);
             $this->notifyExecutorsAboutAttach($deal);
         }
-        
+
         // Проверяем тип запроса - AJAX или обычная форма
         if ($request->expectsJson() || $request->wantsJson()) {
             // Возвращаем JSON для AJAX-запросов
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Сделка успешно обновлена',
                 'status_changed_to_completed' => $changedToCompleted,
                 'deal' => $deal,
@@ -565,12 +565,12 @@ class DealsController extends Controller
             if ($changedToCompleted) {
                 $message .= '. Статус изменен на "Проект завершен"';
             }
-            
+
             return redirect()->route('deal.edit-page', $deal->id)
                 ->with('success', $message);
         }
     }
-    
+
     /**
      * УСТАРЕВШИЙ метод загрузки файлов документов на Яндекс Диск
      * ЗАМЕНЕН на новую систему v3.0 через YandexDiskController API
@@ -599,13 +599,13 @@ class DealsController extends Controller
             'plan_final' => 'Планировка финал', // Добавляем поле plan_final
             'chat_screenshot' => 'Скриншот чата', // Добавляем поле chat_screenshot
         ];
-        
+
         // Базовый путь для хранения файлов
         $basePath = config('services.yandex_disk.base_folder', 'lk_deals');
         // Всегда используем формат "deal_IDDEAL" для имени папки сделки
         $projectFolder = "deal_{$deal->id}";
         $dealFolder = "{$basePath}/{$projectFolder}";
-        
+
         // Обрабатываем каждый файл
         foreach ($fileFieldsMapping as $fieldName => $filePrefix) {
             if ($request->hasFile($fieldName)) {
@@ -618,7 +618,7 @@ class DealsController extends Controller
                     // Убираем ограничения времени для загрузки больших файлов
                     set_time_limit(0);
                     ini_set('memory_limit', '-1');
-                    
+
                     // Устанавливаем неограниченное время ожидания для Яндекс.Диск
                     $this->yandexDiskService->setTimeout(0); // Без ограничений
 
@@ -643,7 +643,7 @@ class DealsController extends Controller
                     }
                 } catch (\Exception $e) {
                     Log::error("Исключение при загрузке файла {$fieldName} на Яндекс.Диск", [
-                        'deal_id' => $deal->id, 
+                        'deal_id' => $deal->id,
                         'error' => $e->getMessage()
                     ]);
                 }
@@ -667,9 +667,9 @@ class DealsController extends Controller
             }
             return;
         }
-        
+
         $files = $request->file('project_photos');
-        
+
         // Проверка типа переменной $files
         if (!is_array($files)) {
             Log::error("project_photos не является массивом", [
@@ -678,17 +678,17 @@ class DealsController extends Controller
             ]);
             return;
         }
-        
+
         // Базовый путь для хранения файлов
         $basePath = config('services.yandex_disk.base_folder', 'lk_deals');
         // Всегда используем формат "deal_IDDEAL" для имени папки сделки
         $projectFolder = "deal_{$deal->id}";
         $photosFolder = "{$basePath}/{$projectFolder}/project_photos";
-        
+
         try {
             // Создаем директорию для файлов на Яндекс Диске, если ещё не существует
             $dirCreated = $this->yandexDiskService->createDirectory($photosFolder);
-            
+
             if (!$dirCreated) {
                 Log::error("Не удалось создать директорию на Яндекс Диске", [
                     'deal_id' => $deal->id,
@@ -696,25 +696,25 @@ class DealsController extends Controller
                 ]);
                 return;
             }
-            
+
             Log::info("Директория создана успешно", [
                 'deal_id' => $deal->id,
                 'folder' => $photosFolder
             ]);
-            
+
             // Убираем ограничения времени для загрузки больших файлов
             set_time_limit(0);
             ini_set('memory_limit', '-1');
-            
+
             // Устанавливаем неограниченное время ожидания для Яндекс.Диск
             $this->yandexDiskService->setTimeout(0); // Без ограничений
-            
+
             $uploadedCount = 0;
             $maxFiles = 100; // Увеличиваем максимальное количество файлов до 100
-            
+
             // Ограничиваем количество загружаемых файлов до maxFiles
             $filesToUpload = array_slice($files, 0, $maxFiles);
-            
+
             // Загружаем каждый файл
             foreach ($filesToUpload as $index => $file) {
                 if (!$file->isValid()) {
@@ -724,21 +724,21 @@ class DealsController extends Controller
                     ]);
                     continue;
                 }
-                
+
                 $originalName = $file->getClientOriginalName();
                 $safeFileName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $originalName);
                 $fileName = 'photo_' . time() . '_' . $index . '_' . $safeFileName;
                 $diskPath = "{$photosFolder}/{$fileName}";
-                
+
                 Log::info("Загружаем файл на Яндекс Диск", [
                     'deal_id' => $deal->id,
                     'file' => $originalName,
                     'path' => $diskPath
                 ]);
-                
+
                 // Загружаем файл на Яндекс Диск
                 $uploadResult = $this->yandexDiskService->uploadFile($file, $diskPath);
-                
+
                 if ($uploadResult['success']) {
                     $uploadedCount++;
                     Log::info("Файл успешно загружен на Яндекс Диск", [
@@ -754,11 +754,11 @@ class DealsController extends Controller
                     ]);
                 }
             }
-            
+
             // Если загружены файлы, публикуем папку для получения ссылки
             if ($uploadedCount > 0) {
                 $folderPublicUrl = $this->yandexDiskService->publishFile($photosFolder);
-                
+
                 if ($folderPublicUrl) {
                     // Обновляем данные сделки с информацией о загруженных фото
                     $deal->update([
@@ -766,7 +766,7 @@ class DealsController extends Controller
                         'photos_count' => $uploadedCount,
                         'yandex_disk_photos_path' => $photosFolder,
                     ]);
-                    
+
                     Log::info("Папка с фотографиями проекта опубликована", [
                         'deal_id' => $deal->id,
                         'url' => $folderPublicUrl,
@@ -898,12 +898,12 @@ class DealsController extends Controller
             'documents.*'             => 'nullable|file', // Убрали ограничение max:20480
         ]);
 
-        $user = Auth::user(); 
+        $user = Auth::user();
         if (!in_array($user->status, ['coordinator', 'admin', 'partner'])) {
             return redirect()->route('deal.cardinator')
                 ->with('error', 'Только координатор, администратор или партнер могут создавать сделку.');
-        } 
- 
+        }
+
         try {
             $coordinatorId = $validated['coordinator_id'] ?? auth()->id();
 
@@ -912,7 +912,7 @@ class DealsController extends Controller
 
             // Поиск существующего пользователя по номеру телефона
             $existingUser = User::where('phone', 'LIKE', '%' . $normalizedPhone . '%')->first();
-            
+
             // Используем ID существующего пользователя или текущего авторизованного пользователя
             // Это гарантирует, что user_id никогда не будет NULL
             $userId = $existingUser ? $existingUser->id : auth()->id();
@@ -945,12 +945,12 @@ class DealsController extends Controller
             // Сохраняем документы и получаем пути к файлам
             if ($request->hasFile('documents')) {
                 $documentsPaths = $this->saveDocuments($request, $deal->id);
-                
+
                 // Сохраняем пути в JSON-поле documents
                 if (!empty($documentsPaths)) {
                     $deal->documents = json_encode($documentsPaths);
                     $deal->save();
-                    
+
                     // Логируем успешную загрузку
                     Log::info('Документы успешно загружены для сделки ID: ' . $deal->id, [
                         'count' => count($documentsPaths),
@@ -1031,7 +1031,7 @@ class DealsController extends Controller
 
     /**
      * Сохраняет загруженные документы и возвращает массив путей
-     * 
+     *
      * @param Request $request
      * @param int $dealId ID сделки для создания папки
      * @return array Массив путей к сохраненным документам
@@ -1039,16 +1039,16 @@ class DealsController extends Controller
     private function saveDocuments(Request $request, $dealId)
     {
         $documentsPaths = [];
-        
+
         if ($request->hasFile('documents')) {
             // Создаем директорию, если она не существует
             $directory = "dels/{$dealId}";
             $fullPath = storage_path("app/public/{$directory}");
-            
+
             if (!file_exists($fullPath)) {
                 mkdir($fullPath, 0755, true);
             }
-            
+
             foreach ($request->file('documents') as $file) {
                 if ($file->isValid()) {
                     // Сохраняем оригинальное имя файла, но делаем его безопасным
@@ -1056,17 +1056,17 @@ class DealsController extends Controller
                     $safeFileName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $fileName);
                     $extension = $file->getClientOriginalExtension();
                     $uniqueFileName = $safeFileName . '_' . time() . '_' . uniqid() . '.' . $extension;
-                    
+
                     // Сохраняем файл в storage/app/public/dels/{dealId}
                     $path = $file->storeAs($directory, $uniqueFileName, 'public');
-                    
+
                     if ($path) {
                         $documentsPaths[] = $path;
                     }
                 }
             }
         }
-        
+
         return $documentsPaths;
     }
 
@@ -1085,26 +1085,26 @@ class DealsController extends Controller
                 Log::warning("Не удалось отправить SMS: у сделки #{$deal->id} не указан координатор");
                 return;
             }
-            
+
             // Получаем данные координатора
             $coordinator = \App\Models\User::find($deal->coordinator_id);
             if (!$coordinator || !$coordinator->phone) {
                 Log::warning("Не удалось отправить SMS: у координатора сделки #{$deal->id} нет номера телефона");
                 return;
             }
-            
+
             // Формируем сообщение
             $message = "Статус сделки #{$deal->id} изменен c \"{$oldStatus}\" на \"{$deal->status}\". Клиент: {$deal->name}";
-            
+
             // Ограничиваем длину сообщения
             if (strlen($message) > 160) {
                 $message = substr($message, 0, 157) . '...';
             }
-            
+
             // Отправляем SMS через сервис
             $smsService = new \App\Services\SmsService();
             $result = $smsService->sendSms($coordinator->phone, $message);
-            
+
             if (!$result) {
                 Log::error("Ошибка при отправке SMS координатору {$coordinator->name} ({$coordinator->phone})");
             }
@@ -1128,25 +1128,25 @@ class DealsController extends Controller
                 Log::warning("Не удалось отправить SMS клиенту: у сделки #{$deal->id} не указан телефон клиента");
                 return;
             }
-            
+
             // Нормализуем номер телефона клиента для отправки
             $rawPhone = preg_replace('/\D/', '', $deal->client_phone);
             if (strlen($rawPhone) < 10) {
                 Log::warning("Не удалось отправить SMS: некорректный номер телефона клиента в сделке #{$deal->id}");
                 return;
             }
-            
+
             // Получаем домен сайта из конфигурации
             $domain = config('app.url', 'https://express-design.ru');
-            
+
             // Формируем сообщение
             $message = "Статус вашего проекта изменен с \"{$oldStatus}\" на \"{$deal->status}\". Подробности: {$domain}";
-            
+
             // Ограничиваем длину сообщения
             if (strlen($message) > 160) {
                 $message = substr($message, 0, 157) . '...';
             }
-            
+
             // Отправляем SMS через сервис
             $apiKey = config('services.smsru.api_id', '6CDCE0B0-6091-278C-5145-360657FF0F9B');
             $response = Http::get("https://sms.ru/sms/send", [
@@ -1155,7 +1155,7 @@ class DealsController extends Controller
                 'msg'       => $message,
                 'partner_id'=> 1,
             ]);
-            
+
             if ($response->failed()) {
                 Log::error("Ошибка при отправке SMS клиенту для сделки #{$deal->id}. Ответ: " . $response->body());
             } else {
@@ -1234,7 +1234,7 @@ class DealsController extends Controller
             return response()->json(['error' => 'Ошибка загрузки ленты'], 500);
         }
     }
-    
+
     /**
      * Отображение общих логов изменений для всех сделок.
      */
@@ -1262,18 +1262,18 @@ class DealsController extends Controller
                 'brief_type' => 'required|in:common,commercial',
                 'client_id' => 'required|exists:users,id',
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Ошибка валидации: ' . implode(', ', $validator->errors()->all())
                 ], 422);
             }
-            
+
             $briefId = $request->input('brief_id');
             $briefType = $request->input('brief_type');
             $clientId = $request->input('client_id');
-            
+
             // Получаем бриф в зависимости от типа
             if ($briefType === 'common') {
                 $brief = Common::findOrFail($briefId);
@@ -1282,7 +1282,7 @@ class DealsController extends Controller
                 $brief = \App\Models\Commercial::findOrFail($briefId);
                 $briefTitle = $brief->title ?? 'Сделка по коммерческому брифу #' . $briefId;
             }
-            
+
             // Проверяем, что сделка по этому брифу ещё не создана
             if ($brief->deal_id) {
                 return response()->json([
@@ -1290,61 +1290,61 @@ class DealsController extends Controller
                     'message' => 'Сделка по данному брифу уже создана'
                 ], 400);
             }
-            
+
             // Получаем клиента
             $client = User::findOrFail($clientId);
-            
+
             // Создаем новую сделку
-            
+
             $deal = new Deal();
-            
+
             // Устанавливаем связь с соответствующим типом брифа
             if ($briefType === 'common') {
                 $deal->common_id = $briefId;
             } else {
                 $deal->commercial_id = $briefId;
             }
-            
+
             $deal->user_id = $clientId;
             $deal->client_name = $client->name;
             $deal->client_phone = $client->phone;
             $deal->client_email = $client->email;
-            
+
             // Заполняем данные из брифа
             $deal->name = $briefTitle;
             $deal->status = 'В работе';
             $deal->coordinator_id = Auth::id(); // Текущий пользователь становится координатором
-            
+
             // Другие необходимые поля
             // ...
-            
+
             $deal->save();
-            
+
             // Обновляем бриф, указывая ссылку на созданную сделку
             $brief->deal_id = $deal->id;
             $brief->save();
-            
+
             Log::info('Создана В работе из брифа', [
                 'deal_id' => $deal->id,
                 'brief_id' => $briefId,
                 'brief_type' => $briefType,
-                'user_id' => $clientId, 
+                'user_id' => $clientId,
                 'creator_id' => Auth::id()
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Сделка успешно создана',
                 'deal_id' => $deal->id,
                 'redirect_url' => route('deal.cardinator') // меняем маршрут редиректа
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при создании сделки из брифа: ' . $e->getMessage(), [
                 'exception' => $e,
                 'request' => $request->all()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Внутренняя ошибка сервера: ' . $e->getMessage()
@@ -1364,10 +1364,10 @@ class DealsController extends Controller
         if (Auth::user()->status !== 'admin') {
             return redirect()->back()->with('error', 'У вас нет прав на удаление сделок');
         }
-        
+
         try {
             $deal = Deal::findOrFail($dealId);
-            
+
             // Логируем действие перед удалением
             Log::info('Удаление сделки администратором', [
                 'deal_id' => $deal->id,
@@ -1375,23 +1375,23 @@ class DealsController extends Controller
                 'admin_id' => Auth::id(),
                 'admin_name' => Auth::user()->name
             ]);
-            
+
             // Сохраняем ID брифа перед удалением для информационных целей
             $briefId = $deal->brief_id;
             $briefType = $deal->brief_type;
-            
+
             // Удаляем сделку
             $deal->delete();
-            
+
             return redirect()->route('deal.cardinator')->with('success', 'Сделка успешно удалена. Связанные данные сохранены.');
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при удалении сделки: ' . $e->getMessage(), [
                 'exception' => $e,
                 'deal_id' => $dealId,
                 'admin_id' => Auth::id()
             ]);
-            
+
             return redirect()->back()->with('error', 'Произошла ошибка при удалении сделки: ' . $e->getMessage());
         }
     }
@@ -1407,35 +1407,35 @@ class DealsController extends Controller
         try {
             $dealId = $request->input('deal_id');
             $clientPhone = $request->input('client_phone');
-            
+
             if (empty($clientPhone)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Не указан телефон клиента'
                 ], 400);
             }
-            
+
             // Нормализуем телефон для поиска (убираем все нецифровые символы)
             $normalizedPhone = preg_replace('/[^0-9]/', '', $clientPhone);
-            
+
             // Логируем входные данные
             \Log::info('Поиск пользователя по телефону для брифов', [
                 'dealId' => $dealId,
                 'original_phone' => $clientPhone,
                 'normalized_phone' => $normalizedPhone
             ]);
-            
+
             // Ищем пользователя по номеру телефона с различными вариантами форматирования
             $query = \App\Models\User::where(function($q) use ($normalizedPhone) {
                 // Ищем по полному номеру
                 $q->where('phone', 'LIKE', '%' . $normalizedPhone . '%');
-                
+
                 // Для российских номеров пробуем разные варианты
                 if (strlen($normalizedPhone) >= 10) {
                     // Последние 10 цифр (без кода страны)
                     $lastTenDigits = substr($normalizedPhone, -10);
                     $q->orWhere('phone', 'LIKE', '%' . $lastTenDigits . '%');
-                    
+
                     // Вариации с 7 и 8 в начале для российских номеров
                     if (strlen($normalizedPhone) == 11) {
                         if (substr($normalizedPhone, 0, 1) == '7') {
@@ -1447,41 +1447,41 @@ class DealsController extends Controller
                         }
                     }
                 }
-                
+
                 // Ищем по последним цифрам номера для более широкого поиска
                 if (strlen($normalizedPhone) >= 6) {
                     $lastDigits = substr($normalizedPhone, -6);
                     $q->orWhere('phone', 'LIKE', '%' . $lastDigits);
                 }
             });
-            
+
             // Получаем найденных пользователей
             $users = $query->get();
             $userIds = $users->pluck('id')->toArray();
-            
+
             \Log::info('Найдены пользователи по телефону', [
                 'count' => count($users),
                 'user_ids' => $userIds
             ]);
-            
+
             // Получаем информацию о сделке
             $deal = \App\Models\Deal::find($dealId);
-            
+
             if (!$deal) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Сделка не найдена'
                 ], 404);
             }
-            
+
             // Проверяем наличие привязанных брифов
             $hasAttachedBrief = !empty($deal->common_id) || !empty($deal->commercial_id);
             $attachedBriefType = !empty($deal->common_id) ? 'common' : (!empty($deal->commercial_id) ? 'commercial' : null);
-            
+
             // Получаем брифы для найденных пользователей
             $commonBriefs = [];
             $commercialBriefs = [];
-            
+
             if (!empty($userIds)) {
                 // Общие брифы со статусом "Завершенный" или "Завершен"
                 $commonBriefs = \App\Models\Common::whereIn('user_id', $userIds)
@@ -1499,7 +1499,7 @@ class DealsController extends Controller
                                 break;
                             }
                         }
-                        
+
                         return [
                             'id' => $brief->id,
                             'title' => $brief->title ?? ('Бриф #' . $brief->id),
@@ -1510,7 +1510,7 @@ class DealsController extends Controller
                         ];
                     })
                     ->toArray();
-                
+
                 // Коммерческие брифы со статусом "Завершенный" или "Завершен"
                 $commercialBriefs = \App\Models\Commercial::whereIn('user_id', $userIds)
                     ->whereIn('status', ['Завершенный', 'Завершен'])
@@ -1527,7 +1527,7 @@ class DealsController extends Controller
                                 break;
                             }
                         }
-                        
+
                         return [
                             'id' => $brief->id,
                             'title' => $brief->title ?? ('Коммерческий бриф #' . $brief->id),
@@ -1539,7 +1539,7 @@ class DealsController extends Controller
                     })
                     ->toArray();
             }
-            
+
             // Формируем информацию о пользователях для отображения в результатах
             $usersInfo = $users->map(function($user) {
                 return [
@@ -1549,7 +1549,7 @@ class DealsController extends Controller
                     'phone' => $user->phone
                 ];
             })->toArray();
-            
+
             return response()->json([
                 'success' => true,
                 'users' => $usersInfo,
@@ -1558,8 +1558,8 @@ class DealsController extends Controller
                 'has_attached_brief' => $hasAttachedBrief,
                 'attached_brief_type' => $attachedBriefType,
                 'searched_phone' => $clientPhone,
-                'message' => count($commonBriefs) + count($commercialBriefs) > 0 
-                    ? 'Найдены брифы для указанного телефона' 
+                'message' => count($commonBriefs) + count($commercialBriefs) > 0
+                    ? 'Найдены брифы для указанного телефона'
                     : 'Брифы не найдены для указанного телефона'
             ]);
         } catch (\Exception $e) {
@@ -1567,14 +1567,14 @@ class DealsController extends Controller
                 'exception' => $e,
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка при поиске брифов: ' . $e->getMessage()
             ], 500);
         }
     }
-    
+
     /**
      * Привязка брифа к сделке
      *
@@ -1587,35 +1587,35 @@ class DealsController extends Controller
             $dealId = $request->input('deal_id');
             $briefId = $request->input('brief_id');
             $briefType = $request->input('brief_type', 'common');
-            
+
             if (!$dealId || !$briefId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Не указан ID сделки или брифа'
                 ], 400);
             }
-            
+
             // Получаем информацию о сделке
             $deal = Deal::find($dealId);
-            
+
             if (!$deal) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Сделка не найдена'
                 ], 404);
             }
-            
+
             // В зависимости от типа брифа привязываем его к сделке
             if ($briefType === 'common') {
                 $brief = Common::find($briefId);
-                
+
                 if (!$brief) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Бриф не найден'
                     ], 404);
                 }
-                
+
                 // Проверяем, если к сделке уже привязан бриф
                 if (!empty($deal->common_id) && $deal->common_id != $briefId) {
                     return response()->json([
@@ -1623,24 +1623,24 @@ class DealsController extends Controller
                         'message' => 'К сделке уже привязан другой общий бриф'
                     ], 400);
                 }
-                
+
                 // Привязываем бриф к сделке
                 $deal->common_id = $briefId;
                 $deal->save();
-                
+
                 // Также обновляем поле deal_id в брифе
                 $brief->deal_id = $dealId;
                 $brief->save();
             } elseif ($briefType === 'commercial') {
                 $brief = Commercial::find($briefId);
-                
+
                 if (!$brief) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Коммерческий бриф не найден'
                     ], 404);
                 }
-                
+
                 // Проверяем, если к сделке уже привязан бриф
                 if (!empty($deal->commercial_id) && $deal->commercial_id != $briefId) {
                     return response()->json([
@@ -1648,11 +1648,11 @@ class DealsController extends Controller
                         'message' => 'К сделке уже привязан другой коммерческий бриф'
                     ], 400);
                 }
-                
+
                 // Привязываем бриф к сделке
                 $deal->commercial_id = $briefId;
                 $deal->save();
-                
+
                 // Также обновляем поле deal_id в брифе
                 $brief->deal_id = $dealId;
                 $brief->save();
@@ -1662,7 +1662,7 @@ class DealsController extends Controller
                     'message' => 'Неизвестный тип брифа'
                 ], 400);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Бриф успешно привязан к сделке',
@@ -1675,7 +1675,7 @@ class DealsController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Отвязка брифа от сделки
      *
@@ -1687,24 +1687,24 @@ class DealsController extends Controller
         try {
             $dealId = $request->input('deal_id');
             $briefType = $request->input('brief_type', 'common');
-            
+
             if (!$dealId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Не указан ID сделки'
                 ], 400);
             }
-            
+
             // Получаем информацию о сделке
             $deal = Deal::find($dealId);
-            
+
             if (!$deal) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Сделка не найдена'
                 ], 404);
             }
-            
+
             // В зависимости от типа отвязываем бриф от сделки
             if ($briefType === 'common') {
                 if (empty($deal->common_id)) {
@@ -1713,14 +1713,14 @@ class DealsController extends Controller
                         'message' => 'К сделке не привязан общий бриф'
                     ], 400);
                 }
-                
+
                 // Находим бриф и отвязываем его от сделки
                 $brief = Common::find($deal->common_id);
                 if ($brief) {
                     $brief->deal_id = null;
                     $brief->save();
                 }
-                
+
                 // Отвязываем бриф от сделки
                 $deal->common_id = null;
                 $deal->save();
@@ -1731,14 +1731,14 @@ class DealsController extends Controller
                         'message' => 'К сделке не привязан коммерческий бриф'
                     ], 400);
                 }
-                
+
                 // Находим бриф и отвязываем его от сделки
                 $brief = Commercial::find($deal->commercial_id);
                 if ($brief) {
                     $brief->deal_id = null;
                     $brief->save();
                 }
-                
+
                 // Отвязываем бриф от сделки
                 $deal->commercial_id = null;
                 $deal->save();
@@ -1748,7 +1748,7 @@ class DealsController extends Controller
                     'message' => 'Неизвестный тип брифа'
                 ], 400);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Бриф успешно отвязан от сделки'
@@ -1763,7 +1763,7 @@ class DealsController extends Controller
 
     /**
      * Обработка загрузки файлов.
-     * 
+     *
      * @param Request $request
      * @param Deal $deal
      * @param string $field Имя поля с файлом
@@ -1781,22 +1781,22 @@ class DealsController extends Controller
                 $dir = "dels/{$deal->id}";
                 $fileName = $field . '.' . $request->file($field)->getClientOriginalExtension();
             }
-            
+
             // Проверяем, существует ли директория, и создаем её при необходимости
             $fullPath = storage_path("app/public/{$dir}");
             if (!file_exists($fullPath)) {
                 mkdir($fullPath, 0755, true);
             }
-            
+
             $filePath = $request->file($field)->storeAs($dir, $fileName, 'public');
-            
+
             // Логируем успешную загрузку файла
             Log::info('Файл успешно загружен', [
                 'deal_id' => $deal->id,
                 'field' => $field,
                 'path' => $filePath
             ]);
-            
+
             return [$targetField ?? $field => $filePath]; // Для аватара "avatar_path" будет установлен путь сохраненного файла
         }
         return [];
@@ -1813,59 +1813,59 @@ class DealsController extends Controller
         try {
             $dealId = $request->input('deal_id');
             $userId = $request->input('user_id');
-            
+
             if (!$dealId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Не указан ID сделки'
                 ], 400);
             }
-            
+
             // Получаем информацию о сделке
             $deal = Deal::find($dealId);
-            
+
             if (!$deal) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Сделка не найдена'
                 ], 404);
             }
-            
+
             // Если user_id не передан, пытаемся взять его из сделки
             if (!$userId && !empty($deal->user_id)) {
                 $userId = $deal->user_id;
                 \Log::info('Использование user_id из сделки', ['deal_id' => $dealId, 'user_id' => $userId]);
             }
-            
+
             if (!$userId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Не найден ID пользователя для поиска брифов'
                 ], 400);
             }
-            
+
             // Получаем информацию о пользователе
             $user = \App\Models\User::find($userId);
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Пользователь не найден'
                 ], 404);
             }
-            
+
             \Log::info('Поиск брифов для пользователя', [
                 'deal_id' => $dealId,
                 'user_id' => $userId,
                 'user_name' => $user->name
             ]);
-            
+
             // Проверяем наличие привязанных брифов в сделке
             $hasAttachedBrief = !empty($deal->common_id) || !empty($deal->commercial_id);
             $attachedBriefType = !empty($deal->common_id) ? 'common' : (!empty($deal->commercial_id) ? 'commercial' : null);
-            
+
             // Получаем брифы пользователя
-            
+
             // Общие брифы со статусом "Завершенный" или "Завершен"
             $commonBriefs = \App\Models\Common::where('user_id', $userId)
                 ->whereIn('status', ['Завершенный', 'Завершен'])
@@ -1885,9 +1885,9 @@ class DealsController extends Controller
                     ];
                 })
                 ->toArray();
-            
+
             \Log::info('Найдены общие брифы', ['count' => count($commonBriefs)]);
-            
+
             // Коммерческие брифы со статусом "Завершенный" или "Завершен"
             $commercialBriefs = \App\Models\Commercial::where('user_id', $userId)
                 ->whereIn('status', ['Завершенный', 'Завершен'])
@@ -1907,9 +1907,9 @@ class DealsController extends Controller
                     ];
                 })
                 ->toArray();
-            
+
             \Log::info('Найдены коммерческие брифы', ['count' => count($commercialBriefs)]);
-            
+
             // Формируем информацию о пользователе для отображения в результатах
             $usersInfo = [[
                 'id' => $user->id,
@@ -1917,7 +1917,7 @@ class DealsController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone
             ]];
-            
+
             return response()->json([
                 'success' => true,
                 'users' => $usersInfo,
@@ -1926,8 +1926,8 @@ class DealsController extends Controller
                 'has_attached_brief' => $hasAttachedBrief,
                 'attached_brief_type' => $attachedBriefType,
                 'user_id' => $userId,
-                'message' => count($commonBriefs) + count($commercialBriefs) > 0 
-                    ? 'Найдены брифы для клиента' 
+                'message' => count($commonBriefs) + count($commercialBriefs) > 0
+                    ? 'Найдены брифы для клиента'
                     : 'Брифы не найдены для клиента'
             ]);
         } catch (\Exception $e) {
@@ -1935,7 +1935,7 @@ class DealsController extends Controller
                 'exception' => $e,
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка при поиске брифов: ' . $e->getMessage()
@@ -1959,13 +1959,13 @@ class DealsController extends Controller
     {
         try {
             $dealId = $request->input('deal_id');
-            
+
             Log::info('🚀 Начало загрузки документов', [
                 'deal_id' => $dealId,
                 'files_count' => $request->hasFile('documents') ? count($request->file('documents')) : 0,
                 'user_id' => Auth::id()
             ]);
-            
+
             // Валидация входящих данных - убираем ограничения размера файлов для поддержки больших файлов
             $validator = Validator::make($request->all(), [
                 'deal_id' => 'required|exists:deals,id',
@@ -1978,16 +1978,16 @@ class DealsController extends Controller
                     'errors' => $validator->errors()->all(),
                     'deal_id' => $dealId
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Ошибка валидации: ' . implode(', ', $validator->errors()->all())
                 ], 422);
             }
-            
+
             // Получаем сделку
             $deal = Deal::findOrFail($dealId);
-            
+
             // Проверяем права доступа
             if (!in_array(Auth::user()->status, ['coordinator', 'partner', 'admin'])) {
                 Log::warning('🚫 Отказ в доступе для загрузки документов', [
@@ -1995,31 +1995,31 @@ class DealsController extends Controller
                     'user_status' => Auth::user()->status,
                     'deal_id' => $dealId
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'У вас нет прав на загрузку документов'
                 ], 403);
             }
-            
+
             $uploadedDocuments = [];
             $uploadErrors = [];
             // Принудительно используем локальное хранилище вместо Яндекс.Диска
             $useYandexDisk = false;
-            
+
             Log::info('📂 Способ загрузки определен', [
                 'use_yandex_disk' => $useYandexDisk,
                 'storage_type' => 'local',
                 'files_count' => count($request->file('documents'))
             ]);
-            
+
             if ($useYandexDisk) {
                 // Загрузка через Яндекс.Диск для больших файлов
                 $yandexDiskService = app(YandexDiskService::class);
                 $uploadPath = "deals/{$dealId}/documents";
-                
+
                 Log::info('☁️ Используем Яндекс.Диск для загрузки', ['upload_path' => $uploadPath]);
-                
+
                 // Обрабатываем каждый файл
                 foreach ($request->file('documents') as $index => $file) {
                     if ($file->isValid()) {
@@ -2029,15 +2029,15 @@ class DealsController extends Controller
                                 'size' => $file->getSize(),
                                 'mime_type' => $file->getMimeType()
                             ]);
-                            
+
                             // Генерируем уникальное имя файла
                             $originalName = $file->getClientOriginalName();
                             $safeFileName = $this->generateSafeFileName($originalName);
                             $filePath = $uploadPath . '/' . $safeFileName;
-                            
+
                             // Загружаем на Яндекс.Диск
                             $uploadResult = $yandexDiskService->uploadFile($file, $filePath);
-                            
+
                             if ($uploadResult['success']) {
                                 $uploadedDocuments[] = [
                                     'name' => $originalName,
@@ -2050,7 +2050,7 @@ class DealsController extends Controller
                                     'storage_type' => 'yandex_disk',
                                     'uploaded_at' => now()->toISOString()
                                 ];
-                                
+
                                 Log::info("✅ Файл успешно загружен на Яндекс.Диск", [
                                     'file' => $originalName,
                                     'url' => $uploadResult['url']
@@ -2060,19 +2060,19 @@ class DealsController extends Controller
                                     'file' => $originalName,
                                     'error' => $uploadResult['message'] ?? 'Неизвестная ошибка загрузки на Яндекс.Диск'
                                 ];
-                                
+
                                 Log::error("❌ Ошибка загрузки на Яндекс.Диск", [
                                     'file' => $originalName,
                                     'error' => $uploadResult['message'] ?? 'Неизвестная ошибка'
                                 ]);
                             }
-                            
+
                         } catch (\Exception $e) {
                             $uploadErrors[] = [
                                 'file' => $file->getClientOriginalName(),
                                 'error' => 'Исключение при загрузке: ' . $e->getMessage()
                             ];
-                            
+
                             Log::error("💥 Исключение при загрузке файла", [
                                 'file' => $file->getClientOriginalName(),
                                 'error' => $e->getMessage(),
@@ -2086,26 +2086,26 @@ class DealsController extends Controller
                         ];
                     }
                 }
-                
+
             } else {
                 // Локальная загрузка (fallback)
                 Log::info('💾 Используем локальное хранилище');
-                
+
                 $directory = "deals/{$dealId}/documents";
                 $fullPath = storage_path("app/public/{$directory}");
-                
+
                 if (!file_exists($fullPath)) {
                     mkdir($fullPath, 0755, true);
                 }
-                
+
                 foreach ($request->file('documents') as $file) {
                     if ($file->isValid()) {
                         try {
                             $originalName = $file->getClientOriginalName();
                             $safeFileName = $this->generateSafeFileName($originalName);
-                            
+
                             $path = $file->storeAs($directory, $safeFileName, 'public');
-                            
+
                             if ($path) {
                                 $uploadedDocuments[] = [
                                     'name' => $originalName,
@@ -2128,14 +2128,14 @@ class DealsController extends Controller
                     }
                 }
             }
-            
+
             // Обновляем список документов в сделке
             $this->updateDealDocuments($deal, $uploadedDocuments);
-            
+
             $successCount = count($uploadedDocuments);
             $errorCount = count($uploadErrors);
             $totalCount = $successCount + $errorCount;
-            
+
             Log::info('📊 Результаты загрузки документов', [
                 'deal_id' => $dealId,
                 'total_files' => $totalCount,
@@ -2143,7 +2143,7 @@ class DealsController extends Controller
                 'errors' => $errorCount,
                 'storage_type' => $useYandexDisk ? 'yandex_disk' : 'local'
             ]);
-            
+
             // Формируем ответ
             $response = [
                 'success' => $successCount > 0,
@@ -2157,13 +2157,13 @@ class DealsController extends Controller
                     'storage_type' => $useYandexDisk ? 'yandex_disk' : 'local'
                 ]
             ];
-            
+
             if ($errorCount > 0) {
                 $response['warnings'] = "Не удалось загрузить {$errorCount} файлов";
             }
-            
+
             return response()->json($response);
-            
+
         } catch (\Exception $e) {
             Log::error('💥 Критическая ошибка при загрузке документов', [
                 'exception' => $e->getMessage(),
@@ -2171,7 +2171,7 @@ class DealsController extends Controller
                 'deal_id' => $request->input('deal_id'),
                 'user_id' => Auth::id()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла критическая ошибка при загрузке документов: ' . $e->getMessage(),
@@ -2179,7 +2179,7 @@ class DealsController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Генерация безопасного имени файла
      */
@@ -2188,24 +2188,24 @@ class DealsController extends Controller
         $pathInfo = pathinfo($originalName);
         $fileName = $pathInfo['filename'];
         $extension = $pathInfo['extension'] ?? '';
-        
+
         // Очищаем имя файла от опасных символов
         $safeFileName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $fileName);
         $safeFileName = preg_replace('/_+/', '_', $safeFileName); // Убираем множественные подчеркивания
         $safeFileName = trim($safeFileName, '_');
-        
+
         // Ограничиваем длину
         if (strlen($safeFileName) > 50) {
             $safeFileName = substr($safeFileName, 0, 50);
         }
-        
+
         // Добавляем временную метку и уникальный ID
         $timestamp = time();
         $uniqueId = substr(uniqid(), -6);
-        
+
         return $safeFileName . '_' . $timestamp . '_' . $uniqueId . ($extension ? '.' . $extension : '');
     }
-    
+
     /**
      * Обновление списка документов в сделке
      */
@@ -2221,7 +2221,7 @@ class DealsController extends Controller
                     $currentDocuments = $deal->documents;
                 }
             }
-            
+
             // Добавляем новые документы с полной информацией
             foreach ($newDocuments as $doc) {
                 $currentDocuments[] = [
@@ -2236,17 +2236,17 @@ class DealsController extends Controller
                     'uploaded_by' => Auth::id()
                 ];
             }
-            
+
             // Сохраняем обновленный список
             $deal->documents = json_encode($currentDocuments);
             $deal->save();
-            
+
             Log::info('📝 Список документов сделки обновлен', [
                 'deal_id' => $deal->id,
                 'total_documents' => count($currentDocuments),
                 'new_documents' => count($newDocuments)
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('❌ Ошибка обновления списка документов', [
                 'deal_id' => $deal->id,
@@ -2255,7 +2255,7 @@ class DealsController extends Controller
             throw $e;
         }
     }
-    
+
     /**
      * Форматирование сообщения о результатах загрузки
      */
@@ -2277,7 +2277,7 @@ class DealsController extends Controller
             return "Загружено {$successCount} из {$totalCount} документов";
         }
     }
-    
+
     /**
      * Определить класс иконки файла по расширению
      *
@@ -2287,7 +2287,7 @@ class DealsController extends Controller
     private function getFileIconClass($extension)
     {
         $extension = strtolower($extension);
-        
+
         switch ($extension) {
             case 'pdf':
                 return 'fa-file-pdf';
@@ -2345,7 +2345,7 @@ class DealsController extends Controller
             // Получаем сделку с необходимыми связями
             $deal = Deal::with([
                 'coordinator',
-                'partner', 
+                'partner',
                 'architect',
                 'designer',
                 'visualizer',
@@ -2355,11 +2355,11 @@ class DealsController extends Controller
                 },
                 'users'
             ])->findOrFail($dealId);
-            
+
             // Проверяем права доступа к сделке - только coordinator, admin, partner
             $user = Auth::user();
             $hasAccess = false;
-            
+
             // Администратор и координатор имеют доступ ко всем сделкам
             if (in_array($user->status, ['admin', 'coordinator'])) {
                 $hasAccess = true;
@@ -2368,29 +2368,29 @@ class DealsController extends Controller
             elseif ($user->status === 'partner' && $deal->office_partner_id === $user->id) {
                 $hasAccess = true;
             }
-            
+
             if (!$hasAccess) {
                 return redirect()->route('deal.cardinator')
                     ->with('error', 'У вас нет доступа к этой сделке');
             }
-            
+
             // Получаем структуру полей сделки
             $dealFields = $this->getDealFields($deal);
-            
+
             // Получаем дополнительные данные для формы
             $coordinators = \App\Models\User::where('status', 'coordinator')->get();
             $partners = \App\Models\User::where('status', 'partner')->get();
             $architects = \App\Models\User::where('status', 'architect')->get();
             $designers = \App\Models\User::where('status', 'designer')->get();
             $visualizers = \App\Models\User::where('status', 'visualizer')->get();
-            
+
             // Получаем города из JSON файла
             $citiesFile = public_path('cities.json');
             $russianCities = [];
             if (file_exists($citiesFile)) {
                 $citiesJson = file_get_contents($citiesFile);
                 $citiesData = json_decode($citiesJson, true) ?: [];
-                
+
                 // Добавляем базовые часовые пояса для основных городов
                 $timezones = [
                     'Москва' => 'UTC+3',
@@ -2409,7 +2409,7 @@ class DealsController extends Controller
                     'Пермь' => 'UTC+5',
                     'Волгоград' => 'UTC+3'
                 ];
-                
+
                 // Преобразуем данные городов, добавляя часовые пояса где возможно
                 foreach ($citiesData as $cityData) {
                     if (isset($cityData['city'])) {
@@ -2422,7 +2422,7 @@ class DealsController extends Controller
                     }
                 }
             }
-            
+
             // Статусы сделок
             $statuses = [
                 'Ждем ТЗ', 'Планировка', 'Коллажи', 'Визуализация', 'Рабочка/сбор ИП',
@@ -2430,35 +2430,35 @@ class DealsController extends Controller
                 'В работе', 'Завершенный', 'На потом', 'Регистрация',
                 'Бриф прикриплен', 'Поддержка', 'Активный'
             ];
-            
+
             // Пакеты услуг
             $packages = [
                 'Стандарт',
-                'Премиум', 
+                'Премиум',
                 'Люкс'
             ];
-            
+
             // Опции ценообразования
             $priceServiceOptions = [
                 'За м²',
                 'За объект',
                 'Почасовая оплата'
             ];
-            
+
             // Заголовок страницы
             $title_site = "Редактирование сделки #{$deal->id} - {$deal->client_name}";
-            
+
             Log::info('Открыта страница редактирования сделки', [
                 'deal_id' => $deal->id,
                 'user_id' => $user->id,
                 'user_status' => $user->status
             ]);
-            
+
             return view('deals.edit', compact(
                 'deal',
                 'title_site',
                 'coordinators',
-                'partners', 
+                'partners',
                 'architects',
                 'designers',
                 'visualizers',
@@ -2468,14 +2468,14 @@ class DealsController extends Controller
                 'priceServiceOptions',
                 'dealFields'
             ))->with('userRole', $user->status);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при открытии страницы редактирования сделки', [
                 'deal_id' => $dealId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()->route('deal.cardinator')
                 ->with('error', 'Ошибка при открытии сделки: ' . $e->getMessage());
         }
@@ -2492,14 +2492,14 @@ class DealsController extends Controller
         $architects = User::where('status', 'architect')->pluck('name', 'id')->toArray();
         $designers = User::where('status', 'designer')->pluck('name', 'id')->toArray();
         $visualizers = User::where('status', 'visualizer')->pluck('name', 'id')->toArray();
-        
+
         // Добавляем пустые опции в начало списков для возможности сброса выбора
         $coordinators = ['' => '-- Выберите координатора --'] + $coordinators;
         $partners = ['' => '-- Выберите партнера --'] + $partners;
         $architects = ['' => '-- Выберите архитектора --'] + $architects;
         $designers = ['' => '-- Выберите дизайнера --'] + $designers;
         $visualizers = ['' => '-- Выберите визуализатора --'] + $visualizers;
-        
+
         return [
             'zakaz' => [
                 [
@@ -2805,25 +2805,25 @@ class DealsController extends Controller
     private function getDealDocuments($deal)
     {
         $documents = [];
-        
+
         $fileFields = [
             'execution_order_file', 'measurements_file', 'final_floorplan', 'final_collage',
-            'final_project_file', 'work_act', 'archicad_file', 'contract_attachment', 
+            'final_project_file', 'work_act', 'archicad_file', 'contract_attachment',
             'plan_final', 'chat_screenshot'
         ];
-        
+
         foreach ($fileFields as $field) {
             $yandexUrlField = "yandex_url_{$field}";
             $originalNameField = "original_name_{$field}";
-            
+
             if (isset($deal->$yandexUrlField) && !empty($deal->$yandexUrlField)) {
                 $extension = 'pdf';
                 $filename = $deal->$originalNameField ?? "{$field}.pdf";
-                
+
                 if (!empty($deal->$originalNameField)) {
                     $extension = pathinfo($deal->$originalNameField, PATHINFO_EXTENSION);
                 }
-                
+
                 $documents[] = [
                     'id' => $deal->id . '_' . $field,
                     'name' => $filename,
@@ -2835,10 +2835,10 @@ class DealsController extends Controller
                 ];
             }
         }
-        
+
         return $documents;
     }
-    
+
     /**
      * Получить иконку для файла по расширению
      */
@@ -2854,10 +2854,10 @@ class DealsController extends Controller
             'dwg' => 'fas fa-file-code',
             'pln' => 'fas fa-file-code',
         ];
-        
+
         return $icons[strtolower($extension)] ?? 'fas fa-file';
     }
-    
+
     /**
      * Получение актуальных данных сделки для обновления интерфейса
      */
@@ -2865,7 +2865,7 @@ class DealsController extends Controller
     {
         try {
             $deal = Deal::findOrFail($id);
-            
+
             // Проверяем права доступа к сделке
             $user = Auth::user();
             if (!$this->canUserAccessDeal($user, $deal)) {
@@ -2874,25 +2874,25 @@ class DealsController extends Controller
                     'message' => 'У вас нет прав для просмотра этой сделки'
                 ], 403);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'deal' => $deal->toArray()
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Ошибка при получении данных сделки', [
                 'deal_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Ошибка при получении данных сделки: ' . $e->getMessage()
             ], 500);
         }
     }
-    
+
     /**
      * Проверка прав доступа пользователя к сделке
      */
@@ -2902,25 +2902,25 @@ class DealsController extends Controller
         if (in_array($user->status, ['admin', 'coordinator'])) {
             return true;
         }
-        
+
         // Клиенты имеют доступ только к своим сделкам
         if ($user->status === 'user' && $deal->user_id === $user->id) {
             return true;
         }
-        
+
         // Исполнители имеют доступ к назначенным им сделкам
-        if (in_array($user->status, ['architect', 'designer', 'visualizer']) && 
-            ($deal->architect_id === $user->id || 
-             $deal->designer_id === $user->id || 
+        if (in_array($user->status, ['architect', 'designer', 'visualizer']) &&
+            ($deal->architect_id === $user->id ||
+             $deal->designer_id === $user->id ||
              $deal->visualizer_id === $user->id)) {
             return true;
         }
-        
+
         // Партнеры имеют доступ к сделкам где они указаны как партнер
         if ($user->status === 'partner' && $deal->partner_id === $user->id) {
             return true;
         }
-        
+
         return false;
     }
 }
