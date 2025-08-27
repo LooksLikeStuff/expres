@@ -102,151 +102,24 @@ class ProfileController extends Controller
         }
     }
 
-    // 3. Отправка кода подтверждения на телефон
+    /**
+     * Отправка кода подтверждения на телефон
+     * @deprecated Используйте AuthController::sendPhoneUpdateCode()
+     */
     public function sendVerificationCode(Request $request)
     {
-        $request->validate([
-            'phone' => 'required',
-        ]);
-
-        $user = Auth::user();
-        $rawPhone = preg_replace('/\D/', '', $request->input('phone'));
-
-        // Проверка правильности номера телефона
-        if (strlen($rawPhone) < 10) {
-            Log::error('Неверный формат номера телефона', ['phone' => $rawPhone, 'user_id' => $user->id]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Неверный формат номера телефона.'
-            ]);
-        }
-
-        $formattedPhone = '+7 (' . substr($rawPhone, 1, 3) . ') '
-                         . substr($rawPhone, 4, 3)
-                         . '-'
-                         . substr($rawPhone, 7, 2)
-                         . '-'
-                         . substr($rawPhone, 9);
-
-        $verificationCode = rand(1000, 9999);
-        $apiKey = config('services.smsru.api_id', '6CDCE0B0-6091-278C-5145-360657FF0F9B');
-
-        // Добавляем логирование для отладки
-        Log::info('Отправка кода подтверждения', [
-            'user_id' => $user->id,
-            'phone' => $rawPhone,
-            'code' => $verificationCode
-        ]);
-
-        try {
-            $response = Http::get("https://sms.ru/sms/send", [
-                'api_id' => $apiKey,
-                'to'     => $rawPhone,
-                'msg'    => "Ваш код: $verificationCode",
-                'json'   => 1
-            ]);
-
-            // Логируем ответ API для отладки
-            Log::info('Ответ SMS.RU API', [
-                'response' => $response->json(),
-                'status' => $response->status()
-            ]);
-
-            if ($response->failed()) {
-                Log::error('Ошибка отправки SMS', [
-                    'response' => $response->body(),
-                    'status' => $response->status()
-                ]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ошибка при отправке SMS.'
-                ]);
-            }
-        } catch (\Exception $e) {
-            Log::error('Исключение при отправке SMS', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Ошибка при отправке SMS: ' . $e->getMessage()
-            ]);
-        }
-
-        try {
-            // Сохраняем только код подтверждения и временный номер, но не обновляем телефон в профиле
-            \DB::table('users')
-                ->where('id', $user->id)
-                ->update([
-                    'verification_code' => $verificationCode,
-                    'verification_code_expires_at' => now()->addMinutes(10),
-                    'temp_phone' => $rawPhone // Сохраняем во временное поле
-                ]);
-
-            Log::info('Верификационный код успешно сохранен в БД', [
-                'user_id' => $user->id,
-                'verification_code' => $verificationCode
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Код подтверждения отправлен.',
-                'debug_code' => $verificationCode // добавляем для отладки, потом удалить
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Ошибка при сохранении кода подтверждения', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Произошла ошибка при сохранении данных: ' . $e->getMessage()
-            ]);
-        }
+        // Перенаправляем на новый метод в AuthController
+        return app(AuthController::class)->sendPhoneUpdateCode($request);
     }
 
-    // 4. Подтверждение кода подтверждения телефона
+    /**
+     * Подтверждение кода подтверждения телефона
+     * @deprecated Используйте AuthController::verifyPhoneUpdateCode()
+     */
     public function verifyCode(Request $request)
     {
-        $request->validate([
-            'phone'             => 'required',
-            'verification_code' => 'required|numeric|digits:4',
-        ]);
-
-        $user = Auth::user();
-        $verificationCode = $request->input('verification_code');
-
-        if ($user->verification_code == $verificationCode
-            && now()->lessThanOrEqualTo($user->verification_code_expires_at))
-        {
-            // Получаем сохраненный временный номер телефона
-            $rawPhone = $user->temp_phone ?: preg_replace('/\D/', '', $request->input('phone'));
-
-            $formattedPhone = '+7 (' . substr($rawPhone, 1, 3) . ') '
-                            . substr($rawPhone, 4, 3) . '-'
-                            . substr($rawPhone, 7, 2) . '-'
-                            . substr($rawPhone, 9, 2);
-
-            $user->phone = $formattedPhone;
-            $user->verification_code = null;
-            $user->verification_code_expires_at = null;
-            $user->temp_phone = null; // Очищаем временное поле
-            $user->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Номер телефона успешно обновлен.'
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Неверный или просроченный код.'
-        ]);
+        // Перенаправляем на новый метод в AuthController
+        return app(AuthController::class)->verifyPhoneUpdateCode($request);
     }
 
     // 5. Обновление аватара пользователя

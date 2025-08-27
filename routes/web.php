@@ -354,6 +354,7 @@ Route::middleware('auth')->group(function () {
         Route::get('{brief}/rooms','createRooms')->name('briefs.rooms.create');
         Route::post('{brief}/rooms','storeRooms')->name('briefs.rooms.store');
         Route::post('{brief}/answers','answers')->name('briefs.answers');
+        Route::get('{brief}/pdf','pdf')->name('briefs.pdf');
     });
 
 

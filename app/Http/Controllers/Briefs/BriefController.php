@@ -16,6 +16,7 @@ use App\Services\Briefs\BriefAnswerService;
 use App\Services\Briefs\BriefQuestionService;
 use App\Services\Briefs\BriefRoomService;
 use App\Services\Briefs\BriefService;
+use App\Services\BriefPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,6 +27,7 @@ class BriefController extends Controller
         private readonly BriefQuestionService $briefQuestionService,
         private readonly BriefRoomService $briefRoomService,
         private readonly BriefAnswerService $briefAnswerService,
+        private readonly BriefPdfService $briefPdfService,
     )
     {
     }
@@ -150,14 +152,22 @@ class BriefController extends Controller
 
             return view('briefs.questions', ['questions' => $questions, 'page' => $page, 'totalPages' => 5, 'brief' => $brief]);
         } else {
-            $user = User::find($brif->user_id) ?: Auth::user();
-            $zones = $brif->zones ? json_decode($brif->zones, true) : [];
-            $preferences = $brif->preferences ? json_decode($brif->preferences, true) : [];
-            $budget = $brif->price ?? 0;
-            $zoneBudgets = $brif->zone_budgets ? json_decode($brif->zone_budgets, true) : [];
+            $user = User::find($brief->user_id) ?: Auth::user();
+            $zones = $brief->getZonesData();
+            $preferences = $brief->getPreferencesData();
+            $budget = $brief->price ?? 0;
 
-            return view('briefs.questions', ['page' => $page, 'zones' => $zones, 'preferences' => $preferences, 'budget' => $budget, 'zoneBudgets' => $zoneBudgets, 'user' => $user, 'title_site' => $titles[$page] ?? 'Вопрос', 'description' => $descriptions[$page] ?? '', 'brif' => $brif, 'totalPages' => count($titles), 'questions' => $questions,]);
-
+            return view('briefs.questions', [
+                'page' => $page,
+                'zones' => $zones,
+                'preferences' => $preferences,
+                'budget' => $budget,
+                'user' => $user,
+                'title_site' => 'Коммерческий бриф',
+                'brief' => $brief,
+                'totalPages' => 13,
+                'questions' => $questions,
+            ]);
         }
     }
 
@@ -166,5 +176,23 @@ class BriefController extends Controller
        $this->briefAnswerService->create($brief, BriefAnswerDTO::fromStoreRoomsRequest($request));
 
        dd($request->get('page'));
+    }
+
+    /**
+     * Скачать PDF-версию брифа
+     *
+     * @param Brief $brief
+     * @return \Illuminate\Http\Response
+     */
+    public function pdf(Brief $brief)
+    {
+        // Проверяем права доступа
+        $this->authorize('view', $brief);
+
+        try {
+            return $this->briefPdfService->generatePdf($brief);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }
