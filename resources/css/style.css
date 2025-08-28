@@ -1082,9 +1082,6 @@ header {
             transform: rotate(180deg);
 }
 
-.faq__body {
-    width: 49%;
-}
 
 .modal {
     position: fixed;

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const skipPageBtn = document.getElementById('skipPageBtn');
     const customRoomInput = document.getElementById('custom-room-name');
     const customRoomsContainer = document.getElementById('custom-rooms-container');
+    const faqQuestions = document.querySelectorAll('.faq_question');
     let customRoomCounter = 0;
 
     const page = parseInt($('#page').val());
@@ -33,12 +34,34 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    console.log(nextPageBtn);
     nextPageBtn.addEventListener('click', () => {
-        console.log('click');
         validateAndSubmit(page)
     });
 
+
+    faqQuestions.forEach((elem) => elem.addEventListener('click', function () {
+        console.log(this);
+        toggleFaq(this);
+    }));
+
+
+
+    // document.getElementById('briefForm').addEventListener('click', function(event) {
+    //     console.log(this);
+    //     event.preventDefault();
+
+    //     const formData = new FormData(this); // "this" — это форма
+
+    //     // Чтобы увидеть все поля и их значения
+    //     for (let [name, value] of formData.entries()) {
+    //         console.log(`${name}: ${value}`);
+    //     }
+    
+    //     // Или получить конкретное поле по имени
+    //     const nameValue = formData.get('name'); // если есть input с name="name"
+    //     console.log('Имя:', nameValue);
+        
+    // });
 
 
 // Добавляем обработчики событий для полей, чтобы убирать ошибки при вводе
@@ -260,11 +283,11 @@ async function validateAndSubmit(page) {
         // Очищаем значение от нецифровых символов
         const numericValue = priceInput.value.replace(/[^\d]/g, '');
         console.log('Значение price перед отправкой:', numericValue);
-
+    
         // Создаем скрытое поле с числовым значением
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
-        hiddenInput.name = 'price';
+        hiddenInput.name = 'answers[price]';
         hiddenInput.value = numericValue;
 
         // Добавляем скрытое поле в форму

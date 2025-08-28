@@ -5,6 +5,7 @@ namespace App\Services\Briefs;
 use App\DTO\Briefs\BriefDTO;
 use App\Models\Brief;
 use App\Models\Deal;
+use Illuminate\Support\Facades\Storage;
 
 class BriefService
 {
@@ -38,4 +39,19 @@ class BriefService
             $brief->save();
         }
     }
+
+    public function saveDocuments(Brief $brief, array $documents): void
+    {
+        foreach ($documents as $document) {
+            $path = Storage::disk('yandex')->putFile('brief-documents', $document);
+
+            $brief->documents()->create([
+                'filepath' => $path,
+                'original_name' => $document->getClientOriginalName(),
+                'file_size' => $document->getSize(),
+                'mime_type' => $document->getMimeType(),
+            ]);
+        }
+    }
+
 }

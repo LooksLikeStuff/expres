@@ -31,17 +31,20 @@
 
                         {{-- Кнопки навигации --}}
                         <div class="form__button flex between">
-                            <p class="form__button-ponel-p">Страница {{ $page }}/{{ $totalPages }}</p>
+                            <p class="form__button-ponel-p">Страница {{ $page }}/{{ $brief->totalQuestionPages() }}</p>
                             @if ($page > 1)
                                 <button id="prevPageBtn" type="button" class=" btn-secondary btn-propustit" onclick="goToPrev()">Обратно</button>
                             @endif
                             <button id="nextPageBtn" type="button" class=" btn-primary btn-dalee">Далее</button>
 
-                            @if ($page > 0 && $page < 5)
-                                <button id="skipPageBtn" type="button" class=" btn-warning  btn-propustit skip-page-btn" onclick="skipPage()">Пропустить</button>
+                            @if ($page > 0 && $page < $brief->totalQuestionPages())
+                                <a href="{{ route('briefs.questions', ['brief' => $brief, 'page' => $page + 1]) }}"
+                                id="skipPageBtn"
+                                class=" btn-warning  btn-propustit skip-page-btn">
+                                    Пропустить</a>
                             @endif
 
-                            @if ($page >= 5 && !empty(json_decode($brif->skipped_pages ?? '[]')))
+                            @if ($page >= $brief->totalQuestionPages() && !empty(json_decode($brif->skipped_pages ?? '[]')))
                                 <span class="skipped-notice">Вы заполняете пропущенные страницы</span>
                             @endif
                         </div>
@@ -80,91 +83,114 @@
                     <div class="form__body flex between wrap">
 
                         @if($brief->relationLoaded('rooms'))
+                            <div class="faq__body">
+                                <div class="faq_block flex center">
 
-                        @endif
+                                    @foreach($brief->rooms as $room)
 
-                        @foreach ($questions as $question)
+                                    <div class="faq_item">
+                                        <div class="faq_question">
+                                            <h2>{{ $room->title }}</h2>
+                                            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                width="24" height="24">
+                                                <path d="M7 10l5 5 5-5z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="faq_answer">
+                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->question->subtitle }}"
+                                                    class="form-control required-field" data-original-placeholder="{{ $room->question->subtitle }}" maxlength="500">{{ $room->placeholder() }}</textarea>
 
-                            {{-- PRICE — отдельный кейс --}}
-                            @if ($question->key === 'price')
-                                <div class="form-group flex wrap">
-                                    <h2>{{ $question->title }}</h2>
-                                    @if (!empty($question->subtitle))
-                                        <p>{{ $question->subtitle }}</p>
-                                    @endif
-                                    <input type="text" name="price" class="form-control required-field price-input"
-                                           value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
-                                           data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
-                                    <span class="error-message">Это поле обязательно для заполнения</span>
-                                </div>
-
-                                {{-- CHECKPOINT --}}
-                            @elseif ($question->format === 'checkpoint')
-                                <div class="checkpoint flex wrap">
-                                    <div class="radio">
-                                        <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
-                                               name="answers[{{ $question->key }}]" value="1"
-                                               @if (!empty($brif->{$question->key})) checked @endif>
-                                        <label for="{{ $question->key }}">{{ $question->title }}</label>
+                                            <span class="error-message">Это поле обязательно для заполнения</span>
+                                        </div>
                                     </div>
+
+                                    @endforeach
                                 </div>
+                            </div>
+                        @else
+                            @foreach ($questions as $question)
 
-                                {{-- DEFAULT и FAQ --}}
-                            @elseif (in_array($question->format, ['default', 'faq']))
-                                @php
-                                    $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
-                                @endphp
-
-                                @if ($question->format === 'default')
+                                {{-- PRICE — отдельный кейс --}}
+                                @if ($question->key === 'price')
                                     <div class="form-group flex wrap">
                                         <h2>{{ $question->title }}</h2>
                                         @if (!empty($question->subtitle))
                                             <p>{{ $question->subtitle }}</p>
                                         @endif
-                                        {!! $field !!}
+                                        <input type="text" name="price" class="form-control required-field price-input"
+                                            value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
+                                            data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
+                                        <span class="error-message">Это поле обязательно для заполнения</span>
                                     </div>
-                                @else
-                                    <div class="faq__body">
-                                        <div class="faq_block flex center">
-                                            <div class="faq_item">
-                                                <div class="faq_question" onclick="toggleFaq(this)">
-                                                    <h2>{{ $question->title }}</h2>
-                                                    <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                         width="24" height="24">
-                                                        <path d="M7 10l5 5 5-5z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div class="faq_answer">
-                                                    {!! $field !!}
+
+                                    {{-- CHECKPOINT --}}
+                                @elseif ($question->format === 'checkpoint')
+                                    <div class="checkpoint flex wrap">
+                                        <div class="radio">
+                                            <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
+                                                name="answers[{{ $question->key }}]" value="1"
+                                                @if (!empty($brif->{$question->key})) checked @endif>
+                                            <label for="{{ $question->key }}">{{ $question->title }}</label>
+                                        </div>
+                                    </div>
+
+                                    {{-- DEFAULT и FAQ --}}
+                                @elseif (in_array($question->format, ['default', 'faq']))
+                                    @php
+                                        $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
+                                    @endphp
+
+                                    @if ($question->format === 'default')
+                                        <div class="form-group flex wrap">
+                                            <h2>{{ $question->title }}</h2>
+                                            @if (!empty($question->subtitle))
+                                                <p>{{ $question->subtitle }}</p>
+                                            @endif
+                                            {!! $field !!}
+                                        </div>
+                                    @else
+                                        <div class="faq__body">
+                                            <div class="faq_block flex center">
+                                                <div class="faq_item">
+                                                    <div class="faq_question" onclick="toggleFaq(this)">
+                                                        <h2>{{ $question->title }}</h2>
+                                                        <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                            width="24" height="24">
+                                                            <path d="M7 10l5 5 5-5z"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="faq_answer">
+                                                        {!! $field !!}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 @endif
-                            @endif
 
-                        @endforeach
+                            @endforeach
+                        @endif
 
-                        @if ($page == 5)
+                        @if ($brief->isCommon() && $page == $brief->totalQuestionPages())
                             <div class="upload__files">
                                 <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
                                     стилю интерьера</h6>
                                 <div id="drop-zone-references">
                                     <p id="drop-zone-references-text">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
-                                    <input id="referenceInput" type="file" name="references[]" multiple
+                                    <input id="referenceInput" type="file" name="documents[]" multiple
                                            accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.3gp">
                                 </div>
                                 <p class="error-message" style="color: red;"></p>
                                 <small>Допустимые форматы: изображения (.jpg, .jpeg, .png, .heic, .heif), документы (.pdf, .xlsx, .xls,
                                     .doc, .docx), видео (.mp4, .mov, .avi, .wmv, .flv, .mkv, .webm, .3gp)</small><br>
                                 <small>Максимальный суммарный размер: 50 МБ</small>
-                                @if ($brif->references)
+                                @if ($brief->documents)
                                     <div class="uploaded-references">
                                         <h6>Загруженные референсы:</h6>
                                         <ul>
-                                            @foreach (json_decode($brif->references, true) ?? [] as $reference)
+                                            @foreach ($brief->documents as $document)
                                                 <li>
-                                                    <a href="{{ asset($reference) }}" target="_blank">{{ basename($reference) }}</a>
+                                                    <a href="{{ asset($document->full_path) }}" target="_blank">{{ basename($document->original_name) }}</a>
                                                 </li>
                                             @endforeach
                                         </ul>

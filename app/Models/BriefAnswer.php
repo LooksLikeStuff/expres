@@ -11,6 +11,7 @@ class BriefAnswer extends Model
 
     protected $fillable = [
         'brief_id',
+        'room_id',
         'question_key',
         'answer_text',
         'answer_json',

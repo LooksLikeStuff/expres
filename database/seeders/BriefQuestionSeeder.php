@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\DTO\Briefs\Briefs\BriefQuestionDTO;
+use App\DTO\Briefs\BriefQuestionDTO;
 use App\Services\Briefs\BriefQuestionService;
 use Illuminate\Database\Seeder;
 
@@ -54,21 +54,21 @@ class BriefQuestionSeeder extends Seeder
             // Стр.3 Помещения (FAQ) — базовые комнаты
             ['brief_type' => 'common', 'page' => 3, 'key' => 'room_question', 'title' => 'Пожелания по помещению', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
 
-            // Стр.4 Отделка
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_1', 'title' => 'Напольные покрытия', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_2', 'title' => 'Двери', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_3', 'title' => 'Отделка стен', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_4', 'title' => 'Освещение и электрика', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_5', 'title' => 'Потолки', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_6', 'title' => 'Дополнительные пожелания', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-
+           // Стр.4 Отделка
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_1', 'title' => 'Напольные покрытия', 'subtitle' => 'Укажите, какие материалы вы предпочитаете (ламинат, паркет, плитка и т.д.) и в каких помещениях они будут использоваться', 'input_type' => 'textarea', 'placeholder' => 'Укажите, какие материалы вы предпочитаете (ламинат, паркет, плитка и т.д.) и в каких помещениях они будут использоваться', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_2', 'title' => 'Двери', 'subtitle' => 'Опишите ваши пожелания относительно дверей: обычные, складные, раздвижные, распашные, стеклянные перегородки, скрытого монтажа, нестандартной высоты, стеклянные и т п', 'input_type' => 'textarea', 'placeholder' => 'Опишите ваши пожелания относительно дверей: обычные, складные, раздвижные, распашные, стеклянные перегородки, скрытого монтажа, нестандартной высоты, стеклянные и т.п.', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_3', 'title' => 'Отделка стен', 'subtitle' => 'Опишите ваши пожелания по материалам (обои, краска, декоративная штукатурка) и стилю оформления стен', 'input_type' => 'textarea', 'placeholder' => 'Опишите ваши пожелания по материалам (обои, краска, декоративная штукатурка) и стилю оформления стен', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_4', 'title' => 'Освещение и электрика', 'subtitle' => 'Укажите, какие типы освещения вам нравятся (встраиваемые светильники, люстры, бра) и в каких зонах они должны быть установлены', 'input_type' => 'textarea', 'placeholder' => 'Укажите, какие типы освещения вам нравятся (встраиваемые светильники, люстры, бра) и в каких зонах они должны быть установлены', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_5', 'title' => 'Потолки', 'subtitle' => 'Укажите, хотите ли вы использовать натяжные потолки, гипсокартонные конструкции или оставить стандартные потолки', 'input_type' => 'textarea', 'placeholder' => 'Укажите, хотите ли вы использовать натяжные потолки, гипсокартонные конструкции или оставить стандартные потолки', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_6', 'title' => 'Дополнительные пожелания', 'subtitle' => 'Перечислите все моменты, которые вы считаете важными по отделке', 'input_type' => 'textarea', 'placeholder' => 'Перечислите все моменты, которые вы считаете важными по отделке', 'format' => 'default', 'class' => null],
+            
             // Стр.5 Оснащение
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_1', 'title' => 'Пожелания по звукоизоляции', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_2', 'title' => 'Теплые полы', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_3', 'title' => 'Радиаторы', 'subtitle' => 'Предпочтения по размещению и типу', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_4', 'title' => 'Водоснабжение', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_5', 'title' => 'Кондиционирование и вентиляция', 'subtitle' => null, 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_6', 'title' => 'Сети', 'subtitle' => 'Интернет, ТВ, умный дом', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_1', 'title' => 'Пожелания по звукоизоляции', 'subtitle' => 'Уточните, какие источники шума вас беспокоят и в каких зонах вы хотели бы улучшить звукоизоляцию', 'input_type' => 'textarea', 'placeholder' => 'Уточните, какие источники шума вас беспокоят и в каких зонах вы хотели бы улучшить звукоизоляцию', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_2', 'title' => 'Теплые полы', 'subtitle' => 'Укажите, предпочитаете ли вы электрические или водяные теплые полы, а также в каких помещениях они должны быть установлены', 'input_type' => 'textarea', 'placeholder' => 'Укажите, предпочитаете ли вы электрические или водяные теплые полы, а также в каких помещениях они должны быть установлены', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_3', 'title' => 'Радиаторы', 'subtitle' => 'Укажите, хотите ли вы заменить стандартные радиаторы на более современные или изменить их расположение', 'input_type' => 'textarea', 'placeholder' => 'Укажите, хотите ли вы заменить стандартные радиаторы на более современные или изменить их расположение', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_4', 'title' => 'Водоснабжение', 'subtitle' => 'Опишите ваши пожелания по установке фильтров очистки воды, водонагревателей и других элементов системы водоснабжения', 'input_type' => 'textarea', 'placeholder' => 'Опишите ваши пожелания по установке фильтров очистки воды, водонагревателей и других элементов системы водоснабжения', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_5', 'title' => 'Кондиционирование и вентиляция', 'subtitle' => 'Пропишите зоны для установки систем вентиляции и кондиционирования', 'input_type' => 'textarea', 'placeholder' => 'Пропишите зоны для установки систем вентиляции и кондиционирования', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_6', 'title' => 'Сети', 'subtitle' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии', 'input_type' => 'textarea', 'placeholder' => 'Укажите, в каких помещениях необходимы розетки для интернета и телевидения, а также интересуют ли вас системы "умный дом", сигнализация и другие современные технологии', 'format' => 'default', 'class' => null],
         ];
     }
 

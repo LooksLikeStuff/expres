@@ -142,15 +142,23 @@ class BriefController extends Controller
     {
         //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с комнатами
         if ($brief->isCommon() && $page <= 0) {
-           return redirect()->route('briefs.rooms.create');
+            return redirect()->route('briefs.rooms.create');
+        }
+
+        //Если это последняя страница, проверяем, есть ли пропущенные страницы
+        if ($page == $brief->totalQuestionPages()) {
+            $page = $this->briefQuestionService->getMinSkippedPage($brief);
         }
 
         $questions = $this->briefQuestionService->getQuestionsByTypeAndPage($brief->type, $page);
 
         if ($brief->isCommon()) {
-            if ($page === 3) $brief->load('rooms');
+            if ($page === 3) {
+                $brief->load('rooms');
+                $brief->rooms->map(fn ($room) => $room->setQuestion($questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
+            }
 
-            return view('briefs.questions', ['questions' => $questions, 'page' => $page, 'totalPages' => 5, 'brief' => $brief]);
+            return view('briefs.questions', compact('questions', 'brief', 'page'));
         } else {
             $user = User::find($brief->user_id) ?: Auth::user();
             $zones = $brief->getZonesData();
@@ -173,9 +181,23 @@ class BriefController extends Controller
 
     public function answers(Brief $brief, AnswerRequest $request)
     {
-       $this->briefAnswerService->create($brief, BriefAnswerDTO::fromStoreRoomsRequest($request));
+        $page = $request->get('page');
 
-       dd($request->get('page'));
+        //Если бриф общий и страница 3, то сохраняем комнаты
+        if ($brief->isCommon() && $page == 3) {
+            $dto = BriefAnswerDTO::fromStoreRoomsRequest($request);
+        } else {
+            $dto = BriefAnswerDTO::fromAnswerRequest($request);
+        }
+
+        $this->briefAnswerService->updateOrCreate($brief, $dto);
+
+        if ($request->has('documents')) {
+            $this->briefService->saveDocuments($brief, $request->validated('documents'));
+        }
+
+        //Идем дальше на следующую страницу
+       return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => $page + 1]);
     }
 
     /**
