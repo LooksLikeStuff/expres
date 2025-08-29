@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Briefs\BriefType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -38,16 +39,20 @@ class BriefRoom extends Model
     public function isCustom()
      {
         $defaultKeys = array_column(self::DEFAULT_ROOMS, 'key');
-       
+
         return !in_array($this->key, $defaultKeys, true);
     }
 
-    public function setQuestion(Collection $questions): void
+    public function setQuestion(BriefType $briefType, Collection $questions): void
     {
-        $type = $this->getQuestionKey();
-        
-        $this->question = $questions->first(function ($q) use ($type) {
-            return $q->key === $type;
+        $this->question = $questions->first(function ($q) use ($briefType)  {
+            //Для общего брифа комнате устанавливаем вопрос всегда один и тот же (Он в целом один)
+            if ($briefType === BriefType::COMMON) {
+                return $q->key === 'room';
+            }
+
+            //Для коммерческого брифа всегда один вопрос на страницу
+            return true;
         });
     }
 
@@ -62,9 +67,9 @@ class BriefRoom extends Model
         return $roomsByKey[$this->key]['placeholder'];
     }
 
-    public function getQuestionKey() 
+    public function getQuestionKey()
     {
         //Ключ для получения вопроса
-        return $this->isCustom() ? 'room_custom' : 'room_default';
+        return 'room';
     }
 }

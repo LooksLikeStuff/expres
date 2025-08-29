@@ -34,7 +34,16 @@ class BriefAnswerDTO
 
         foreach ($rooms as $questionKey => $answers) {
             foreach ($answers as $roomId => $answer) {
-                $preparedRooms->push(['room_id' => $roomId, 'question_key' => $questionKey, 'answer_text' => $answer]);
+                $data = [
+                    'room_id' => $roomId,
+                    'question_key' => $questionKey
+                ];
+
+                //Если ответ это массив, то сохраняем как json
+                if (is_array($answer)) $data['answer_json'] = $answer;
+                else $data['answer_text'] = $answer;
+
+                $preparedRooms->push($data);
             }
         }
 

@@ -114,7 +114,7 @@
                                             <div class="button__brifs flex">
                                                 <button class="button__variate2"><img src="/storage/icon/create__info.svg" alt=""> <span>Посмотреть</span></button>
                                                 <button class="button__variate2"
-                                                        onclick="event.stopPropagation(); window.location.href='{{ route('common.download.pdf') }}'">
+                                                        onclick="event.stopPropagation(); window.location.href='{{ route('briefs.pdf', $brief) }}'">
                                                     <span>Скачать PDF</span>
                                                 </button>
                                             </div>

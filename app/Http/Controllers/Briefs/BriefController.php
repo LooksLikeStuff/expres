@@ -17,7 +17,9 @@ use App\Services\Briefs\BriefQuestionService;
 use App\Services\Briefs\BriefRoomService;
 use App\Services\Briefs\BriefService;
 use App\Services\BriefPdfService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class BriefController extends Controller
@@ -88,7 +90,7 @@ class BriefController extends Controller
      */
     public function show(Brief $brief)
     {
-        //
+        dd($brief);
     }
 
     /**
@@ -140,44 +142,47 @@ class BriefController extends Controller
      */
     public function questions(Brief $brief, int $page)
     {
-        //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с комнатами
+        if ($brief->isCompleted()) {
+            return redirect()->route('briefs.show', $brief);
+        }
+        //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с добавлением комнат
         if ($brief->isCommon() && $page <= 0) {
             return redirect()->route('briefs.rooms.create');
         }
 
-        //Если это последняя страница, проверяем, есть ли пропущенные страницы
-        if ($page == $brief->totalQuestionPages()) {
+        //Если это последняя страница или у брифа статус "Есть пропущенные страницы",
+        //то проверяем, есть ли пропущенные страницы
+        if ($page > $brief->totalQuestionPages() || $brief->hasSkippedPages()) {
             $page = $this->briefQuestionService->getMinSkippedPage($brief);
+
+            //Если есть пропущенные страницы, то устанавливаем статус, что есть пропущенные страницы, иначе устанавливаем статус Завершен
+            if (!is_null($page)) {
+                $brief->markAsHasSkippedPages();
+            } else {
+                $brief->markAsCompleted();
+
+                return redirect()->route('user_deal');
+            }
         }
 
         $questions = $this->briefQuestionService->getQuestionsByTypeAndPage($brief->type, $page);
 
         if ($brief->isCommon()) {
+            //На третьей страницы общего брифа заполняется информация для комнат, поэтому подгружаем их
             if ($page === 3) {
                 $brief->load('rooms');
-                $brief->rooms->map(fn ($room) => $room->setQuestion($questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
+                $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
             }
 
-            return view('briefs.questions', compact('questions', 'brief', 'page'));
         } else {
-            $user = User::find($brief->user_id) ?: Auth::user();
-            $zones = $brief->getZonesData();
-            $preferences = $brief->getPreferencesData();
-            $budget = $brief->price ?? 0;
-
-            return view('briefs.questions', [
-                'page' => $page,
-                'zones' => $zones,
-                'preferences' => $preferences,
-                'budget' => $budget,
-                'user' => $user,
-                'title_site' => 'Коммерческий бриф',
-                'brief' => $brief,
-                'totalPages' => 13,
-                'questions' => $questions,
-            ]);
+            //Для коммерческого брифа почти все вопросы связаны с зонами, подгружаем их всегда
+            $brief->load('rooms');
+            $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions));
         }
+
+        return view('briefs.questions', compact('questions', 'brief', 'page'));
     }
+
 
     public function answers(Brief $brief, AnswerRequest $request)
     {
@@ -204,7 +209,7 @@ class BriefController extends Controller
      * Скачать PDF-версию брифа
      *
      * @param Brief $brief
-     * @return \Illuminate\Http\Response
+     * @return RedirectResponse|Response
      */
     public function pdf(Brief $brief)
     {

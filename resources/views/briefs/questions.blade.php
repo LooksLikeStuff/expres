@@ -44,7 +44,7 @@
                                     Пропустить</a>
                             @endif
 
-                            @if ($page >= $brief->totalQuestionPages() && !empty(json_decode($brif->skipped_pages ?? '[]')))
+                            @if ($brief->hasSkippedPages())
                                 <span class="skipped-notice">Вы заполняете пропущенные страницы</span>
                             @endif
                         </div>
@@ -82,7 +82,7 @@
                     {{-- Блок с вопросами форматов "default" и "faq" --}}
                     <div class="form__body flex between wrap">
 
-                        @if($brief->relationLoaded('rooms'))
+                        @if($brief->relationLoaded('rooms') && $brief->isCommon())
                             <div class="faq__body">
                                 <div class="faq_block flex center">
 
@@ -103,6 +103,32 @@
                                             <span class="error-message">Это поле обязательно для заполнения</span>
                                         </div>
                                     </div>
+
+                                    @endforeach
+                                </div>
+                            </div>
+
+                        @elseif($brief->relationLoaded('rooms') && $brief->isCommercial())
+                            <div class="faq__body">
+                                <div class="faq_block flex center">
+
+                                    @foreach($brief->rooms as $room)
+
+                                        <div class="faq_item">
+                                            <div class="faq_question">
+                                                <h2>{{ $room->title }}</h2>
+                                                <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                     width="24" height="24">
+                                                    <path d="M7 10l5 5 5-5z"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="faq_answer">
+                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->question->subtitle }}"
+                                                          class="form-control required-field" data-original-placeholder="{{ $room->question->subtitle }}" maxlength="500">{{ $room->placeholder() }}</textarea>
+
+                                                <span class="error-message">Это поле обязательно для заполнения</span>
+                                            </div>
+                                        </div>
 
                                     @endforeach
                                 </div>

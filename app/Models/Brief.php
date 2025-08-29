@@ -259,4 +259,28 @@ class Brief extends Model
         return $this->hasMany(BriefQuestion::class, 'brief_type', 'type');
     }
 
+    public function markAsHasSkippedPages(): void
+    {
+        $this->status = BriefStatus::SKIPPED_PAGES;
+
+        $this->save();
+    }
+
+    public function markAsCompleted(): void
+    {
+        $this->status = BriefStatus::COMPLETED;
+
+        $this->save();
+    }
+
+    public function hasSkippedPages(): bool
+    {
+        return $this->status === BriefStatus::SKIPPED_PAGES;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === BriefStatus::COMPLETED;
+    }
+
 }

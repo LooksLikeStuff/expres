@@ -36,9 +36,34 @@ class BriefQuestionService
 
     public function getMinSkippedPage(Brief $brief)
     {
-        return $brief->questions()
-            ->whereNotIn('key', $brief->answers()->select('question_key'))
-            ->min('page');
+        $answeredKeys = $brief->answers()->pluck('question_key')->toArray();
+
+        $questions = $brief->questions()
+            ->whereNotIn('key', $answeredKeys)
+            ->orderBy('page')
+            ->get();
+
+        if ($questions->isEmpty()) {
+            return null;
+        }
+
+        $minPage = $questions->first()->page;
+
+        // Берем все вопросы с минимальным page
+        $minPageQuestions = $questions->where('page', $minPage);
+
+        $keys = $minPageQuestions->pluck('key')->toArray();
+
+        // Проверяем, есть ли оба ключа в массиве, значит третья страница была пропущена
+        if ($minPage === 3
+            && in_array('room_custom', $keys)
+            && in_array('room_default', $keys)
+        ) {
+            return $minPage;
+        }
+
+        // Если осталась только одна из них, возвращаем null
+        return null;
     }
 }
 

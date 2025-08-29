@@ -8,6 +8,7 @@ enum BriefStatus: string
     case ACTIVE = 'active';
     case EDITING = 'editing';
     case COMPLETED = 'completed';
+    case SKIPPED_PAGES = 'skipped_pages';
 
     public function label(): string
     {
@@ -16,13 +17,14 @@ enum BriefStatus: string
             self::ACTIVE => 'Активный',
             self::EDITING => 'Редактируется',
             self::COMPLETED => 'Завершенный',
+            self::SKIPPED_PAGES => 'Есть пропущенные страницы',
         };
     }
 
     public function isActive(): bool
     {
         return match ($this) {
-            self::DRAFT, self::ACTIVE, self::EDITING => true,
+            self::DRAFT, self::ACTIVE, self::SKIPPED_PAGES, self::EDITING => true,
             self::COMPLETED => false,
         };
     }
