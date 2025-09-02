@@ -519,13 +519,13 @@ class DealsController extends Controller
 
         // Извлекаем клиентские данные из запроса
         $clientData = array_intersect_key($dataToUpdate, array_flip([
-            'client_name', 'client_phone', 'client_email', 'client_city', 
+            'client_name', 'client_phone', 'client_email', 'client_city',
             'client_timezone', 'client_info', 'client_account_link'
         ]));
 
         // Удаляем клиентские поля из данных для обновления Deal
         $dealData = array_diff_key($dataToUpdate, array_flip([
-            'client_name', 'client_phone', 'client_email', 'client_city', 
+            'client_name', 'client_phone', 'client_email', 'client_city',
             'client_timezone', 'client_info', 'client_account_link'
         ]));
 
