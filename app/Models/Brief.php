@@ -283,4 +283,72 @@ class Brief extends Model
         return $this->status === BriefStatus::COMPLETED;
     }
 
+    /**
+     * Получить статус заполнения страниц брифа
+     * 
+     * @return array [
+     *   'page_number' => true/false
+     * ]
+     */
+    public function getPagesCompletionStatus(): array
+    {
+        $status = [];
+        $answeredKeys = $this->answers()->pluck('question_key')->toArray();
+        
+        // Получаем все вопросы для данного типа брифа
+        $allQuestions = $this->questions()
+            ->where('is_active', true)
+            ->orderBy('page')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('page');
+
+        $pageTitles = $this->getPageTitles();
+        
+        foreach ($pageTitles as $pageNumber => $pageInfo) {
+            $questionsForPage = $allQuestions->get($pageNumber, collect());
+            $totalQuestions = $questionsForPage->count();
+            
+            if ($totalQuestions > 0) {
+                $answeredCount = $questionsForPage->whereIn('key', $answeredKeys)->count();
+                $status[$pageNumber] = $answeredCount === $totalQuestions;
+            } else {
+                $status[$pageNumber] = true; // Если нет вопросов, считаем страницу заполненной
+            }
+        }
+        
+        return $status;
+    }
+
+    /**
+     * Получить номера незаполненных страниц
+     * 
+     * @return array
+     */
+    public function getSkippedPages(): array
+    {
+        $completionStatus = $this->getPagesCompletionStatus();
+        $skippedPages = [];
+        
+        foreach ($completionStatus as $pageNumber => $status) {
+            if (!$status) {
+                $skippedPages[] = $pageNumber;
+            }
+        }
+        
+        return $skippedPages;
+    }
+
+    /**
+     * Получить первую незаполненную страницу
+     * 
+     * @return int|null
+     */
+    public function getFirstSkippedPage(): ?int
+    {
+        $skippedPages = $this->getSkippedPages();
+        
+        return empty($skippedPages) ? null : min($skippedPages);
+    }
+
 }

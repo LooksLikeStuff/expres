@@ -86,9 +86,13 @@ export default defineConfig(({ mode }) => {
                     'resources/js/chats/index.js',
 
                     //briefs
+                    'resources/js/briefs/index.js',
                     'resources/js/briefs/create.js',
                     'resources/js/briefs/questions.js',
                     'resources/js/briefs/show.js',
+                    'resources/js/briefs/tutorial.js',
+                    'resources/js/briefs/actions.js',
+                    'resources/sass/briefs/index.scss',
                     'resources/sass/briefs/questions.scss',
                     'resources/sass/briefs/show.scss',
                 ],

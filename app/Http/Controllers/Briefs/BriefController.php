@@ -49,7 +49,14 @@ class BriefController extends Controller
         $commonBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommon());
         $commercialBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommercial());
 
-        return view('briefs.index', compact('briefs', 'activeBriefs', 'inactiveBriefs', 'commonBriefs', 'commercialBriefs'));
+        // Добавляем информацию о заполненности страниц для активных брифов
+        $activeBriefs->each(function ($brief) {
+            $brief->pagesStatus = $brief->getPagesCompletionStatus();
+        });
+
+        $briefTypes = BriefType::cases();
+
+        return view('briefs.index', compact('briefs', 'activeBriefs', 'inactiveBriefs', 'commonBriefs', 'commercialBriefs', 'briefTypes'));
     }
 
     /**
@@ -159,7 +166,7 @@ class BriefController extends Controller
         }
         //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с добавлением комнат
         if ($brief->isCommon() && $page <= 0) {
-            return redirect()->route('briefs.rooms.create');
+            return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
         }
 
         //Если это последняя страница или у брифа статус "Есть пропущенные страницы",
@@ -183,6 +190,9 @@ class BriefController extends Controller
             //На третьей страницы общего брифа заполняется информация для комнат, поэтому подгружаем их
             if ($page === 3) {
                 $brief->load('rooms');
+                //Если у брифа нет ни одной комнаты, переводим на страницу добавления комнат
+                if ($brief->rooms->isEmpty()) return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
+
                 $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
             }
 
