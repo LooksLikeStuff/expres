@@ -75,7 +75,7 @@
                                                 <ul>
                                                     @foreach ($brief->getPageTitles() as $pageNumber => $info)
                                                         @php
-                                                            $isCompleted = $brief->pagesStatus[$pageNumber] ?? false;
+                                                            $isCompleted = $brief->pagesStatus[$pageNumber] ?? false
                                                         @endphp
                                                         <li class="{{ $isCompleted ? 'completed' : '' }}">
                                                             {{ $info['title'] }}

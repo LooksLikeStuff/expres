@@ -1,9 +1,13 @@
-@section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн');
+@section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн')
 @extends('layouts.brifapp')
 
 @vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
 @section('content')
     <input type="hidden" id="page" value="{{$page}}">
+
+    @if($page == 1)
+        <input type="hidden" id="question_key" value="{{$questions->first()->key}}">
+    @endif
 
     <div class="container">
         <div class="main__flex">
@@ -172,7 +176,84 @@
                                 @endforeach
                             @endif
 
-                            @if ($page == $brief->totalQuestionPages())
+
+                        @elseif($brief->isCommercial())
+                            <div id="zones-container">
+
+                                @if($page === 1)
+                                    @forelse($brief->rooms as $room)
+
+                                        <div class="zone-item">
+                                            <div class="zone-item-inputs-title">
+                                                <input type="text"
+                                                       name="rooms[{{$room->id}}][title]"
+                                                       maxlength="250"
+                                                       value="{{$room->title}}"
+                                                       class="form-control" />
+                                                <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
+                                            </div>
+                                            <textarea maxlength="500" name="rooms[{{$room->id}}][{{$questions->first()->key}}]"
+                                                      class="form-control"
+                                            >Description</textarea>
+                                        </div>
+
+                                        {{--                            На первой странице коммерческого брифа добавляем комнаты и сразу добавляем описание--}}
+                                    @empty
+                                        <div class="zone-item">
+                                            <div class="zone-item-inputs-title">
+                                                <input type="text" name="addRooms[0][title]" placeholder="Название зоны" maxlength="250"
+                                                       class="form-control" />
+                                                <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
+                                            </div>
+                                            <textarea maxlength="500" name="addRooms[0][{{$questions->first()->key}}]" placeholder="Описание зоны" class="form-control"></textarea>
+                                        </div>
+                                    @endforelse
+
+
+                                    <div class="zone-item" id="add-zone">
+                                        <div class="blur__form__zone">
+                                            <p>Добавить зону</p>
+                                        </div>
+                                    </div>
+                                @else
+                                    @foreach($brief->rooms as $room)
+                                        <div class="zone-item">
+                                            <h3>{{$room->title}}</h3>
+
+                                            <label>{{$pageInfo['title']}}</label>
+                                            <p class="hint">{{$pageInfo['subtitle']}}</p>
+
+
+                                            @if ($page == 2)
+                                                <div class="zone-area-inputs">
+
+                                                    @foreach($questions as $question)
+                                                        <div class="area-input-group">
+                                                            <label>{{$question->title}}</label>
+                                                            <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
+                                                                      class="form-control" placeholder="{{$question->subtitle}}"></textarea>
+                                                        </div>
+                                                    @endforeach
+
+                                                </div>
+                                            @else
+
+                                                @foreach($questions as $question)
+                                                    <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
+                                                              class="form-control" placeholder="{{$question->subtitle}}"></textarea>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                            </div>
+
+                        @endif
+
+
+{{--                        На последней странице загружаем еще доки--}}
+                        @if ($page == $brief->totalQuestionPages())
                                 <div class="upload__files">
                                     <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
                                         стилю интерьера</h6>
@@ -199,44 +280,6 @@
                                     @endif
                                 </div>
                             @endif
-
-                        @elseif($brief->isCommercial())
-{{--                            На первой странице коммерческого брифа добавляем комнаты и сразу добавляем описание--}}
-                            @if($page === 1)
-
-                            @endif
-
-                            <div id="zones-container">
-                                <div class="zone-item">
-                                    <div class="zone-item-inputs-title">
-                                        <input type="text" name="rooms[][title]" placeholder="Название зоны" maxlength="250"
-                                               class="form-control" />
-                                        <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
-                                    </div>
-                                    <textarea maxlength="500" name="rooms[][description]" placeholder="Описание зоны" class="form-control"></textarea>
-                                </div>
-
-{{--                                --}}{{-- Отображаем все существующие зоны --}}
-{{--                                @foreach ($zones as $index => $zone)--}}
-{{--                                    <div class="zone-item">--}}
-{{--                                        <div class="zone-item-inputs-title">--}}
-{{--                                            <input type="text" name="zones[{{ $index }}][name]" maxlength="250"--}}
-{{--                                                   value="{{ $zone['name'] ?? '' }}" placeholder="Название зоны" class="form-control" />--}}
-{{--                                            <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>--}}
-{{--                                        </div>--}}
-{{--                                        <textarea maxlength="500" name="zones[{{ $index }}][description]" placeholder="Описание зоны"--}}
-{{--                                                  class="form-control">{{ $zone['description'] ?? '' }}</textarea>--}}
-{{--                                    </div>--}}
-{{--                                @endforeach--}}
-
-                                <div class="zone-item" id="add-zone">
-                                    <div class="blur__form__zone">
-                                        <p>Добавить зону</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
 
                     </div>
                 </form>

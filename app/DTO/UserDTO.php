@@ -12,14 +12,15 @@ class UserDTO
         public readonly string $phone,
         public readonly UserStatus|string $status,
         public readonly ?string $email = null,
-        public readonly ?string $avatarUrl = null,
-        public readonly ?string $city = null,
-        public readonly ?string $contractNumber = null,
-        public readonly ?string $comment = null,
-        public readonly ?string $portfolioLink = null,
-        public readonly ?int $experience = null,
-        public readonly ?float $rating = null,
-        public readonly ?int $activeProjectsCount = null,
+        public readonly ?string $password = null,
+//        public readonly ?string $avatarUrl = null,
+//        public readonly ?string $city = null,
+//        public readonly ?string $contractNumber = null,
+//        public readonly ?string $comment = null,
+//        public readonly ?string $portfolioLink = null,
+//        public readonly ?int $experience = null,
+//        public readonly ?float $rating = null,
+//        public readonly ?int $activeProjectsCount = null,
     ) {
     }
 
@@ -30,15 +31,8 @@ class UserDTO
             name: $data['name'],
             phone: $data['phone'],
             status: is_string($data['status']) ? UserStatus::from($data['status']) : $data['status'],
+            password: $data['password']  ? bcrypt($data['password']) : null,
             email: $data['email'] ?? null,
-            avatarUrl: $data['avatar_url'] ?? $data['avatarUrl'] ?? null,
-            city: $data['city'] ?? null,
-            contractNumber: $data['contract_number'] ?? $data['contractNumber'] ?? null,
-            comment: $data['comment'] ?? null,
-            portfolioLink: $data['portfolio_link'] ?? $data['portfolioLink'] ?? null,
-            experience: $data['experience'] ?? null,
-            rating: $data['rating'] ?? null,
-            activeProjectsCount: $data['active_projects_count'] ?? $data['activeProjectsCount'] ?? null,
         );
     }
 
@@ -49,15 +43,8 @@ class UserDTO
             'name' => $this->name,
             'phone' => $this->phone,
             'status' => $this->status instanceof UserStatus ? $this->status->value : $this->status,
+            'password' => $this->password,
             'email' => $this->email,
-            'avatar_url' => $this->avatarUrl,
-            'city' => $this->city,
-            'contract_number' => $this->contractNumber,
-            'comment' => $this->comment,
-            'portfolio_link' => $this->portfolioLink,
-            'experience' => $this->experience,
-            'rating' => $this->rating,
-            'active_projects_count' => $this->activeProjectsCount,
         ];
     }
 }

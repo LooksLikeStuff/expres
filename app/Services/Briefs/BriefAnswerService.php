@@ -13,7 +13,7 @@ class BriefAnswerService
             $brief->answers()->updateOrCreate(
                 [
                     'brief_id' => $brief->id,
-                    'question_key' => $answer['question_key'], 
+                    'question_key' => $answer['question_key'],
                     'room_id' => $answer['room_id'] ?? null
                 ],
                 $answer);

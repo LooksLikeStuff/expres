@@ -56,6 +56,19 @@ class BriefRoom extends Model
         });
     }
 
+    public function setQuestions(BriefType $briefType, Collection $questions): void
+    {
+        $this->questions = $questions->first(function ($q) use ($briefType)  {
+            //Для общего брифа комнате устанавливаем вопрос всегда один и тот же (Он в целом один)
+            if ($briefType === BriefType::COMMON) {
+                return $q->key === 'room';
+            }
+
+            //Для коммерческого брифа всегда один вопрос на страницу
+            return true;
+        });
+    }
+
     public function placeholder()
     {
         if ($this->isCustom()) {

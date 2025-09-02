@@ -20,17 +20,17 @@ class BriefAnswerDTO
         );
     }
 
-    public function fromValidatedCommonRoomsArray(array $rooms): self
+    public static function fromValidatedCommonRoomsArray(array $rooms): self
     {
         return new self(
             answers: self::prepareRooms($rooms),
         );
     }
 
-    public function fromValidatedCommercialRoomsArray(array $rooms): self
+    public static function fromValidatedCommercialRoomsArray(array $rooms): self
     {
         return new self(
-            answers: self::prepareRooms($rooms),
+            answers: self::prepareCommercialRooms($rooms),
         );
     }
 
@@ -64,17 +64,71 @@ class BriefAnswerDTO
         return $preparedRooms;
     }
 
-    //Метод для сохранения комнат и описаний для коммерческого брифа
-    private static function prepareRoomsAsZones(array $rooms)
+    /**
+     * Подготавливает данные для сохранения описаний комнат коммерческого брифа как ответов на вопросы
+     */
+    private static function prepareCommercialRooms(array $rooms): Collection
     {
+        $preparedAnswers = collect();
 
+        foreach ($rooms as $roomId => $roomData) {
+                $preparedAnswers->push([
+                    'room_id' => $roomId,
+                    'question_key' => 'zone_names',
+                    'answer_text' => trim($roomData['zone_names']) ?? '-',
+                ]);
+        }
+
+        return $preparedAnswers;
     }
 
-
-    //Метод для сохранения ответов по зонам
-    private static function prepareCommercialAnswers(array $answers)
+    /**
+     * Подготавливает данные для сохранения описаний новых комнат коммерческого брифа
+     */
+    public static function fromValidatedCommercialNewRoomsArray(array $addRooms, array $newRoomIds, string $questionKey): self
     {
+        $preparedAnswers = collect();
 
+        foreach ($addRooms as $index => $roomData) {
+            // Проверяем что у нас есть описание для комнаты и соответствующий ID новой комнаты
+            if (isset($roomData['description']) && !empty(trim($roomData['description'])) && isset($newRoomIds[$index])) {
+                $preparedAnswers->push([
+                    'room_id' => $newRoomIds[$index],
+                    'question_key' => $questionKey,
+                    'answer_text' => trim($roomData['description']),
+                ]);
+            }
+        }
+
+        return new self(answers: $preparedAnswers);
+    }
+
+    /**
+     * Метод для сохранения ответов по зонам для других страниц коммерческого брифа
+     */
+    private static function prepareCommercialAnswers(array $answers): Collection
+    {
+        $preparedAnswers = collect();
+
+        foreach ($answers as $roomId => $answersData) {
+            foreach ($answersData as $questionKey => $roomAnswer) {
+                $data = [
+                    'room_id' => $roomId,
+                    'question_key' => $questionKey
+                ];
+
+                // Если ответ это массив, то сохраняем как json
+                if (is_array($roomAnswer)) {
+                    $data['answer_json'] = $roomAnswer;
+                } else {
+                    $data['answer_text'] = $roomAnswer;
+                }
+
+                $preparedAnswers->push($data);
+            }
+        }
+
+        return $preparedAnswers;
     }
 
     private static function prepareAnswers(array $answers): Collection

@@ -49,18 +49,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // document.getElementById('briefForm').addEventListener('click', function(event) {
     //     console.log(this);
     //     event.preventDefault();
-
+    //
     //     const formData = new FormData(this); // "this" — это форма
-
+    //
     //     // Чтобы увидеть все поля и их значения
     //     for (let [name, value] of formData.entries()) {
     //         console.log(`${name}: ${value}`);
     //     }
-    
+    //
     //     // Или получить конкретное поле по имени
     //     const nameValue = formData.get('name'); // если есть input с name="name"
     //     console.log('Имя:', nameValue);
-        
+    //
     // });
 
 
@@ -283,7 +283,7 @@ async function validateAndSubmit(page) {
         // Очищаем значение от нецифровых символов
         const numericValue = priceInput.value.replace(/[^\d]/g, '');
         console.log('Значение price перед отправкой:', numericValue);
-    
+
         // Создаем скрытое поле с числовым значением
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
@@ -299,14 +299,14 @@ async function validateAndSubmit(page) {
         document.getElementById('actionInput').value = 'next';
         document.getElementById('skipPageInput').value = '0';
 
-        // Обновляем CSRF токен перед отправкой формы
-        try {
-            await refreshCsrfToken();
-        } catch (error) {
-            alert('Произошла ошибка при обновлении данных сессии. Страница будет перезагружена для сохранности данных.');
-            location.reload();
-            return;
-        }            // Показываем анимацию загрузки только на странице 5 (загрузка референсов)
+        // // Обновляем CSRF токен перед отправкой формы
+        // try {
+        //     await refreshCsrfToken();
+        // } catch (error) {
+        //     alert('Произошла ошибка при обновлении данных сессии. Страница будет перезагружена для сохранности данных.');
+        //     location.reload();
+        //     return;
+        // }            // Показываем анимацию загрузки только на странице 5 (загрузка референсов)
         if (page === 5 && document.getElementById('referenceInput') &&
         document.getElementById('referenceInput').files &&
         document.getElementById('referenceInput').files.length > 0
@@ -528,18 +528,20 @@ function initializeZoneManagement() {
 
     // Обработчик клика на кнопку добавления новой зоны
     addZoneButton.addEventListener('click', function() {
-        const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
-        const newIndex = zoneItems.length;
+        // Подсчитываем только новые зоны (addRooms), а не все
+        const addRoomsItems = document.querySelectorAll('input[name^="addRooms"]');
+        const newIndex = addRoomsItems.length;
+        const questionKey = document.getElementById('question_key').value;
 
         const newZoneItem = document.createElement('div');
         newZoneItem.className = 'zone-item';
         newZoneItem.innerHTML = `
             <div class="zone-item-inputs-title">
-                <input type="text" name="zones[${newIndex}][name]" maxlength="250"
+                <input type="text" name="addRooms[${newIndex}][title]" maxlength="250"
                     placeholder="Название зоны" class="form-control" />
                 <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
             </div>
-            <textarea maxlength="500" name="zones[${newIndex}][description]" placeholder="Описание зоны"
+            <textarea maxlength="500" name="addRooms[${newIndex}][${questionKey}]" placeholder="Описание зоны"
                 class="form-control"></textarea>
         `;
 
@@ -560,7 +562,7 @@ function initializeZoneManagement() {
     // Функция-обработчик удаления зоны
     function removeZoneHandler(event) {
         const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
-        
+
         if (zoneItems.length <= 1) {
             alert('Должна остаться хотя бы одна зона!');
             return;
@@ -573,18 +575,23 @@ function initializeZoneManagement() {
 
     // Функция для перенумерации индексов полей после удаления зоны
     function renumberZones() {
-        const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
-        
-        zoneItems.forEach((zone, index) => {
-            const nameInput = zone.querySelector('input[name^="zones"]');
-            if (nameInput) {
-                nameInput.setAttribute('name', `zones[${index}][name]`);
-            }
+        const existingZones = document.querySelectorAll('.zone-item:not(#add-zone)');
+        let addRoomsIndex = 0;
 
-            const descTextarea = zone.querySelector('textarea[name^="zones"]');
-            if (descTextarea) {
-                descTextarea.setAttribute('name', `zones[${index}][description]`);
+        existingZones.forEach((zone) => {
+            // Проверяем, это существующая комната или новая
+            const nameInput = zone.querySelector('input[name^="rooms"], input[name^="addRooms"]');
+            if (nameInput && nameInput.name.startsWith('addRooms')) {
+                // Это новая комната, перенумеровываем
+                nameInput.setAttribute('name', `addRooms[${addRoomsIndex}][title]`);
+
+                const descTextarea = zone.querySelector('textarea[name^="addRooms"]');
+                if (descTextarea) {
+                    descTextarea.setAttribute('name', `addRooms[${addRoomsIndex}][description]`);
+                }
+                addRoomsIndex++;
             }
+            // Существующие комнаты (rooms[id][...]) оставляем без изменений
         });
     }
 
@@ -595,7 +602,7 @@ function initializeZoneManagement() {
 // Функция для работы с навигацией между страницами
 function initializeNavigation() {
     const currentPage = getPageNumber();
-    
+
     // Навигация "Назад"
     const prevPageButton = document.getElementById('prevPageButton');
     if (prevPageButton) {
@@ -612,7 +619,7 @@ function initializeNavigation() {
 // Функция для настройки валидации форм по страницам
 function initializePageValidation() {
     const currentPage = getPageNumber();
-    
+
     window.goToNext = function() {
         // Проверяем валидацию для страниц с обязательными полями
         if ([1, 2, 8].includes(currentPage)) {
@@ -684,7 +691,7 @@ function validateZoneForm() {
 function showLoader() {
     const loader = document.getElementById('fullscreen-loader');
     if (!loader) return;
-    
+
     loader.classList.add('show');
 
     // Анимируем прогресс-бар
@@ -703,58 +710,55 @@ function showLoader() {
 }
 
 // CSRF токен функции (вынесены из blade)
-function refreshCsrfToken() {
-    return fetch('/refresh-csrf-token', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            // Обновляем все CSRF токены на странице
-            const csrfInputs = document.querySelectorAll('input[name="_token"]');
-            csrfInputs.forEach(input => {
-                input.value = data.token;
-            });
-            
-            // Обновляем meta тег
-            const metaToken = document.querySelector('meta[name="csrf-token"]');
-            if (metaToken) {
-                metaToken.setAttribute('content', data.token);
-            }
-            
-            return data.token;
-        }
-        throw new Error('Не удалось получить новый CSRF токен');
-    });
-}
-
-function ensureFreshCsrfToken() {
-    return refreshCsrfToken();
-}
+// function refreshCsrfToken() {
+//     return fetch('/refresh-csrf-token', {
+//         method: 'GET',
+//         headers: {
+//             'Accept': 'application/json',
+//             'Content-Type': 'application/json'
+//         },
+//         credentials: 'same-origin'
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.token) {
+//             // Обновляем все CSRF токены на странице
+//             const csrfInputs = document.querySelectorAll('input[name="_token"]');
+//             csrfInputs.forEach(input => {
+//                 input.value = data.token;
+//             });
+//
+//             // Обновляем meta тег
+//             const metaToken = document.querySelector('meta[name="csrf-token"]');
+//             if (metaToken) {
+//                 metaToken.setAttribute('content', data.token);
+//             }
+//
+//             return data.token;
+//         }
+//         throw new Error('Не удалось получить новый CSRF токен');
+//     });
+// }
+//
 
 // Функция для отслеживания времени бездействия и обновления токена
 let inactivityTimeout;
 
-function resetInactivityTimer() {
-    clearTimeout(inactivityTimeout);
-    inactivityTimeout = setTimeout(async function() {
-        console.log('Обнаружено длительное бездействие, обновляем CSRF токен...');
-        await refreshCsrfToken();
-    }, 60000); // Проверяем после 1 минуты бездействия
-}
-
-// Отслеживаем активность пользователя
-function initializeInactivityTracking() {
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(function(name) {
-        document.addEventListener(name, resetInactivityTimer, true);
-    });
-    resetInactivityTimer();
-}
+// function resetInactivityTimer() {
+//     clearTimeout(inactivityTimeout);
+//     inactivityTimeout = setTimeout(async function() {
+//         console.log('Обнаружено длительное бездействие, обновляем CSRF токен...');
+//         await refreshCsrfToken();
+//     }, 60000); // Проверяем после 1 минуты бездействия
+// }
+//
+// // Отслеживаем активность пользователя
+// function initializeInactivityTracking() {
+//     ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(function(name) {
+//         document.addEventListener(name, resetInactivityTimer, true);
+//     });
+//     resetInactivityTimer();
+// }
 
 // Утилиты для получения данных страницы
 function getPageNumber() {
@@ -794,7 +798,7 @@ function initializeFileUploader(dropZoneId, fileInputId, textElementId) {
     const dropZone = document.getElementById(dropZoneId);
     const fileInput = document.getElementById(fileInputId);
     const textElement = document.getElementById(textElementId);
-    
+
     if (!dropZone || !fileInput || !textElement) return;
 
     function updateDropZoneText() {
@@ -813,9 +817,9 @@ function initializeFileUploader(dropZoneId, fileInputId, textElementId) {
     // Обработчик изменения файлов
     fileInput.addEventListener('change', function() {
         updateDropZoneText();
-        
+
         // Валидация файлов
-        const errorElement = document.querySelector('.error-message') || 
+        const errorElement = document.querySelector('.error-message') ||
                            this.parentElement.nextElementSibling;
         if (errorElement && this.files.length > 0) {
             if (!validateFiles(this.files, errorElement)) {
@@ -830,17 +834,17 @@ function initializeFileUploader(dropZoneId, fileInputId, textElementId) {
 document.addEventListener('DOMContentLoaded', function() {
     // Обновляем CSRF токен сразу после загрузки страницы
     refreshCsrfToken();
-    
+
     // Инициализируем различные компоненты
     initializeZoneManagement();
     initializeNavigation();
     initializePageValidation();
-    initializeInactivityTracking();
-    
+    // initializeInactivityTracking();
+
     // Инициализируем файловые загрузчики
     initializeFileUploader('drop-zone', 'fileInput', 'drop-zone-text');
     initializeFileUploader('drop-zone-references', 'referenceInput', 'drop-zone-references-text');
-    
+
     // Обработчик submit для формы
     const zoneForm = document.getElementById('zone-form');
     if (zoneForm) {
@@ -853,14 +857,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (loader) loader.classList.add('show');
             }
 
-            // Перед отправкой формы принудительно обновляем CSRF токен
-            try {
-                await ensureFreshCsrfToken();
-            } catch (error) {
-                event.preventDefault();
-                alert('Произошла ошибка при обновлении данных сессии. Страница будет перезагружена.');
-                location.reload();
-            }
+            // // Перед отправкой формы принудительно обновляем CSRF токен
+            // try {
+            //     await refreshCsrfToken();
+            // } catch (error) {
+            //     event.preventDefault();
+            //     alert('Произошла ошибка при обновлении данных сессии. Страница будет перезагружена.');
+            //     location.reload();
+            // }
         });
     }
 });

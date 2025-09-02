@@ -330,8 +330,8 @@
         document.addEventListener('input', saveFormState);
         document.addEventListener('change', saveFormState);
 
-        // Загружаем сохранённое состояние при загрузке страницы
-        window.addEventListener('load', loadFormState);
+        // // Загружаем сохранённое состояние при загрузке страницы
+        // window.addEventListener('load', loadFormState);
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -353,22 +353,22 @@
     </script>
     <script>
         function refreshCsrfToken() {
-            return fetch('{{ route('refresh-csrf') }}')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Ошибка обновления CSRF токена');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);
-                    document.querySelectorAll('input[name="_token"]').forEach(input => input.value = data.token);
-                    console.log('CSRF токен успешно обновлен: ' + new Date().toLocaleTimeString());
-                    return data.token;
-                })
-                .catch(error => {
-                    console.error('Ошибка при обновлении CSRF токена:', error);
-                });
+            {{--return fetch('{{ route('refresh-csrf') }}')--}}
+            {{--    .then(response => {--}}
+            {{--        if (!response.ok) {--}}
+            {{--            throw new Error('Ошибка обновления CSRF токена');--}}
+            {{--        }--}}
+            {{--        return response.json();--}}
+            {{--    })--}}
+            {{--    .then(data => {--}}
+            {{--        document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);--}}
+            {{--        document.querySelectorAll('input[name="_token"]').forEach(input => input.value = data.token);--}}
+            {{--        console.log('CSRF токен успешно обновлен: ' + new Date().toLocaleTimeString());--}}
+            {{--        return data.token;--}}
+            {{--    })--}}
+            {{--    .catch(error => {--}}
+            {{--        console.error('Ошибка при обновлении CSRF токена:', error);--}}
+            {{--    });--}}
         }
 
         // Обновляем токен каждые 30 секунд

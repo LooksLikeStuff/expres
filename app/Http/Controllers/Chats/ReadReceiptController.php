@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Chats;
 
-use App\DTO\Briefs\ReadReceiptDTO;
+use App\DTO\ReadReceiptDTO;
 use App\Events\MessageRead;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Chats\ReadReceiptRequest;
 use App\Http\Requests\Chats\UpdateReadReceiptRequest;
 use App\Services\Chats\ReadReceiptService;
 

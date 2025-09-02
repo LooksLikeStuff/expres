@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\DTO\Briefs\ChatDTO;
+use App\DTO\ChatDTO;
 use App\Models\Deal;
 use App\Services\Chats\ChatService;
 use App\Services\Chats\UserChatService;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chats;
 
-use App\DTO\Briefs\MessageDTO;
+use App\DTO\MessageDTO;
 use App\Enums\MessageType;
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;

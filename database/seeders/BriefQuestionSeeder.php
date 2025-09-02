@@ -52,7 +52,7 @@ class BriefQuestionSeeder extends Seeder
             ['brief_type' => 'common', 'page' => 2, 'key' => 'price', 'title' => 'Бюджет проекта', 'subtitle' => 'Ориентировочная сумма', 'input_type' => 'text', 'placeholder' => 'Например: 2 000 000 руб', 'format' => 'price', 'class' => 'price-input'],
 
             // Стр.3 Помещения (FAQ) — базовые комнаты
-            ['brief_type' => 'common', 'page' => 3, 'key' => 'room_question', 'title' => 'Пожелания по помещению', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
+            ['brief_type' => 'common', 'page' => 3, 'key' => 'room', 'title' => 'Пожелания по помещению', 'subtitle' => 'Пожелания по наполнению и дизайну', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'faq', 'class' => null],
 
            // Стр.4 Отделка
             ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_1', 'title' => 'Напольные покрытия', 'subtitle' => 'Укажите, какие материалы вы предпочитаете (ламинат, паркет, плитка и т.д.) и в каких помещениях они будут использоваться', 'input_type' => 'textarea', 'placeholder' => 'Укажите, какие материалы вы предпочитаете (ламинат, паркет, плитка и т.д.) и в каких помещениях они будут использоваться', 'format' => 'default', 'class' => null],
@@ -61,7 +61,7 @@ class BriefQuestionSeeder extends Seeder
             ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_4', 'title' => 'Освещение и электрика', 'subtitle' => 'Укажите, какие типы освещения вам нравятся (встраиваемые светильники, люстры, бра) и в каких зонах они должны быть установлены', 'input_type' => 'textarea', 'placeholder' => 'Укажите, какие типы освещения вам нравятся (встраиваемые светильники, люстры, бра) и в каких зонах они должны быть установлены', 'format' => 'default', 'class' => null],
             ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_5', 'title' => 'Потолки', 'subtitle' => 'Укажите, хотите ли вы использовать натяжные потолки, гипсокартонные конструкции или оставить стандартные потолки', 'input_type' => 'textarea', 'placeholder' => 'Укажите, хотите ли вы использовать натяжные потолки, гипсокартонные конструкции или оставить стандартные потолки', 'format' => 'default', 'class' => null],
             ['brief_type' => 'common', 'page' => 4, 'key' => 'question_4_6', 'title' => 'Дополнительные пожелания', 'subtitle' => 'Перечислите все моменты, которые вы считаете важными по отделке', 'input_type' => 'textarea', 'placeholder' => 'Перечислите все моменты, которые вы считаете важными по отделке', 'format' => 'default', 'class' => null],
-            
+
             // Стр.5 Оснащение
             ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_1', 'title' => 'Пожелания по звукоизоляции', 'subtitle' => 'Уточните, какие источники шума вас беспокоят и в каких зонах вы хотели бы улучшить звукоизоляцию', 'input_type' => 'textarea', 'placeholder' => 'Уточните, какие источники шума вас беспокоят и в каких зонах вы хотели бы улучшить звукоизоляцию', 'format' => 'default', 'class' => null],
             ['brief_type' => 'common', 'page' => 5, 'key' => 'question_5_2', 'title' => 'Теплые полы', 'subtitle' => 'Укажите, предпочитаете ли вы электрические или водяные теплые полы, а также в каких помещениях они должны быть установлены', 'input_type' => 'textarea', 'placeholder' => 'Укажите, предпочитаете ли вы электрические или водяные теплые полы, а также в каких помещениях они должны быть установлены', 'format' => 'default', 'class' => null],
@@ -76,7 +76,8 @@ class BriefQuestionSeeder extends Seeder
     {
         return [
             ['brief_type' => 'commercial', 'page' => 1, 'key' => 'zone_names', 'title' => 'Название зоны', 'subtitle' => 'Укажите название каждой зоны', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'commercial', 'page' => 2, 'key' => 'zone_areas', 'title' => 'Метраж зон', 'subtitle' => 'Площади зон в м²', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
+            ['brief_type' => 'commercial', 'page' => 2, 'key' => 'total_area', 'title' => 'Общая площадь', 'subtitle' => 'Общая площадь (м²)', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
+            ['brief_type' => 'commercial', 'page' => 2, 'key' => 'project_area', 'title' => 'Проектная Площадь', 'subtitle' => 'Проектная площадь (м²)', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
             ['brief_type' => 'commercial', 'page' => 3, 'key' => 'zone_style_furniture', 'title' => 'Стиль и меблировка зон', 'subtitle' => 'Предпочтения по стилю и меблировке', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
             ['brief_type' => 'commercial', 'page' => 4, 'key' => 'finishes', 'title' => 'Отделочные материалы и поверхности', 'subtitle' => 'Материалы пола, стен и потолка', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
             ['brief_type' => 'commercial', 'page' => 5, 'key' => 'engineering', 'title' => 'Инженерные системы и коммуникации', 'subtitle' => 'Освещение, электрика, вентиляция, кондиционирование', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],

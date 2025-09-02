@@ -199,7 +199,6 @@ class BriefController extends Controller
         } else {
             //Для коммерческого брифа почти все вопросы связаны с зонами, подгружаем их всегда
             $brief->load('rooms');
-            $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions));
         }
 
         return view('briefs.questions', compact('questions', 'brief', 'page'));
@@ -217,11 +216,34 @@ class BriefController extends Controller
             else $dto = BriefAnswerDTO::fromAnswerRequest($request);
         }
         else { //Коммерческий бриф
-            if($page == 1) $dto = BriefAnswerDTO::fromValidatedCommercialRoomsArray($request->validated('rooms'));
-            else $dto = BriefAnswerDTO::fromValidatedCommercialAnswersArray($request->validated('answers'));
+            if($page == 1) {
+                $rooms = [];
+                //Обновляем существующие комнаты если были внесены изменения
+                if ($request->has('rooms')) {
+                    $rooms = $request->validated('rooms');
+                    $this->briefRoomService->updateExistingRooms(BriefRoomDTO::fromExistingCommercialRoomsData($rooms));
+                }
+
+                //Добавляем новые комнаты
+                if ($request->has('addRooms')) {
+                    $newRooms = $request->validated('addRooms');
+                    $newRoomIds = $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromNewCommercialRoomsData($newRooms));
+
+                    // Переназначаем ключи, подставляем id новых комнат вместо $index, это нужно для того чтобы можно было удобно сохранить ответы на вопросы
+                    foreach ($newRooms as $index => $room) {
+                        $rooms[$newRoomIds[$index]] = $room;
+                    }
+
+                }
+                $dto = BriefAnswerDTO::fromValidatedCommercialRoomsArray($rooms);
+            } else {
+                // Для других страниц коммерческого брифа используем стандартную логику
+                $dto = BriefAnswerDTO::fromValidatedCommercialAnswersArray($request->validated('answers'));
+            }
         }
 
         $this->briefAnswerService->updateOrCreate($brief, $dto);
+
 
         //Сохраняем документы брифа
         if ($request->has('documents')) {

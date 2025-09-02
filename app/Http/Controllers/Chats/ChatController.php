@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chats;
 
-use App\DTO\Briefs\ChatDTO;
+use App\DTO\ChatDTO;
 use App\Enums\ChatType;
 use App\Events\ChatCreated;
 use App\Events\ChatDeleted;
