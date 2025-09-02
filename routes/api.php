@@ -53,6 +53,15 @@ Route::middleware('auth:web')->group(function () {
 
     // API для получения данных сделки
     Route::get('/deals/{deal}/data', 'App\Http\Controllers\DealsController@getDealData');
+    
+    // API для работы с клиентскими данными
+    Route::prefix('deal-clients')->group(function () {
+        Route::get('/{dealId}', 'App\Http\Controllers\Api\DealClientController@show');
+        Route::post('/', 'App\Http\Controllers\Api\DealClientController@createOrUpdate');
+        Route::delete('/{dealId}', 'App\Http\Controllers\Api\DealClientController@destroy');
+        Route::get('/search/clients', 'App\Http\Controllers\Api\DealClientController@search');
+        Route::get('/statistics/all', 'App\Http\Controllers\Api\DealClientController@statistics');
+    });
 });
 // });
 

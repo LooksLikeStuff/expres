@@ -31,9 +31,12 @@ class BriefService
 
     public function linkToAvailableDeal(Brief $brief): void
     {
-        $availableDeal = Deal::where('client_phone', $brief->user->phone)
+        //Ищем активную сделку для привязки брифа
+        $availableDeal = Deal::whereNot('status', 'Проект завершен')
+            ->whereHas('dealClient', fn($q) => $q->where('phone', $brief->user->phone))
             ->first();
 
+        //Если сделка нашлась привязываем ее к брифу
         if ($availableDeal) {
             $brief->deal_id = $availableDeal->id;
             $brief->save();

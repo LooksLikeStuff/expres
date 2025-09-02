@@ -460,69 +460,409 @@ function confirmDelete(briefId) {
 
 
 
-document.addEventListener('DOMContentLoaded', function (event) {
-    const dropZoneReferences = document.getElementById('drop-zone-references');
-    const referenceInput = document.getElementById('referenceInput');
-    const dropZoneReferencesText = document.getElementById('drop-zone-references-text');
+// Общие константы
+const ALLOWED_FILE_FORMATS = ['pdf', 'xlsx', 'xls', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'heic', 'heif',
+    'mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', '3gp'];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 МБ
 
-    if (dropZoneReferences) {
-        function updateDropZoneReferencesText() {
-            const files = referenceInput.files;
-            if (files && files.length > 0) {
-                const names = [];
-                for (let i = 0; i < files.length; i++) {
-                    names.push(files[i].name);
-                }
-                dropZoneReferencesText.textContent = names.join(', ');
-            } else {
-                dropZoneReferencesText.textContent = "Перетащите файлы сюда или нажмите, чтобы выбрать";
-            }
+// Унифицированная функция для валидации файлов
+function validateFiles(files, errorElement) {
+    let totalSize = 0;
+    errorElement.textContent = '';
+
+    for (const file of files) {
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_FILE_FORMATS.includes(fileExt)) {
+            errorElement.textContent = `Недопустимый формат файла: ${file.name}.`;
+            return false;
         }
+        totalSize += file.size;
+    }
+
+    if (totalSize > MAX_FILE_SIZE) {
+        errorElement.textContent = 'Суммарный размер файлов не должен превышать 50 МБ.';
+        return false;
+    }
+
+    return true;
+}
+
+// Унифицированная функция для настройки drag and drop
+function setupDragAndDrop(dropZone, fileInput, textElement, updateTextCallback) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZoneReferences.addEventListener(eventName, function(e) {
+        dropZone.addEventListener(eventName, function(e) {
                 e.preventDefault();
                 e.stopPropagation();
             }, false);
         });
+
         ['dragenter', 'dragover'].forEach(eventName => {
-            dropZoneReferences.addEventListener(eventName, () => {
-                dropZoneReferences.classList.add('dragover');
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('dragover');
             }, false);
         });
+
         ['dragleave', 'drop'].forEach(eventName => {
-            dropZoneReferences.addEventListener(eventName, () => {
-                dropZoneReferences.classList.remove('dragover');
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('dragover');
             }, false);
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        let files = e.dataTransfer.files;
+        fileInput.files = files;
+        if (updateTextCallback) updateTextCallback();
+    });
+
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+}
+
+// Логика для работы с зонами (вынесено из blade файла)
+function initializeZoneManagement() {
+    const addZoneButton = document.getElementById('add-zone');
+    const zonesContainer = document.getElementById('zones-container');
+
+    if (!addZoneButton || !zonesContainer) return;
+
+    // Обработчик клика на кнопку добавления новой зоны
+    addZoneButton.addEventListener('click', function() {
+        const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
+        const newIndex = zoneItems.length;
+
+        const newZoneItem = document.createElement('div');
+        newZoneItem.className = 'zone-item';
+        newZoneItem.innerHTML = `
+            <div class="zone-item-inputs-title">
+                <input type="text" name="zones[${newIndex}][name]" maxlength="250"
+                    placeholder="Название зоны" class="form-control" />
+                <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
+            </div>
+            <textarea maxlength="500" name="zones[${newIndex}][description]" placeholder="Описание зоны"
+                class="form-control"></textarea>
+        `;
+
+        zonesContainer.insertBefore(newZoneItem, addZoneButton);
+        activateRemoveButtons();
+        newZoneItem.querySelector('input').focus();
+    });
+
+    // Функция для активации обработчиков удаления зон
+    function activateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.remove-zone');
+        removeButtons.forEach(button => {
+            button.removeEventListener('click', removeZoneHandler);
+            button.addEventListener('click', removeZoneHandler);
         });
-        dropZoneReferences.addEventListener('drop', function(e) {
-            let files = e.dataTransfer.files;
-            referenceInput.files = files;
-            updateDropZoneReferencesText();
-        });
-        referenceInput.addEventListener('change', function() {
-            updateDropZoneReferencesText();
-        });
-        referenceInput.addEventListener('change', function() {
-            const allowedFormats = ['pdf', 'xlsx', 'xls', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'heic', 'heif',
-                'mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', '3gp'
-            ];
-            const errorMessageElement = this.parentElement.nextElementSibling;
-            const files = this.files;
-            let totalSize = 0;
-            errorMessageElement.textContent = '';
-            for (const file of files) {
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                if (!allowedFormats.includes(fileExt)) {
-                    errorMessageElement.textContent = `Недопустимый формат файла: ${file.name}.`;
-                    this.value = '';
-                    return;
-                }
-                totalSize += file.size;
+    }
+
+    // Функция-обработчик удаления зоны
+    function removeZoneHandler(event) {
+        const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
+        
+        if (zoneItems.length <= 1) {
+            alert('Должна остаться хотя бы одна зона!');
+            return;
+        }
+
+        const zoneItem = event.target.closest('.zone-item');
+        zoneItem.remove();
+        renumberZones();
+    }
+
+    // Функция для перенумерации индексов полей после удаления зоны
+    function renumberZones() {
+        const zoneItems = document.querySelectorAll('.zone-item:not(#add-zone)');
+        
+        zoneItems.forEach((zone, index) => {
+            const nameInput = zone.querySelector('input[name^="zones"]');
+            if (nameInput) {
+                nameInput.setAttribute('name', `zones[${index}][name]`);
             }
-            if (totalSize > 50 * 1024 * 1024) {
-                errorMessageElement.textContent = 'Суммарный размер файлов не должен превышать 50 МБ.';
+
+            const descTextarea = zone.querySelector('textarea[name^="zones"]');
+            if (descTextarea) {
+                descTextarea.setAttribute('name', `zones[${index}][description]`);
+            }
+        });
+    }
+
+    // Активируем обработчики при загрузке страницы
+    activateRemoveButtons();
+}
+
+// Функция для работы с навигацией между страницами
+function initializeNavigation() {
+    const currentPage = getPageNumber();
+    
+    // Навигация "Назад"
+    const prevPageButton = document.getElementById('prevPageButton');
+    if (prevPageButton) {
+        prevPageButton.addEventListener('click', function() {
+            const prevPage = currentPage - 1;
+            if (prevPage >= 1) {
+                const briefId = getBriefId();
+                window.location.href = `/commercial/questions/${briefId}/${prevPage}`;
+            }
+        });
+    }
+}
+
+// Функция для настройки валидации форм по страницам
+function initializePageValidation() {
+    const currentPage = getPageNumber();
+    
+    window.goToNext = function() {
+        // Проверяем валидацию для страниц с обязательными полями
+        if ([1, 2, 8].includes(currentPage)) {
+            if (!validateZoneForm()) {
+                return false;
+            }
+        }
+
+        // Проверка на наличие файлов для загрузки (страница 8)
+        if (currentPage === 8) {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                showLoader();
+                setTimeout(() => {
+                    document.getElementById('zone-form').submit();
+                }, 300);
+                    return;
+            }
+        }
+
+        document.getElementById('zone-form').submit();
+    };
+}
+
+// Валидация форм для зон
+function validateZoneForm() {
+    let isValid = true;
+    let firstInvalidField = null;
+    const currentPage = getPageNumber();
+
+    if (currentPage === 1) {
+        // Валидация для страницы 1 (название зон)
+        const zoneNameInputs = document.querySelectorAll('input[name^="zones"][name$="[name]"]');
+        zoneNameInputs.forEach(function(input) {
+            input.classList.remove('field-error');
+            if (!input.value.trim()) {
+                input.classList.add('field-error');
+                isValid = false;
+                if (!firstInvalidField) {
+                    firstInvalidField = input;
+                }
+            }
+        });
+    } else if (currentPage === 2) {
+        // Валидация для страницы 2 (метраж зон)
+        const areaInputs = document.querySelectorAll(
+            'input[name^="zones"][name$="[total_area]"], input[name^="zones"][name$="[projected_area]"]');
+        areaInputs.forEach(function(input) {
+            input.classList.remove('field-error');
+            if (!input.value.trim()) {
+                input.classList.add('field-error');
+                isValid = false;
+                if (!firstInvalidField) {
+                    firstInvalidField = input;
+                }
+            }
+        });
+    }
+
+    // Если есть невалидное поле, прокручиваем к нему
+    if (firstInvalidField) {
+        scrollToElement(firstInvalidField);
+    }
+
+    return isValid;
+}
+
+// Функция для показа анимации загрузки
+function showLoader() {
+    const loader = document.getElementById('fullscreen-loader');
+    if (!loader) return;
+    
+    loader.classList.add('show');
+
+    // Анимируем прогресс-бар
+    let width = 0;
+    const progressBar = document.querySelector('.loader-progress-bar');
+    if (progressBar) {
+        const progressInterval = setInterval(function() {
+            if (width >= 90) {
+                clearInterval(progressInterval);
+            } else {
+                width += Math.random() * 3;
+                progressBar.style.width = width + '%';
+            }
+        }, 300);
+    }
+}
+
+// CSRF токен функции (вынесены из blade)
+function refreshCsrfToken() {
+    return fetch('/refresh-csrf-token', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.token) {
+            // Обновляем все CSRF токены на странице
+            const csrfInputs = document.querySelectorAll('input[name="_token"]');
+            csrfInputs.forEach(input => {
+                input.value = data.token;
+            });
+            
+            // Обновляем meta тег
+            const metaToken = document.querySelector('meta[name="csrf-token"]');
+            if (metaToken) {
+                metaToken.setAttribute('content', data.token);
+            }
+            
+            return data.token;
+        }
+        throw new Error('Не удалось получить новый CSRF токен');
+    });
+}
+
+function ensureFreshCsrfToken() {
+    return refreshCsrfToken();
+}
+
+// Функция для отслеживания времени бездействия и обновления токена
+let inactivityTimeout;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimeout);
+    inactivityTimeout = setTimeout(async function() {
+        console.log('Обнаружено длительное бездействие, обновляем CSRF токен...');
+        await refreshCsrfToken();
+    }, 60000); // Проверяем после 1 минуты бездействия
+}
+
+// Отслеживаем активность пользователя
+function initializeInactivityTracking() {
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(function(name) {
+        document.addEventListener(name, resetInactivityTimer, true);
+    });
+    resetInactivityTimer();
+}
+
+// Утилиты для получения данных страницы
+function getPageNumber() {
+    const pageElement = document.getElementById('page') || document.querySelector('[data-page]');
+    if (pageElement) {
+        return parseInt(pageElement.value || pageElement.dataset.page) || 1;
+    }
+    // Fallback - извлекаем из URL
+    const urlParts = window.location.pathname.split('/');
+    return parseInt(urlParts[urlParts.length - 1]) || 1;
+}
+
+function getBriefId() {
+    const briefElement = document.querySelector('[data-brief-id]');
+    if (briefElement) {
+        return briefElement.dataset.briefId;
+    }
+    // Fallback - извлекаем из URL
+    const urlParts = window.location.pathname.split('/');
+    const questionsIndex = urlParts.indexOf('questions');
+    if (questionsIndex !== -1 && urlParts[questionsIndex + 1]) {
+        return urlParts[questionsIndex + 1];
+    }
+    return null;
+}
+
+// Форматирование ввода для денежных полей (глобальная функция)
+window.formatInput = function(event) {
+    let value = event.target.value.replace(/[^\d]/g, '');
+    if (value) {
+        event.target.value = formatPriceValue(value);
+    }
+}
+
+// Инициализация файловых загрузчиков (универсальная функция)
+function initializeFileUploader(dropZoneId, fileInputId, textElementId) {
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInput = document.getElementById(fileInputId);
+    const textElement = document.getElementById(textElementId);
+    
+    if (!dropZone || !fileInput || !textElement) return;
+
+    function updateDropZoneText() {
+        const files = fileInput.files;
+        if (files && files.length > 0) {
+            const names = Array.from(files).map(file => file.name);
+            textElement.textContent = names.join(', ');
+        } else {
+            textElement.textContent = "Перетащите файлы сюда или нажмите, чтобы выбрать";
+        }
+    }
+
+    // Настройка drag and drop
+    setupDragAndDrop(dropZone, fileInput, textElement, updateDropZoneText);
+
+    // Обработчик изменения файлов
+    fileInput.addEventListener('change', function() {
+        updateDropZoneText();
+        
+        // Валидация файлов
+        const errorElement = document.querySelector('.error-message') || 
+                           this.parentElement.nextElementSibling;
+        if (errorElement && this.files.length > 0) {
+            if (!validateFiles(this.files, errorElement)) {
                 this.value = '';
+                updateDropZoneText();
+            }
+        }
+    });
+}
+
+// Главная функция инициализации страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем CSRF токен сразу после загрузки страницы
+    refreshCsrfToken();
+    
+    // Инициализируем различные компоненты
+    initializeZoneManagement();
+    initializeNavigation();
+    initializePageValidation();
+    initializeInactivityTracking();
+    
+    // Инициализируем файловые загрузчики
+    initializeFileUploader('drop-zone', 'fileInput', 'drop-zone-text');
+    initializeFileUploader('drop-zone-references', 'referenceInput', 'drop-zone-references-text');
+    
+    // Обработчик submit для формы
+    const zoneForm = document.getElementById('zone-form');
+    if (zoneForm) {
+        zoneForm.addEventListener('submit', async function(event) {
+            const fileInput = document.getElementById('fileInput');
+            const hasFiles = (fileInput && fileInput.files && fileInput.files.length > 0);
+
+            if (hasFiles) {
+                const loader = document.getElementById('fullscreen-loader');
+                if (loader) loader.classList.add('show');
+            }
+
+            // Перед отправкой формы принудительно обновляем CSRF токен
+            try {
+                await ensureFreshCsrfToken();
+            } catch (error) {
+                event.preventDefault();
+                alert('Произошла ошибка при обновлении данных сессии. Страница будет перезагружена.');
+                location.reload();
             }
         });
     }
 });
+
+// Дублирующийся код удален, так как теперь используется универсальная функция initializeFileUploader

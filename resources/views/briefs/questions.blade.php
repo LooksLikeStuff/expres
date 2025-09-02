@@ -82,148 +82,162 @@
                     {{-- Блок с вопросами форматов "default" и "faq" --}}
                     <div class="form__body flex between wrap">
 
-                        @if($brief->relationLoaded('rooms') && $brief->isCommon())
-                            <div class="faq__body">
-                                <div class="faq_block flex center">
+                        @if($brief->isCommon())
+                            @if($brief->relationLoaded('rooms'))
+                                <div class="faq__body">
+                                    <div class="faq_block flex center">
 
-                                    @foreach($brief->rooms as $room)
+                                        @foreach($brief->rooms as $room)
 
-                                    <div class="faq_item">
-                                        <div class="faq_question">
-                                            <h2>{{ $room->title }}</h2>
-                                            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                width="24" height="24">
-                                                <path d="M7 10l5 5 5-5z"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="faq_answer">
-                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->question->subtitle }}"
-                                                    class="form-control required-field" data-original-placeholder="{{ $room->question->subtitle }}" maxlength="500">{{ $room->placeholder() }}</textarea>
-
-                                            <span class="error-message">Это поле обязательно для заполнения</span>
-                                        </div>
-                                    </div>
-
-                                    @endforeach
-                                </div>
-                            </div>
-
-                        @elseif($brief->relationLoaded('rooms') && $brief->isCommercial())
-                            <div class="faq__body">
-                                <div class="faq_block flex center">
-
-                                    @foreach($brief->rooms as $room)
-
-                                        <div class="faq_item">
-                                            <div class="faq_question">
-                                                <h2>{{ $room->title }}</h2>
-                                                <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                     width="24" height="24">
-                                                    <path d="M7 10l5 5 5-5z"></path>
-                                                </svg>
-                                            </div>
-                                            <div class="faq_answer">
+                                            <div class="faq_item">
+                                                <div class="faq_question">
+                                                    <h2>{{ $room->title }}</h2>
+                                                    <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                         width="24" height="24">
+                                                        <path d="M7 10l5 5 5-5z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="faq_answer">
                                                 <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->question->subtitle }}"
                                                           class="form-control required-field" data-original-placeholder="{{ $room->question->subtitle }}" maxlength="500">{{ $room->placeholder() }}</textarea>
 
-                                                <span class="error-message">Это поле обязательно для заполнения</span>
+                                                    <span class="error-message">Это поле обязательно для заполнения</span>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                    @endforeach
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
-                        @else
-                            @foreach ($questions as $question)
+                            @else
+                                @foreach ($questions as $question)
 
-                                {{-- PRICE — отдельный кейс --}}
-                                @if ($question->key === 'price')
-                                    <div class="form-group flex wrap">
-                                        <h2>{{ $question->title }}</h2>
-                                        @if (!empty($question->subtitle))
-                                            <p>{{ $question->subtitle }}</p>
-                                        @endif
-                                        <input type="text" name="price" class="form-control required-field price-input"
-                                            value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
-                                            data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
-                                        <span class="error-message">Это поле обязательно для заполнения</span>
-                                    </div>
-
-                                    {{-- CHECKPOINT --}}
-                                @elseif ($question->format === 'checkpoint')
-                                    <div class="checkpoint flex wrap">
-                                        <div class="radio">
-                                            <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
-                                                name="answers[{{ $question->key }}]" value="1"
-                                                @if (!empty($brif->{$question->key})) checked @endif>
-                                            <label for="{{ $question->key }}">{{ $question->title }}</label>
-                                        </div>
-                                    </div>
-
-                                    {{-- DEFAULT и FAQ --}}
-                                @elseif (in_array($question->format, ['default', 'faq']))
-                                    @php
-                                        $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
-                                    @endphp
-
-                                    @if ($question->format === 'default')
+                                    {{-- PRICE — отдельный кейс --}}
+                                    @if ($question->key === 'price')
                                         <div class="form-group flex wrap">
                                             <h2>{{ $question->title }}</h2>
                                             @if (!empty($question->subtitle))
                                                 <p>{{ $question->subtitle }}</p>
                                             @endif
-                                            {!! $field !!}
+                                            <input type="text" name="price" class="form-control required-field price-input"
+                                                   value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
+                                                   data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
+                                            <span class="error-message">Это поле обязательно для заполнения</span>
                                         </div>
-                                    @else
-                                        <div class="faq__body">
-                                            <div class="faq_block flex center">
-                                                <div class="faq_item">
-                                                    <div class="faq_question" onclick="toggleFaq(this)">
-                                                        <h2>{{ $question->title }}</h2>
-                                                        <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                            width="24" height="24">
-                                                            <path d="M7 10l5 5 5-5z"></path>
-                                                        </svg>
-                                                    </div>
-                                                    <div class="faq_answer">
-                                                        {!! $field !!}
+
+                                        {{-- CHECKPOINT --}}
+                                    @elseif ($question->format === 'checkpoint')
+                                        <div class="checkpoint flex wrap">
+                                            <div class="radio">
+                                                <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
+                                                       name="answers[{{ $question->key }}]" value="1"
+                                                       @if (!empty($brif->{$question->key})) checked @endif>
+                                                <label for="{{ $question->key }}">{{ $question->title }}</label>
+                                            </div>
+                                        </div>
+
+                                        {{-- DEFAULT и FAQ --}}
+                                    @elseif (in_array($question->format, ['default', 'faq']))
+                                        @php
+                                            $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
+                                        @endphp
+
+                                        @if ($question->format === 'default')
+                                            <div class="form-group flex wrap">
+                                                <h2>{{ $question->title }}</h2>
+                                                @if (!empty($question->subtitle))
+                                                    <p>{{ $question->subtitle }}</p>
+                                                @endif
+                                                {!! $field !!}
+                                            </div>
+                                        @else
+                                            <div class="faq__body">
+                                                <div class="faq_block flex center">
+                                                    <div class="faq_item">
+                                                        <div class="faq_question" onclick="toggleFaq(this)">
+                                                            <h2>{{ $question->title }}</h2>
+                                                            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                                 width="24" height="24">
+                                                                <path d="M7 10l5 5 5-5z"></path>
+                                                            </svg>
+                                                        </div>
+                                                        <div class="faq_answer">
+                                                            {!! $field !!}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        @endif
+                                    @endif
+
+                                @endforeach
+                            @endif
+
+                            @if ($page == $brief->totalQuestionPages())
+                                <div class="upload__files">
+                                    <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
+                                        стилю интерьера</h6>
+                                    <div id="drop-zone-references">
+                                        <p id="drop-zone-references-text">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
+                                        <input id="referenceInput" type="file" name="documents[]" multiple
+                                               accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.3gp">
+                                    </div>
+                                    <p class="error-message" style="color: red;"></p>
+                                    <small>Допустимые форматы: изображения (.jpg, .jpeg, .png, .heic, .heif), документы (.pdf, .xlsx, .xls,
+                                        .doc, .docx), видео (.mp4, .mov, .avi, .wmv, .flv, .mkv, .webm, .3gp)</small><br>
+                                    <small>Максимальный суммарный размер: 50 МБ</small>
+                                    @if ($brief->documents)
+                                        <div class="uploaded-references">
+                                            <h6>Загруженные референсы:</h6>
+                                            <ul>
+                                                @foreach ($brief->documents as $document)
+                                                    <li>
+                                                        <a href="{{ asset($document->full_path) }}" target="_blank">{{ basename($document->original_name) }}</a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
                                         </div>
                                     @endif
-                                @endif
-
-                            @endforeach
-                        @endif
-
-                        @if ($brief->isCommon() && $page == $brief->totalQuestionPages())
-                            <div class="upload__files">
-                                <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
-                                    стилю интерьера</h6>
-                                <div id="drop-zone-references">
-                                    <p id="drop-zone-references-text">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
-                                    <input id="referenceInput" type="file" name="documents[]" multiple
-                                           accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.3gp">
                                 </div>
-                                <p class="error-message" style="color: red;"></p>
-                                <small>Допустимые форматы: изображения (.jpg, .jpeg, .png, .heic, .heif), документы (.pdf, .xlsx, .xls,
-                                    .doc, .docx), видео (.mp4, .mov, .avi, .wmv, .flv, .mkv, .webm, .3gp)</small><br>
-                                <small>Максимальный суммарный размер: 50 МБ</small>
-                                @if ($brief->documents)
-                                    <div class="uploaded-references">
-                                        <h6>Загруженные референсы:</h6>
-                                        <ul>
-                                            @foreach ($brief->documents as $document)
-                                                <li>
-                                                    <a href="{{ asset($document->full_path) }}" target="_blank">{{ basename($document->original_name) }}</a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                            @endif
+
+                        @elseif($brief->isCommercial())
+{{--                            На первой странице коммерческого брифа добавляем комнаты и сразу добавляем описание--}}
+                            @if($page === 1)
+
+                            @endif
+
+                            <div id="zones-container">
+                                <div class="zone-item">
+                                    <div class="zone-item-inputs-title">
+                                        <input type="text" name="rooms[][title]" placeholder="Название зоны" maxlength="250"
+                                               class="form-control" />
+                                        <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
                                     </div>
-                                @endif
+                                    <textarea maxlength="500" name="rooms[][description]" placeholder="Описание зоны" class="form-control"></textarea>
+                                </div>
+
+{{--                                --}}{{-- Отображаем все существующие зоны --}}
+{{--                                @foreach ($zones as $index => $zone)--}}
+{{--                                    <div class="zone-item">--}}
+{{--                                        <div class="zone-item-inputs-title">--}}
+{{--                                            <input type="text" name="zones[{{ $index }}][name]" maxlength="250"--}}
+{{--                                                   value="{{ $zone['name'] ?? '' }}" placeholder="Название зоны" class="form-control" />--}}
+{{--                                            <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>--}}
+{{--                                        </div>--}}
+{{--                                        <textarea maxlength="500" name="zones[{{ $index }}][description]" placeholder="Описание зоны"--}}
+{{--                                                  class="form-control">{{ $zone['description'] ?? '' }}</textarea>--}}
+{{--                                    </div>--}}
+{{--                                @endforeach--}}
+
+                                <div class="zone-item" id="add-zone">
+                                    <div class="blur__form__zone">
+                                        <p>Добавить зону</p>
+                                    </div>
+                                </div>
                             </div>
                         @endif
+
+
                     </div>
                 </form>
                 <!-- Обновленная анимация загрузки на весь экран -->

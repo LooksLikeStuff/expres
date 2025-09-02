@@ -188,15 +188,20 @@ class BriefController extends Controller
     {
         $page = $request->get('page');
 
-        //Если бриф общий и страница 3, то сохраняем комнаты
-        if ($brief->isCommon() && $page == 3) {
-            $dto = BriefAnswerDTO::fromStoreRoomsRequest($request);
-        } else {
-            $dto = BriefAnswerDTO::fromAnswerRequest($request);
+        //Общий бриф
+        if ($brief->isCommon()) {
+            //На третьей странице добавляются комнаты
+            if ($page == 3) $dto = BriefAnswerDTO::fromValidatedCommonRoomsArray($request->validated('rooms'));
+            else $dto = BriefAnswerDTO::fromAnswerRequest($request);
+        }
+        else { //Коммерческий бриф
+            if($page == 1) $dto = BriefAnswerDTO::fromValidatedCommercialRoomsArray($request->validated('rooms'));
+            else $dto = BriefAnswerDTO::fromValidatedCommercialAnswersArray($request->validated('answers'));
         }
 
         $this->briefAnswerService->updateOrCreate($brief, $dto);
 
+        //Сохраняем документы брифа
         if ($request->has('documents')) {
             $this->briefService->saveDocuments($brief, $request->validated('documents'));
         }

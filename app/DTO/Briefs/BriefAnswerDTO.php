@@ -20,10 +20,24 @@ class BriefAnswerDTO
         );
     }
 
-    public static function fromStoreRoomsRequest(AnswerRequest $request): self
+    public function fromValidatedCommonRoomsArray(array $rooms): self
     {
         return new self(
-            answers: self::prepareRooms($request->validated('rooms')),
+            answers: self::prepareRooms($rooms),
+        );
+    }
+
+    public function fromValidatedCommercialRoomsArray(array $rooms): self
+    {
+        return new self(
+            answers: self::prepareRooms($rooms),
+        );
+    }
+
+    public static function fromValidatedCommercialAnswersArray(array $answers): self
+    {
+        return new self(
+            answers: self::prepareCommercialAnswers($answers),
         );
     }
 
@@ -48,6 +62,19 @@ class BriefAnswerDTO
         }
 
         return $preparedRooms;
+    }
+
+    //Метод для сохранения комнат и описаний для коммерческого брифа
+    private static function prepareRoomsAsZones(array $rooms)
+    {
+
+    }
+
+
+    //Метод для сохранения ответов по зонам
+    private static function prepareCommercialAnswers(array $answers)
+    {
+
     }
 
     private static function prepareAnswers(array $answers): Collection

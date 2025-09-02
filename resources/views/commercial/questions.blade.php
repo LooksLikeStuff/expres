@@ -1,4 +1,7 @@
 @extends('layouts.brifapp')
+
+@vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
+
 @section('content')
 <div class="container">
     <div class="main__flex">
