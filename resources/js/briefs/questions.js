@@ -1,3 +1,4 @@
+import '../../sass/briefs/questions.scss';
 document.addEventListener('DOMContentLoaded', function () {
     const addButton = document.getElementById('add-custom-room');
     const nextPageBtn = document.getElementById('nextPageBtn');
@@ -276,7 +277,8 @@ function scrollToElement(element) {
 
 // Обновленная функция validateAndSubmit с поддержкой обновления CSRF токена
 async function validateAndSubmit(page) {
-    console.log(page);
+    if (isNaN(page)) return document.getElementById('briefForm').submit();
+
     // Перед валидацией проверяем, есть ли поле price и обрабатываем его
     const priceInput = document.querySelector('input[name="price"]');
     if (priceInput) {
@@ -542,7 +544,7 @@ function initializeZoneManagement() {
                 <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
             </div>
             <textarea maxlength="500" name="addRooms[${newIndex}][${questionKey}]" placeholder="Описание зоны"
-                class="form-control"></textarea>
+                class="form-control required-field"></textarea>
         `;
 
         zonesContainer.insertBefore(newZoneItem, addZoneButton);

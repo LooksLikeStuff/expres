@@ -36,6 +36,10 @@ class BriefRoom extends Model
 
     protected const CUSTOM_PLACEHOLDER = 'Опишите детали и расстановку мебели для этой комнаты.';
 
+    public function answers()
+    {
+        return $this->hasMany(BriefAnswer::class, 'room_id');
+    }
     public function isCustom()
      {
         $defaultKeys = array_column(self::DEFAULT_ROOMS, 'key');
@@ -68,6 +72,7 @@ class BriefRoom extends Model
             return true;
         });
     }
+
 
     public function placeholder()
     {

@@ -22,7 +22,7 @@ class StoreRoomsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rooms' => 'required|array',
+            'rooms' => 'nullable|array',
             'rooms.*' => ''
         ];
     }

@@ -36,6 +36,26 @@ class BriefQuestionService
 
     public function getMinSkippedPage(Brief $brief)
     {
+        if ($brief->isCommercial()) {
+            // Для commercial проверяем ответы по каждой комнате
+            foreach ($brief->rooms as $room) {
+                $answeredKeys = $room->answers()->pluck('question_key')->toArray();
+
+                $questions = $brief->questions()
+                    ->whereNotIn('key', $answeredKeys)
+                    ->orderBy('page')
+                    ->get();
+
+                if ($questions->isEmpty()) continue;
+
+                return $questions->first()->page;
+            }
+
+            // Если для всех комнат все ответы есть
+            return null;
+        }
+
+
         $answeredKeys = $brief->answers()->pluck('question_key')->toArray();
 
         $questions = $brief->questions()
@@ -51,19 +71,21 @@ class BriefQuestionService
 
         // Берем все вопросы с минимальным page
         $minPageQuestions = $questions->where('page', $minPage);
-
         $keys = $minPageQuestions->pluck('key')->toArray();
 
-        // Проверяем, есть ли оба ключа в массиве, значит третья страница была пропущена
-        if ($minPage === 3
-            && in_array('room_custom', $keys)
-            && in_array('room_default', $keys)
-        ) {
-            return $minPage;
+        // Если минимальная пропущенная страница — 3
+        if ($brief->isCommon() && $minPage === 3) {
+            if (in_array('room_custom', $keys) && in_array('room_default', $keys)) {
+                return $minPage; // Страница полностью пропущена
+            } else {
+                // Ищем следующую пропущенную страницу
+                $nextPage = $questions->where('page', '>', 3)->first();
+                return $nextPage ? $nextPage->page : null;
+            }
         }
 
-        // Если осталась только одна из них, возвращаем null
-        return null;
+        // Для всех остальных страниц просто возвращаем минимальную пропущенную
+        return $minPage;
     }
 }
 

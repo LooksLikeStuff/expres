@@ -133,7 +133,9 @@ class BriefController extends Controller
      */
     public function destroy(Brief $brief)
     {
-        //
+        $brief->delete();
+
+        return redirect()->back()->with('success', 'Бриф успешно удалён');
     }
 
     //Страница создания комнат для общего брифа
@@ -151,7 +153,9 @@ class BriefController extends Controller
 
     public function storeRooms(Brief $brief, StoreRoomsRequest $request)
     {
-        $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromStoreRoomsRequest($request));
+        if ($request->has('rooms')) {
+            $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromStoreRoomsRequest($request));
+        }
 
         return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => 1]);
     }
@@ -167,6 +171,11 @@ class BriefController extends Controller
         //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с добавлением комнат
         if ($brief->isCommon() && $page <= 0) {
             return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
+        }
+
+        //Если бриф Коммерческий и комнаты не заполнены то переводим на первую страницу где заоплняют комнаты
+        if ($brief->isCommercial() && !$brief->rooms()->exists()) {
+            $page = 1;
         }
 
         //Если это последняя страница или у брифа статус "Есть пропущенные страницы",
@@ -197,7 +206,7 @@ class BriefController extends Controller
             }
 
         } else {
-            //Для коммерческого брифа почти все вопросы связаны с зонами, подгружаем их всегда
+            //Для коммерческого брифа все вопросы связаны с зонами, подгружаем их всегда
             $brief->load('rooms');
         }
 
@@ -216,7 +225,7 @@ class BriefController extends Controller
             else $dto = BriefAnswerDTO::fromAnswerRequest($request);
         }
         else { //Коммерческий бриф
-            if($page == 1) {
+            if($request->hasAny('rooms', 'addRooms')) {
                 $rooms = [];
                 //Обновляем существующие комнаты если были внесены изменения
                 if ($request->has('rooms')) {

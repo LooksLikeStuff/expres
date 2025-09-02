@@ -1,3 +1,19 @@
+textarea {
+    min-height: 140px;
+    margin-top: var(--p20);
+    background: var(--fff);
+}
+
+.faq_block {
+    align-items: start;
+    gap: 8px;
+}
+
+.faq__body {
+    width: 100%;
+    align-items: start;
+}
+
 .field-error {
      border: 2px solid #ff0000 !important;
      background-color: #fff0f0 !important;

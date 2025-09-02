@@ -45,10 +45,10 @@ class BriefQuestionSeeder extends Seeder
             ['brief_type' => 'common', 'page' => 1, 'key' => 'question_1_6', 'title' => 'Адрес', 'subtitle' => 'Адрес объекта', 'input_type' => 'textarea', 'placeholder' => 'Пример: г. Грозный, ул. ...', 'format' => 'default', 'class' => null],
 
             // Стр.2 Стиль и бюджет
-            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_1', 'title' => 'Какой стиль Вы хотите видеть?', 'subtitle' => 'Стиль и цвета', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_2', 'title' => 'Какие предметы обстановки включить?', 'subtitle' => 'Список мебели/аксессуаров', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_3', 'title' => 'Ценовой сегмент ремонта', 'subtitle' => 'Эконом/средний+/бизнес/премиум', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
-            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_4', 'title' => 'Что не должно быть в интерьере?', 'subtitle' => 'Исключения', 'input_type' => 'textarea', 'placeholder' => null, 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_1', 'title' => 'Какой стиль Вы хотите видеть?', 'subtitle' => 'Стиль и цвета', 'input_type' => 'textarea', 'placeholder' => 'Укажите предпочтения по стилям (например, современный, классический, минимализм) и цветам, которые вы хотите использовать в интерьере.', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_2', 'title' => 'Какие предметы обстановки включить?', 'subtitle' => 'Список мебели/аксессуаров', 'input_type' => 'textarea', 'placeholder' => 'Перечислите мебель и аксессуары, которые вы хотите сохранить', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_3', 'title' => 'Ценовой сегмент ремонта', 'subtitle' => 'Эконом/средний+/бизнес/премиум', 'input_type' => 'textarea', 'placeholder' => 'Укажите выбранный ценовой сегмент: эконом, средний+, бизнес или премиум', 'format' => 'default', 'class' => null],
+            ['brief_type' => 'common', 'page' => 2, 'key' => 'question_2_4', 'title' => 'Что не должно быть в интерьере?', 'subtitle' => 'Исключения', 'input_type' => 'textarea', 'placeholder' => 'Перечислите элементы или материалы, которые вы не хотите видеть', 'format' => 'default', 'class' => null],
             ['brief_type' => 'common', 'page' => 2, 'key' => 'price', 'title' => 'Бюджет проекта', 'subtitle' => 'Ориентировочная сумма', 'input_type' => 'text', 'placeholder' => 'Например: 2 000 000 руб', 'format' => 'price', 'class' => 'price-input'],
 
             // Стр.3 Помещения (FAQ) — базовые комнаты

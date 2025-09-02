@@ -44,10 +44,6 @@ button {
 
 
 
-a {
-    color: #01acff;
-
-}
 
 .wrap {
     -ms-flex-wrap: wrap;
@@ -988,11 +984,11 @@ button.remove-button {
  }table.dataTable thead th, table.dataTable thead td {
     border: none;
 }
-.brifs .brifs__button__create button {
+.brifs .brifs__button__create button, .brifs .brifs__button__create a {
     background: var(--blue) !important;
 }
 
-.brifs .brifs__button__create button {
+.brifs .brifs__button__create button, .brifs .brifs__button__create a {
     background: var(--blue) !important;
     max-width: 400px;
     min-width: 329px;

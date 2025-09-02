@@ -1,8 +1,9 @@
 @section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн')
 @extends('layouts.brifapp')
 
-@vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
+
 @section('content')
+    @vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
     <input type="hidden" id="page" value="{{$page}}">
 
     @if($page == 1)
@@ -36,8 +37,8 @@
                         {{-- Кнопки навигации --}}
                         <div class="form__button flex between">
                             <p class="form__button-ponel-p">Страница {{ $page }}/{{ $brief->totalQuestionPages() }}</p>
-                            @if ($page > 1)
-                                <button id="prevPageBtn" type="button" class=" btn-secondary btn-propustit" onclick="goToPrev()">Обратно</button>
+                            @if ($page > 1 || ($brief->isCommon() && $page > 0))
+                                <a  href="{{ route('briefs.questions', ['brief' => $brief, 'page' => $page - 1]) }}" id="prevPageBtn" type="button" class=" btn-secondary btn-propustit">Обратно</a>
                             @endif
                             <button id="nextPageBtn" type="button" class=" btn-primary btn-dalee">Далее</button>
 
@@ -55,25 +56,6 @@
                     </div>
 
                 @include('layouts/mobponel')
-                <!-- Добавляем анимацию загрузки на весь экран -->
-                <div id="fullscreen-loader" class="fullscreen-loader">
-                    <div class="loader-wrapper">
-                        <div class="loader-container">
-                            <div class="loader-animation">
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                            </div>
-                            <div class="loader-text">
-                                <h4>Загрузка файлов</h4>
-                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>
-                                <div class="loader-progress">
-                                    <div class="loader-progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <form id="briefForm" action="{{ route('briefs.answers', ['brief' => $brief, 'page' => $page]) }}" method="POST"
                       enctype="multipart/form-data" class="back__fon__common csrf-check">
@@ -93,7 +75,7 @@
 
                                         @foreach($brief->rooms as $room)
 
-                                            <div class="faq_item">
+                                            <div class="faq_item active">
                                                 <div class="faq_question">
                                                     <h2>{{ $room->title }}</h2>
                                                     <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -102,8 +84,10 @@
                                                     </svg>
                                                 </div>
                                                 <div class="faq_answer">
-                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->question->subtitle }}"
-                                                          class="form-control required-field" data-original-placeholder="{{ $room->question->subtitle }}" maxlength="500">{{ $room->placeholder() }}</textarea>
+                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->placeholder() }}"
+                                                          class="form-control required-field
+                                                          " data-original-placeholder="{{ $room->question->subtitle }}"
+                                                          maxlength="500"></textarea>
 
                                                     <span class="error-message">Это поле обязательно для заполнения</span>
                                                 </div>
@@ -156,7 +140,7 @@
                                         @else
                                             <div class="faq__body">
                                                 <div class="faq_block flex center">
-                                                    <div class="faq_item">
+                                                    <div class="faq_item active">
                                                         <div class="faq_question" onclick="toggleFaq(this)">
                                                             <h2>{{ $question->title }}</h2>
                                                             <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -189,11 +173,11 @@
                                                        name="rooms[{{$room->id}}][title]"
                                                        maxlength="250"
                                                        value="{{$room->title}}"
-                                                       class="form-control" />
+                                                       class="form-control required-field" />
                                                 <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
                                             </div>
                                             <textarea maxlength="500" name="rooms[{{$room->id}}][{{$questions->first()->key}}]"
-                                                      class="form-control"
+                                                      class="form-control required-field"
                                             >Description</textarea>
                                         </div>
 
@@ -202,10 +186,11 @@
                                         <div class="zone-item">
                                             <div class="zone-item-inputs-title">
                                                 <input type="text" name="addRooms[0][title]" placeholder="Название зоны" maxlength="250"
-                                                       class="form-control" />
+                                                       class="form-control required-field" />
                                                 <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
                                             </div>
-                                            <textarea maxlength="500" name="addRooms[0][{{$questions->first()->key}}]" placeholder="Описание зоны" class="form-control"></textarea>
+                                            <textarea maxlength="500" name="addRooms[0][{{$questions->first()->key}}]" placeholder="Описание зоны"
+                                                      class="form-control required-field"></textarea>
                                         </div>
                                     @endforelse
 
@@ -231,7 +216,7 @@
                                                         <div class="area-input-group">
                                                             <label>{{$question->title}}</label>
                                                             <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
-                                                                      class="form-control" placeholder="{{$question->subtitle}}"></textarea>
+                                                                      class="form-control required-field" placeholder="{{$question->subtitle}}"></textarea>
                                                         </div>
                                                     @endforeach
 
@@ -240,7 +225,7 @@
 
                                                 @foreach($questions as $question)
                                                     <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
-                                                              class="form-control" placeholder="{{$question->subtitle}}"></textarea>
+                                                              class="form-control required-field" placeholder="{{$question->subtitle}}"></textarea>
                                                 @endforeach
                                             @endif
                                         </div>
@@ -283,25 +268,26 @@
 
                     </div>
                 </form>
-                <!-- Обновленная анимация загрузки на весь экран -->
-                <div id="fullscreen-loader" class="fullscreen-loader">
-                    <div class="loader-wrapper">
-                        <div class="loader-container">
-                            <div class="loader-animation">
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                            </div>
-                            <div class="loader-text">
-                                <h4>Загрузка файлов</h4>
-                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>
-                                <div class="loader-progress">
-                                    <div class="loader-progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+{{--                <!-- Обновленная анимация загрузки на весь экран -->--}}
+{{--                <div id="fullscreen-loader" class="fullscreen-loader">--}}
+{{--                    <div class="loader-wrapper">--}}
+{{--                        <div class="loader-container">--}}
+{{--                            <div class="loader-animation">--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                            </div>--}}
+{{--                            <div class="loader-text">--}}
+{{--                                <h4>Загрузка файлов</h4>--}}
+{{--                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>--}}
+{{--                                <div class="loader-progress">--}}
+{{--                                    <div class="loader-progress-bar"></div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
 
             </div>
         </div>

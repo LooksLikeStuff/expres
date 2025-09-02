@@ -1,8 +1,9 @@
 @section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн');
 @extends('layouts.brifapp')
 
-@vite(['resources/js/briefs/questions.js', 'resources/sass/briefs/questions.scss'])
 @section('content')
+    @vite(['resources/js/briefs/questions.js', 'resources/sass/briefs/questions.scss'])
+
     <div class="container">
         <div class="main__flex">
             <div class="main__ponel">

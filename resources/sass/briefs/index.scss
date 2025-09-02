@@ -13,7 +13,7 @@
     background: var(--fff);
     display: flex;
     flex-direction: column;
-    
+
     h2 {
         border-bottom: 1px solid var(--blue);
         margin-bottom: 10px;
@@ -21,21 +21,21 @@
         font-weight: 400;
         font-size: 22px;
     }
-    
+
     &.brifs__section__finished {
         padding-top: 20px;
-        
+
         p {
             text-align: left;
         }
-        
+
         .brif {
             min-height: 125px;
-            
+
             h4 {
                 padding-bottom: 16px;
             }
-            
+
             &:nth-child(1) {
                 background: rgb(226, 255, 217);
             }
@@ -49,16 +49,15 @@
         display: flex;
         gap: var(--g10);
         place-content: center;
-        flex-wrap: wrap;
     }
-    
-    button {
+
+    button, a {
         min-width: 300px;
         min-height: 40px;
         min-width: 40px;
         max-width: 40px;
         background: none !important;
-        
+
         &:hover img {
             filter: none;
             background: none !important;
@@ -66,8 +65,9 @@
     }
 }
 
-.brifs .brifs__button__create button {
+.brifs .brifs__button__create button, .brifs .brifs__button__create a {
     background: var(--blue) !important;
+    color: #ffffff;
     max-width: 400px;
     min-width: 329px;
     width: 100%;
@@ -86,7 +86,7 @@ ul.brifs__list {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    
+
     &.brifs__list__null {
         li p {
             font-size: 20px;
@@ -98,19 +98,19 @@ ul.brifs__list {
 li.brif {
     display: flex;
     flex-direction: column;
-    
+
     &:hover {
         cursor: pointer;
         transition: 0.5s;
     }
-    
+
     h4 {
         font-weight: 400;
         font-size: 18px;
         line-height: 22.95px;
         letter-spacing: 0%;
     }
-    
+
     p {
         color: rgb(68, 68, 68);
         font-family: var(--onest);
@@ -124,16 +124,16 @@ li.brif {
         display: flex;
         flex-wrap: wrap;
         align-content: flex-start;
-        
+
         li {
             width: 49%;
             padding: 2px;
             font-family: var(--onest);
-            
+
             &::before {
                 content: "-";
             }
-            
+
             &.completed {
                 &::before {
                     content: "+" !important;
@@ -155,20 +155,20 @@ li.brif {
 // Цвета для разных брифов в списке
 .brifs__list {
     .brif {
-        &:nth-child(1), &:nth-child(4), &:nth-child(7), &:nth-child(10), 
-        &:nth-child(13), &:nth-child(16), &:nth-child(19), &:nth-child(22), 
+        &:nth-child(1), &:nth-child(4), &:nth-child(7), &:nth-child(10),
+        &:nth-child(13), &:nth-child(16), &:nth-child(19), &:nth-child(22),
         &:nth-child(25), &:nth-child(28) {
             background: rgb(236, 242, 255);
         }
-        
-        &:nth-child(2), &:nth-child(5), &:nth-child(8), &:nth-child(11), 
-        &:nth-child(14), &:nth-child(17), &:nth-child(20), &:nth-child(23), 
+
+        &:nth-child(2), &:nth-child(5), &:nth-child(8), &:nth-child(11),
+        &:nth-child(14), &:nth-child(17), &:nth-child(20), &:nth-child(23),
         &:nth-child(26), &:nth-child(29) {
             background: rgb(236, 247, 255);
         }
-        
-        &:nth-child(3), &:nth-child(6), &:nth-child(9), &:nth-child(12), 
-        &:nth-child(15), &:nth-child(18), &:nth-child(21), &:nth-child(24), 
+
+        &:nth-child(3), &:nth-child(6), &:nth-child(9), &:nth-child(12),
+        &:nth-child(15), &:nth-child(18), &:nth-child(21), &:nth-child(24),
         &:nth-child(27), &:nth-child(30) {
             background: rgb(236, 236, 255);
         }
@@ -223,12 +223,12 @@ span.brif__status {
 
 .brif-link {
     display: inline-flex;
-    
+
     &:hover {
         background: linear-gradient(45deg, #2c5282, #3182ce);
         transform: translateY(-1px);
     }
-    
+
     i {
         margin-right: 8px;
     }
@@ -261,22 +261,19 @@ span.brif__status {
         padding: 20px;
         border-radius: var(--radius);
     }
-    
+
     .brifs__section__finished .brif {
         min-height: 125px;
         width: 49%;
     }
-    
-    .brifs__button__create.flex {
-        flex-wrap: wrap;
-    }
+
 }
 
 @media only screen and (max-width: 700px) {
     .brif {
         width: 49%;
     }
-    
+
     .brifs__section__finished .brif {
         width: 100%;
     }
@@ -289,8 +286,8 @@ span.brif__status {
         line-height: 22.95px;
         letter-spacing: 0%;
     }
-    
-    .brifs .brifs__button__create button {
+
+    .brifs .brifs__button__create button, .brifs .brifs__button__create a {
         max-width: 100%;
         display: flex;
         gap: var(--g20);
@@ -298,28 +295,28 @@ span.brif__status {
         font-size: 15px;
         justify-content: flex-start;
     }
-    
+
     .brifs__section {
         margin-bottom: 0;
         padding: var(--p10);
     }
-    
+
     .brif .name__brif {
         padding-bottom: 10px;
     }
-    
+
     .brif {
         width: 100%;
         padding: var(--p20);
         border-radius: var(--radius);
     }
-    
+
     .brif p {
         color: rgb(68, 68, 68);
         font-family: var(--onest);
         font-weight: 400;
     }
-    
+
     div#all-deals-container .faq_block__deal.faq_block-blur.brifs__button__create-faq_block__deal {
         min-height: 250px;
     }
