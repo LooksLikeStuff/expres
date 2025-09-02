@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Common;
 use App\Models\Deal;
 use App\Models\Commercial;
+use App\Models\Brief;
 use App\Models\User; // Добавляем импорт модели User
+use App\Services\Briefs\BriefService;
 use PDF; // Добавляем в начало файла
 use Illuminate\Support\Facades\Log;
 
@@ -16,8 +18,9 @@ class BrifsController extends Controller
     /**
      * BrifsController constructor.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private readonly BriefService $briefService
+    ) {
         $this->middleware('auth');
     }
     /**
@@ -45,17 +48,9 @@ class BrifsController extends Controller
             'Категорически неприемлемо', 'Бюджет на помещения', 'Пожелания',
         ];
 
-        // Получаем брифы пользователя
-        $activeCommon = Common::where('user_id', auth()->id())->where('status', 'Активный')->get();
-        $inactiveCommon = Common::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
-        $activeCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Активный')->get();
-        $inactiveCommercial = Commercial::where('user_id', auth()->id())->where('status', 'Завершенный')->get();
-
-        // Объединяем активные брифы в один массив и сортируем по дате создания (новые сверху)
-        $activeBrifs = $activeCommon->merge($activeCommercial)->sortByDesc('created_at');
-
-        // Объединяем неактивные брифы и сортируем аналогично
-        $inactiveBrifs = $inactiveCommon->merge($inactiveCommercial)->sortByDesc('created_at');
+        // Получаем брифы пользователя используя новый сервис
+        $activeBrifs = $this->briefService->getActiveBriefs(auth()->id());
+        $inactiveBrifs = $this->briefService->getCompletedBriefs(auth()->id());
 
         return view('brifs', compact(
             'activeBrifs', 'inactiveBrifs', 'pageTitlesCommercial', 'pageTitlesCommon', 'user', 'title_site'

@@ -10,12 +10,19 @@ use App\Models\Deal;
 use App\Models\Estimate;
 use App\Models\Rating;
 use App\Models\User;
+use App\Services\Briefs\BriefService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends BaseAdminController
 {
+    public function __construct(
+        private readonly BriefService $briefService
+    ) {
+        parent::__construct();
+    }
+
     /**
      * Показать панель управления администратора
      */
@@ -26,10 +33,14 @@ class DashboardController extends BaseAdminController
 
         // Базовая статистика
         $usersCount = User::count();
-        $commonsCount = Common::count();
-        $commercialsCount = Commercial::count();
+        $briefStats = $this->briefService->getBriefStats();
+        $commonsCount = $briefStats['common_count'];
+        $commercialsCount = $briefStats['commercial_count'];
         $dealsCount = Deal::count();
         $estimatesCount = Estimate::count();
+        
+        // Получаем брифы без сделок используя новый сервис
+        $briefsWithoutDeals = $this->briefService->getBriefsWithoutDeals(10)->toArray();
 
         // Статистика пользователей по статусам
         $usersByStatus = User::select('status', DB::raw('count(*) as count'))
@@ -93,6 +104,7 @@ class DashboardController extends BaseAdminController
             'dealsByStatus',
             'recentUsers',
             'recentDeals',
+            'briefsWithoutDeals',
             'newUsersLast30Days',
             'newDealsLast30Days',
             'newMessagesLast30Days',

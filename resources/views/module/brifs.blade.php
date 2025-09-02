@@ -199,7 +199,7 @@
                                     : $pageTitlesCommercial)
                                 as $index => $title
                             )
-                                <li class="{{ $index + 1 <= $brif->current_page ? 'completed' : '' }}">
+                                <li class="{{ ($brif->getPagesCompletionStatus()[$index + 1] ?? false) ? 'completed' : '' }}">
                                     {{ $title }}
                                 </li>
                             @endforeach

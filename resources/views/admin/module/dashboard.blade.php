@@ -302,83 +302,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $briefsWithoutDeals = [];
-                                    
-                                    // Получаем общие брифы без сделок
-                                    $commonBriefs = \App\Models\Common::whereNull('deal_id')
-                                        ->where('status', 'Завершенный')
-                                        ->orderBy('created_at', 'desc')
-                                        ->take(10)
-                                        ->get();
-                                        
-                                    foreach ($commonBriefs as $brief) {
-                                        $briefUser = \App\Models\User::find($brief->user_id);
-                                        $briefsWithoutDeals[] = [
-                                            'id' => $brief->id,
-                                            'type' => 'Общий',
-                                            'title' => $brief->title,
-                                            'user' => \App\Models\User::find($brief->user_id)->name ?? 'Неизвестно',
-                                            'user_id' => $brief->user_id,
-                                            'phone' => $briefUser && $briefUser->phone ? $briefUser->phone : 'Не указан',
-                                            'price' => $brief->price ?? 0,
-                                            'created_at' => $brief->created_at,
-                                            'status' => $brief->status,
-                                            'edit_route' => route('admin.brief.common.edit', $brief->id),
-                                            'brief_type' => 'common'
-                                        ];
-                                    }
-                                    
-                                    // Получаем коммерческие брифы без сделок
-                                    $commercialBriefs = \App\Models\Commercial::whereNull('deal_id')
-                                        ->where('status', 'Завершенный')
-                                        ->orderBy('created_at', 'desc')
-                                        ->take(10)
-                                        ->get();
-                                        
-                                    foreach ($commercialBriefs as $brief) {
-                                        $briefUser = \App\Models\User::find($brief->user_id);
-                                        $briefsWithoutDeals[] = [
-                                            'id' => $brief->id,
-                                            'type' => 'Коммерческий',
-                                            'title' => $brief->title,
-                                            'user' => \App\Models\User::find($brief->user_id)->name ?? 'Неизвестно',
-                                            'user_id' => $brief->user_id,
-                                            'phone' => $briefUser && $briefUser->phone ? $briefUser->phone : 'Не указан',
-                                            'price' => $brief->price ?? 0,
-                                            'created_at' => $brief->created_at,
-                                            'status' => $brief->status,
-                                            'edit_route' => route('admin.brief.commercial.edit', $brief->id),
-                                            'brief_type' => 'commercial'
-                                        ];
-                                    }
-                                    
-                                    // Сортируем все брифы по дате создания
-                                    usort($briefsWithoutDeals, function($a, $b) {
-                                        return $b['created_at'] <=> $a['created_at'];
-                                    });
-                                    
-                                    // Берем только первые 10
-                                    $briefsWithoutDeals = array_slice($briefsWithoutDeals, 0, 10);
-                                @endphp
+                                {{-- Новая логика с использованием Brief модели --}}
                                 
-                                @if(count($briefsWithoutDeals) > 0)
+                                @if(isset($briefsWithoutDeals) && count($briefsWithoutDeals) > 0)
                                     @foreach($briefsWithoutDeals as $brief)
                                         <tr>
                                             <td>{{ $brief['id'] }}</td>
-                                            <td><span class="badge badge-{{ $brief['type'] == 'Общий' ? 'info' : 'primary' }}">{{ $brief['type'] }}</span></td>
+                                            <td><span class="badge badge-{{ $brief['type'] == 'Общий бриф' ? 'info' : 'primary' }}">{{ $brief['type'] }}</span></td>
                                             <td>{{ $brief['title'] }}</td>
                                             <td>
-                                                <a href="{{ route('admin.user.briefs', $brief['user_id']) }}">
+                                                @if(isset($brief['user_id']) && $brief['user_id'])
+                                                    <a href="{{ route('admin.user.briefs', $brief['user_id']) }}">
+                                                        {{ $brief['user'] }}
+                                                    </a>
+                                                @else
                                                     {{ $brief['user'] }}
-                                                </a>
+                                                @endif
                                             </td>
                                             <td>
                                                 {{ !empty($brief['phone']) ? $brief['phone'] : 'Не указан' }}
                                             </td>
                                             <td>{{ number_format($brief['price'], 0, '.', ' ') }} ₽</td>
                                             <td>{{ $brief['created_at']->format('d.m.Y H:i') }}</td>
-                                            <td><span class="badge badge-success">{{ $brief['status'] }}</span></td>
+                                            <td><span class="badge badge-success">Завершён</span></td>
                                             <td>
                                                 <a href="{{ $brief['edit_route'] }}" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-edit"></i> Ред.
@@ -388,7 +334,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="8" class="text-center">Брифов без сделок не найдено</td>
+                                        <td colspan="9" class="text-center">Брифов без сделок не найдено</td>
                                     </tr>
                                 @endif
                             </tbody>
