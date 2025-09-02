@@ -170,11 +170,20 @@ document.addEventListener('DOMContentLoaded', function () {
         checkbox.className = 'custom-checkbox';
         checkbox.name = `rooms[]`;
         checkbox.value = roomName;
+        checkbox.setAttribute('data-is-custom', 'true');
         if (isChecked) checkbox.checked = true;
 
         const label = document.createElement('label');
         label.setAttribute('for', roomId);
-        label.textContent = roomName;
+        
+        // Создаем текст для лейбла с бейджем
+        const labelText = document.createTextNode(roomName);
+        const customBadge = document.createElement('span');
+        customBadge.className = 'custom-room-badge';
+        customBadge.textContent = '(Кастомная)';
+        
+        label.appendChild(labelText);
+        label.appendChild(customBadge);
 
         // Добавляем кнопку удаления
         const deleteButton = document.createElement('button');

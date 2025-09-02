@@ -351,4 +351,84 @@ class Brief extends Model
         return empty($skippedPages) ? null : min($skippedPages);
     }
 
+    /**
+     * Получить ответы брифа, индексированные по question_key
+     * 
+     * @return array
+     */
+    public function getAnswersByQuestionKey(): array
+    {
+        $answers = [];
+        
+        foreach ($this->answers as $answer) {
+            $key = $answer->question_key;
+            if ($answer->room_id) {
+                $answers[$key][$answer->room_id] = $answer->answer_text;
+            } else {
+                $answers[$key] = $answer->answer_text;
+            }
+        }
+        
+        return $answers;
+    }
+
+    /**
+     * Получить ответы для конкретной страницы
+     * 
+     * @param int $page
+     * @return array
+     */
+    public function getAnswersForPage(int $page): array
+    {
+        $answers = [];
+        
+        // Загружаем вопросы для данной страницы
+        $questions = $this->questions()
+            ->where('page', $page)
+            ->where('is_active', true)
+            ->get()
+            ->pluck('key')
+            ->toArray();
+        
+        // Получаем ответы только для вопросов данной страницы
+        $pageAnswers = $this->answers()
+            ->whereIn('question_key', $questions)
+            ->get();
+        
+        foreach ($pageAnswers as $answer) {
+            if ($answer->room_id) {
+                $answers[$answer->question_key][$answer->room_id] = $answer->answer_text;
+            } else {
+                $answers[$answer->question_key] = $answer->answer_text;
+            }
+        }
+        
+        return $answers;
+    }
+
+    /**
+     * Получить ответы для комнат (для общего брифа)
+     * 
+     * @return array
+     */
+    public function getRoomAnswers(): array
+    {
+        $answers = [];
+        
+        if (!$this->isCommon()) {
+            return $answers;
+        }
+        
+        $roomAnswers = $this->answers()
+            ->whereNotNull('room_id')
+            ->with('room')
+            ->get();
+        
+        foreach ($roomAnswers as $answer) {
+            $answers[$answer->question_key][$answer->room_id] = $answer->answer_text;
+        }
+        
+        return $answers;
+    }
+
 }

@@ -69,13 +69,19 @@
                                 <button type="button" id="add-custom-room" class="btn btn-primary">Добавить</button>
                             </div>
                         </div>
-                        @foreach ($rooms as $room)
+                        @foreach ($allRooms as $room)
                             <div class="checkpoint flex wrap">
                                 <div class="radio">
                                     <input type="checkbox" id="room_{{ $room['key'] }}" class="custom-checkbox"
                                            name="rooms[]" value="{{ $room['title'] }}"
-                                           @checked(isset($brief->{$room['key']}))>
-                                    <label for="room_{{ $room['key'] }}">{{ $room['title'] }}</label>
+                                           @checked($room['is_selected'])
+                                           @if($room['is_custom']) data-is-custom="true" @endif>
+                                    <label for="room_{{ $room['key'] }}">
+                                        {{ $room['title'] }}
+                                        @if($room['is_custom'])
+                                            <span class="custom-room-badge">(Кастомная)</span>
+                                        @endif
+                                    </label>
                                 </div>
                             </div>
                         @endforeach

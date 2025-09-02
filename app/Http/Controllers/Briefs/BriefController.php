@@ -11,6 +11,7 @@ use App\Http\Requests\Briefs\AnswerRequest;
 use App\Http\Requests\Briefs\CreateRequest;
 use App\Http\Requests\Briefs\StoreRoomsRequest;
 use App\Models\Brief;
+use App\Models\BriefRoom;
 use App\Models\User;
 use App\Services\Briefs\BriefAnswerService;
 use App\Services\Briefs\BriefQuestionService;
@@ -146,9 +147,44 @@ class BriefController extends Controller
             return redirect()->route('briefs.index')->with('error', 'Комнаты необходимо указывать только для общего брифа.');
         }
 
-        $rooms = $this->briefRoomService->getBriefAndDefaultRooms($brief->id);
+        // Получаем дефолтные комнаты
+        $defaultRooms = BriefRoom::DEFAULT_ROOMS;
 
-        return view('briefs.rooms', compact('brief', 'rooms'));
+        // Загружаем комнаты брифа (кастомные и выбранные дефолтные)
+        $brief->load('rooms');
+        $briefRooms = $brief->rooms;
+
+        // Создаем список всех комнат для отображения
+        $allRooms = [];
+
+        // Добавляем кастомные комнаты брифа
+        foreach ($briefRooms as $room) {
+            if ($room->isCustom()) {
+                $allRooms[] = [
+                    'id' => $room->id,
+                    'key' => $room->key,
+                    'title' => $room->title,
+                    'is_custom' => true,
+                    'is_selected' => true, // Кастомные комнаты всегда выбранные
+                ];
+            }
+        }
+
+        // Добавляем дефолтные комнаты
+        foreach ($defaultRooms as $defaultRoom) {
+            $isSelected = $briefRooms->where('key', $defaultRoom['key'])->isNotEmpty();
+            $selectedRoom = $briefRooms->where('key', $defaultRoom['key'])->first();
+
+            $allRooms[] = [
+                'id' => $selectedRoom ? $selectedRoom->id : null,
+                'key' => $defaultRoom['key'],
+                'title' => $defaultRoom['title'],
+                'is_custom' => false,
+                'is_selected' => $isSelected,
+            ];
+        }
+
+        return view('briefs.rooms', compact('brief', 'allRooms'));
     }
 
     public function storeRooms(Brief $brief, StoreRoomsRequest $request)
@@ -195,6 +231,10 @@ class BriefController extends Controller
 
         $questions = $this->briefQuestionService->getQuestionsByTypeAndPage($brief->type, $page);
 
+        // Загружаем ответы для текущей страницы
+        $brief->load('answers', 'answers.room');
+        $answers = $brief->getAnswersForPage($page);
+
         if ($brief->isCommon()) {
             //На третьей страницы общего брифа заполняется информация для комнат, поэтому подгружаем их
             if ($page === 3) {
@@ -203,6 +243,10 @@ class BriefController extends Controller
                 if ($brief->rooms->isEmpty()) return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
 
                 $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
+
+                // Для страницы с комнатами загружаем ответы по комнатам
+                $roomAnswers = $brief->getRoomAnswers();
+                return view('briefs.questions', compact('questions', 'brief', 'page', 'answers', 'roomAnswers'));
             }
 
         } else {
@@ -210,7 +254,7 @@ class BriefController extends Controller
             $brief->load('rooms');
         }
 
-        return view('briefs.questions', compact('questions', 'brief', 'page'));
+        return view('briefs.questions', compact('questions', 'brief', 'page', 'answers'));
     }
 
 

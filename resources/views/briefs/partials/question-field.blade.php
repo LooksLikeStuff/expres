@@ -2,7 +2,7 @@
     <textarea name="answers[{{ $question->key }}]"
               placeholder="{{ $question->placeholder }}"
               class="form-control required-field {{ $question->key == 'question_2_6' ? 'budget-input' : '' }}"
-              data-original-placeholder="{{ $question->placeholder }}" maxlength="500">{{ $brief->{$question->key} ?? '' }}</textarea>
+              data-original-placeholder="{{ $question->placeholder }}" maxlength="500">{{ ($answers ?? [])[$question->key] ?? '' }}</textarea>
 {{--@else--}}
 {{--    <input type="text" name="answers[{{ $question->key }}]"--}}
 {{--           class="form-control required-field--}}

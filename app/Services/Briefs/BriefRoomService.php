@@ -33,7 +33,7 @@ class BriefRoomService
         $ids = [];
 
         foreach ($briefRoomDTO->rooms as $roomData) {
-            $ids[] = $brief->rooms()->create($roomData)->id;
+            $ids[] = $brief->rooms()->updateOrCreate(['key' => $roomData['key']], $roomData)->id;
         }
 
         return $ids;

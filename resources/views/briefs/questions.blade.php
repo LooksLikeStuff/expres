@@ -87,7 +87,7 @@
                                                 <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->placeholder() }}"
                                                           class="form-control required-field
                                                           " data-original-placeholder="{{ $room->question->subtitle }}"
-                                                          maxlength="500"></textarea>
+                                                          maxlength="500">{{ ($roomAnswers ?? [])[$room->getQuestionKey()][$room->id] ?? '' }}</textarea>
 
                                                     <span class="error-message">Это поле обязательно для заполнения</span>
                                                 </div>
@@ -107,7 +107,7 @@
                                                 <p>{{ $question->subtitle }}</p>
                                             @endif
                                             <input type="text" name="price" class="form-control required-field price-input"
-                                                   value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
+                                                   value="{{ $brief->price ?? (($answers ?? [])[$question->key] ?? '') }}" placeholder="{{ $question->placeholder }}"
                                                    data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
                                             <span class="error-message">Это поле обязательно для заполнения</span>
                                         </div>
@@ -118,7 +118,7 @@
                                             <div class="radio">
                                                 <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
                                                        name="answers[{{ $question->key }}]" value="1"
-                                                       @if (!empty($brif->{$question->key})) checked @endif>
+                                                       @if (!empty(($answers ?? [])[$question->key] ?? '')) checked @endif>
                                                 <label for="{{ $question->key }}">{{ $question->title }}</label>
                                             </div>
                                         </div>
@@ -126,7 +126,7 @@
                                         {{-- DEFAULT и FAQ --}}
                                     @elseif (in_array($question->format, ['default', 'faq']))
                                         @php
-                                            $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
+                                            $field = view('briefs.partials.question-field', compact('question', 'brief', 'answers'))->render();
                                         @endphp
 
                                         @if ($question->format === 'default')
@@ -178,7 +178,7 @@
                                             </div>
                                             <textarea maxlength="500" name="rooms[{{$room->id}}][{{$questions->first()->key}}]"
                                                       class="form-control required-field"
-                                            >Description</textarea>
+                                            >{{ (($answers ?? [])[$questions->first()->key] ?? [])[$room->id] ?? '' }}</textarea>
                                         </div>
 
                                         {{--                            На первой странице коммерческого брифа добавляем комнаты и сразу добавляем описание--}}
@@ -216,7 +216,7 @@
                                                         <div class="area-input-group">
                                                             <label>{{$question->title}}</label>
                                                             <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
-                                                                      class="form-control required-field" placeholder="{{$question->subtitle}}"></textarea>
+                                                                      class="form-control required-field" placeholder="{{$question->subtitle}}">{{ (($answers ?? [])[$question->key] ?? [])[$room->id] ?? '' }}</textarea>
                                                         </div>
                                                     @endforeach
 
@@ -225,7 +225,7 @@
 
                                                 @foreach($questions as $question)
                                                     <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
-                                                              class="form-control required-field" placeholder="{{$question->subtitle}}"></textarea>
+                                                              class="form-control required-field" placeholder="{{$question->subtitle}}">{{ (($answers ?? [])[$question->key] ?? [])[$room->id] ?? '' }}</textarea>
                                                 @endforeach
                                             @endif
                                         </div>
