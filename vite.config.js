@@ -55,9 +55,6 @@ import laravel from 'laravel-vite-plugin';
 
 
 export default defineConfig(({ mode }) => {
-    const isDev = mode === 'development';
-
-
     return {
         plugins: [
             vue(),
@@ -86,29 +83,18 @@ export default defineConfig(({ mode }) => {
                     'resources/js/chats/index.js',
 
                     //briefs
+                    'resources/js/briefs/index.js',
                     'resources/js/briefs/create.js',
                     'resources/js/briefs/questions.js',
+                    'resources/js/briefs/show.js',
+                    'resources/js/briefs/tutorial.js',
+                    'resources/js/briefs/actions.js',
+                    'resources/sass/briefs/index.scss',
                     'resources/sass/briefs/questions.scss',
+                    'resources/sass/briefs/show.scss',
                 ],
                 refresh: true,
             }),
         ],
-        resolve: {
-            alias: {
-                '@': path.resolve(__dirname, './resources/js'),
-            },
-        },
-        server: {
-            hmr: {
-                overlay: false,
-            },
-            cors: {
-                origin: ['http://localhost', 'https://back', 'https://chat.iamstuff.space'],
-                credentials: true,
-            },
-        },
-        define: {
-            'process.env': {},
-        },
     };
 });

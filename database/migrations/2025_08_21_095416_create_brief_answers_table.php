@@ -30,7 +30,7 @@ return new class extends Migration
             $table->json('answer_json')->nullable();
             $table->timestamps();
 
-            $table->unique(['brief_id', 'question_key']);
+            $table->unique(['brief_id', 'room_id', 'question_key']);
         });
     }
 

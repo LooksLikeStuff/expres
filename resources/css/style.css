@@ -1082,9 +1082,6 @@ header {
             transform: rotate(180deg);
 }
 
-.faq__body {
-    width: 49%;
-}
 
 .modal {
     position: fixed;
@@ -2102,9 +2099,6 @@ a.estimate_link.excel {
     display: flex;
     gap: var(--g10);
     place-content: center;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-        align-items: center;
 }
 
 .port input {
@@ -3210,7 +3204,6 @@ div#brifs h1 {
     -webkit-box-align: center;
     -ms-flex-align: center;
         align-items: center;
-    place-content: center flex-start;
 }
 
 .header__user__name.flex.exit a:hover img {
@@ -4104,7 +4097,7 @@ div#brifs {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
-    place-content: center space-between;
+    justify-content: space-between;
     -webkit-box-align: center;
     -ms-flex-align: center;
         align-items: center;
@@ -4112,6 +4105,7 @@ div#brifs {
     gap: 15px;
     -ms-flex-wrap: wrap;
         flex-wrap: wrap;
+    margin-bottom: 16px;
 }
 
 .brifs__section {
@@ -4444,7 +4438,7 @@ table.dataTable tbody th, table.dataTable tbody td {
     background: none !important;
 }
 
-.brifs .brifs__button__create button {
+.brifs .brifs__button__create button, .brifs .brifs__button__create a {
     min-height: 40px;
     min-width: 40px;
     max-width: 40px;
@@ -7862,6 +7856,10 @@ button#show-contacts-btn {
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-dalee {

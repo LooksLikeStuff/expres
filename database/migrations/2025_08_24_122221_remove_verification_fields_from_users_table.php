@@ -15,8 +15,6 @@ return new class extends Migration
             // Удаляем поля верификации
             $table->dropColumn(['verification_code', 'verification_code_expires_at']);
 
-            // Удаляем поле last_seen_at (переносим в отдельную таблицу)
-            $table->dropColumn('last_seen_at');
         });
     }
 
@@ -29,9 +27,6 @@ return new class extends Migration
             // Возвращаем поля верификации
             $table->string('verification_code', 10)->nullable();
             $table->timestamp('verification_code_expires_at')->nullable();
-
-            // Возвращаем поле last_seen_at
-            $table->timestamp('last_seen_at')->nullable();
         });
     }
 };

@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Deal;
 use App\Models\DealFeed;
 use App\Services\YandexDiskService;
+use App\Services\DealClientService;
+use App\DTO\DealClientDTO;
 use App\Models\DealChangeLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -22,9 +24,12 @@ class DealsController extends Controller
 {
     use NotifyExecutorsTrait;
 
-    public function __construct(YandexDiskService $yandexDiskService)
+    protected DealClientService $dealClientService;
+
+    public function __construct(YandexDiskService $yandexDiskService, DealClientService $dealClientService)
     {
         $this->yandexDiskService = $yandexDiskService;
+        $this->dealClientService = $dealClientService;
 
         // ВРЕМЕННО ОТКЛЮЧЕНО: Проверяем валидность токена при инициализации
         // if (!$this->yandexDiskService->checkAuth()) {
@@ -512,8 +517,43 @@ class DealsController extends Controller
 
         $dataToUpdate = array_diff_key($validatedData, array_flip($fileFields));
 
-        // Обновляем данные сделки без файлов
-        $deal->update($dataToUpdate);
+        // Извлекаем клиентские данные из запроса
+        $clientData = array_intersect_key($dataToUpdate, array_flip([
+            'client_name', 'client_phone', 'client_email', 'client_city', 
+            'client_timezone', 'client_info', 'client_account_link'
+        ]));
+
+        // Удаляем клиентские поля из данных для обновления Deal
+        $dealData = array_diff_key($dataToUpdate, array_flip([
+            'client_name', 'client_phone', 'client_email', 'client_city', 
+            'client_timezone', 'client_info', 'client_account_link'
+        ]));
+
+        // Обновляем данные сделки без клиентских полей
+        $deal->update($dealData);
+
+        // Обновляем клиентские данные через новый сервис
+        if (!empty($clientData)) {
+            // Переименовываем поля для DTO
+            $clientDTOData = [
+                'deal_id' => $deal->id,
+                'name' => $clientData['client_name'] ?? $deal->dealClient?->name ?? '',
+                'phone' => $clientData['client_phone'] ?? $deal->dealClient?->phone ?? '',
+                'email' => $clientData['client_email'] ?? $deal->dealClient?->email ?? null,
+                'city' => $clientData['client_city'] ?? $deal->dealClient?->city ?? null,
+                'timezone' => $clientData['client_timezone'] ?? $deal->dealClient?->timezone ?? null,
+                'info' => $clientData['client_info'] ?? $deal->dealClient?->info ?? null,
+                'account_link' => $clientData['client_account_link'] ?? $deal->dealClient?->account_link ?? null,
+            ];
+
+            try {
+                $clientDTO = DealClientDTO::fromArray($clientDTOData);
+                $this->dealClientService->createOrUpdate($clientDTO);
+            } catch (\InvalidArgumentException $e) {
+                Log::warning("Ошибка обновления клиентских данных для сделки {$deal->id}: " . $e->getMessage());
+                // Продолжаем без критической ошибки
+            }
+        }
 
         // СТАРАЯ система для файлов документов ОТКЛЮЧЕНА - используется новая система v3.0 через API
         // Файлы документов теперь загружаются через YandexDiskController API
@@ -917,22 +957,19 @@ class DealsController extends Controller
             // Это гарантирует, что user_id никогда не будет NULL
             $userId = $existingUser ? $existingUser->id : auth()->id();
 
+            // Создаем сделку без клиентских полей
             $deal = Deal::create([
-                'client_phone'           => $validated['client_phone'],
                 'status'                 => 'Ждем ТЗ', // устанавливаем значение по умолчанию
                 'package'                => $validated['package'],
-                'client_name'            => $validated['client_name'], // Используем client_name из запроса
                 'price_service_option'   => $validated['price_service_option'],
                 'rooms_count_pricing'    => $validated['rooms_count_pricing'] ?? null,
                 'execution_order_comment'=> $validated['execution_order_comment'] ?? null,
                 'office_partner_id'      => $validated['office_partner_id'] ?? null,
                 'coordinator_id'         => $coordinatorId,
                 'total_sum'              => $validated['total_sum'] ?? null,
-                'client_info'            => $validated['client_info'] ?? null,
                 'payment_date'           => $validated['payment_date'] ?? null,
                 'execution_comment'      => $validated['execution_comment'] ?? null,
                 'comment'                => $validated['comment'] ?? null,
-                'client_timezone'        => $validated['client_timezone'] ?? null,
                 'completion_responsible' => $validated['completion_responsible'] ?? null,
                 'user_id'                => $userId, // Устанавливаем ID найденного пользователя или текущего
                 'registration_token'     => Str::random(32),
@@ -941,6 +978,26 @@ class DealsController extends Controller
                 'project_duration'       => $validated['project_duration'] ?? null,
                 'project_end_date'       => $validated['project_end_date'] ?? null,
             ]);
+
+            // Создаем клиентские данные через новый сервис
+            $clientDTO = DealClientDTO::fromArray([
+                'deal_id' => $deal->id,
+                'name' => $validated['client_name'],
+                'phone' => $validated['client_phone'],
+                'email' => $validated['client_email'] ?? null,
+                'city' => $validated['client_city'] ?? null,
+                'timezone' => $validated['client_timezone'] ?? null,
+                'info' => $validated['client_info'] ?? null,
+                'account_link' => $validated['client_account_link'] ?? null,
+            ]);
+
+            try {
+                $this->dealClientService->createOrUpdate($clientDTO);
+            } catch (\InvalidArgumentException $e) {
+                // Если не удалось создать клиента, удаляем сделку и возвращаем ошибку
+                $deal->delete();
+                throw new \Exception('Ошибка создания данных клиента: ' . $e->getMessage());
+            }
 
             // Сохраняем документы и получаем пути к файлам
             if ($request->hasFile('documents')) {
@@ -1306,9 +1363,6 @@ class DealsController extends Controller
             }
 
             $deal->user_id = $clientId;
-            $deal->client_name = $client->name;
-            $deal->client_phone = $client->phone;
-            $deal->client_email = $client->email;
 
             // Заполняем данные из брифа
             $deal->name = $briefTitle;
@@ -1319,6 +1373,25 @@ class DealsController extends Controller
             // ...
 
             $deal->save();
+
+            // Создаем клиентские данные через новый сервис
+            $clientDTO = DealClientDTO::fromArray([
+                'deal_id' => $deal->id,
+                'name' => $client->name,
+                'phone' => $client->phone,
+                'email' => $client->email,
+                'city' => $client->city ?? null,
+                'timezone' => null,
+                'info' => null,
+                'account_link' => null,
+            ]);
+
+            try {
+                $this->dealClientService->createOrUpdate($clientDTO);
+            } catch (\InvalidArgumentException $e) {
+                Log::warning("Не удалось создать клиента для сделки {$deal->id}: " . $e->getMessage());
+                // Продолжаем без ошибки, так как основные данные клиента есть в User
+            }
 
             // Обновляем бриф, указывая ссылку на созданную сделку
             $brief->deal_id = $deal->id;

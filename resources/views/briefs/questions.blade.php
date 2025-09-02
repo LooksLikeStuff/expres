@@ -1,9 +1,14 @@
-@section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн');
+@section('title', $title_site ?? 'Процесс создания Общего брифа | Личный кабинет Экспресс-дизайн')
 @extends('layouts.brifapp')
 
-@vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
+
 @section('content')
+    @vite(['resources/sass/briefs/questions.scss', 'resources/js/briefs/questions.js'])
     <input type="hidden" id="page" value="{{$page}}">
+
+    @if($page == 1)
+        <input type="hidden" id="question_key" value="{{$questions->first()->key}}">
+    @endif
 
     <div class="container">
         <div class="main__flex">
@@ -31,42 +36,26 @@
 
                         {{-- Кнопки навигации --}}
                         <div class="form__button flex between">
-                            <p class="form__button-ponel-p">Страница {{ $page }}/{{ $totalPages }}</p>
-                            @if ($page > 1)
-                                <button id="prevPageBtn" type="button" class=" btn-secondary btn-propustit" onclick="goToPrev()">Обратно</button>
+                            <p class="form__button-ponel-p">Страница {{ $page }}/{{ $brief->totalQuestionPages() }}</p>
+                            @if ($page > 1 || ($brief->isCommon() && $page > 0))
+                                <a  href="{{ route('briefs.questions', ['brief' => $brief, 'page' => $page - 1]) }}" id="prevPageBtn" type="button" class=" btn-secondary btn-propustit">Обратно</a>
                             @endif
                             <button id="nextPageBtn" type="button" class=" btn-primary btn-dalee">Далее</button>
 
-                            @if ($page > 0 && $page < 5)
-                                <button id="skipPageBtn" type="button" class=" btn-warning  btn-propustit skip-page-btn" onclick="skipPage()">Пропустить</button>
+                            @if ($page > 0 && $page < $brief->totalQuestionPages())
+                                <a href="{{ route('briefs.questions', ['brief' => $brief, 'page' => $page + 1]) }}"
+                                id="skipPageBtn"
+                                class=" btn-warning  btn-propustit skip-page-btn">
+                                    Пропустить</a>
                             @endif
 
-                            @if ($page >= 5 && !empty(json_decode($brif->skipped_pages ?? '[]')))
+                            @if ($brief->hasSkippedPages())
                                 <span class="skipped-notice">Вы заполняете пропущенные страницы</span>
                             @endif
                         </div>
                     </div>
 
                 @include('layouts/mobponel')
-                <!-- Добавляем анимацию загрузки на весь экран -->
-                <div id="fullscreen-loader" class="fullscreen-loader">
-                    <div class="loader-wrapper">
-                        <div class="loader-container">
-                            <div class="loader-animation">
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                            </div>
-                            <div class="loader-text">
-                                <h4>Загрузка файлов</h4>
-                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>
-                                <div class="loader-progress">
-                                    <div class="loader-progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <form id="briefForm" action="{{ route('briefs.answers', ['brief' => $brief, 'page' => $page]) }}" method="POST"
                       enctype="multipart/form-data" class="back__fon__common csrf-check">
@@ -79,120 +68,226 @@
                     {{-- Блок с вопросами форматов "default" и "faq" --}}
                     <div class="form__body flex between wrap">
 
-                        @if($brief->relationLoaded('rooms'))
+                        @if($brief->isCommon())
+                            @if($brief->relationLoaded('rooms'))
+                                <div class="faq__body">
+                                    <div class="faq_block flex center">
 
-                        @endif
+                                        @foreach($brief->rooms as $room)
 
-                        @foreach ($questions as $question)
-
-                            {{-- PRICE — отдельный кейс --}}
-                            @if ($question->key === 'price')
-                                <div class="form-group flex wrap">
-                                    <h2>{{ $question->title }}</h2>
-                                    @if (!empty($question->subtitle))
-                                        <p>{{ $question->subtitle }}</p>
-                                    @endif
-                                    <input type="text" name="price" class="form-control required-field price-input"
-                                           value="{{ $brif->price ?? '' }}" placeholder="{{ $question->placeholder }}"
-                                           data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
-                                    <span class="error-message">Это поле обязательно для заполнения</span>
-                                </div>
-
-                                {{-- CHECKPOINT --}}
-                            @elseif ($question->format === 'checkpoint')
-                                <div class="checkpoint flex wrap">
-                                    <div class="radio">
-                                        <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
-                                               name="answers[{{ $question->key }}]" value="1"
-                                               @if (!empty($brif->{$question->key})) checked @endif>
-                                        <label for="{{ $question->key }}">{{ $question->title }}</label>
-                                    </div>
-                                </div>
-
-                                {{-- DEFAULT и FAQ --}}
-                            @elseif (in_array($question->format, ['default', 'faq']))
-                                @php
-                                    $field = view('briefs.partials.question-field', compact('question', 'brief'))->render();
-                                @endphp
-
-                                @if ($question->format === 'default')
-                                    <div class="form-group flex wrap">
-                                        <h2>{{ $question->title }}</h2>
-                                        @if (!empty($question->subtitle))
-                                            <p>{{ $question->subtitle }}</p>
-                                        @endif
-                                        {!! $field !!}
-                                    </div>
-                                @else
-                                    <div class="faq__body">
-                                        <div class="faq_block flex center">
-                                            <div class="faq_item">
-                                                <div class="faq_question" onclick="toggleFaq(this)">
-                                                    <h2>{{ $question->title }}</h2>
+                                            <div class="faq_item active">
+                                                <div class="faq_question">
+                                                    <h2>{{ $room->title }}</h2>
                                                     <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                          width="24" height="24">
                                                         <path d="M7 10l5 5 5-5z"></path>
                                                     </svg>
                                                 </div>
                                                 <div class="faq_answer">
-                                                    {!! $field !!}
+                                                <textarea name="rooms[{{ $room->getQuestionKey() }}][{{ $room->id }}]" placeholder="{{ $room->placeholder() }}"
+                                                          class="form-control required-field
+                                                          " data-original-placeholder="{{ $room->question->subtitle }}"
+                                                          maxlength="500">{{ ($roomAnswers ?? [])[$room->getQuestionKey()][$room->id] ?? '' }}</textarea>
+
+                                                    <span class="error-message">Это поле обязательно для заполнения</span>
                                                 </div>
                                             </div>
-                                        </div>
+
+                                        @endforeach
                                     </div>
-                                @endif
+                                </div>
+                            @else
+                                @foreach ($questions as $question)
+
+                                    {{-- PRICE — отдельный кейс --}}
+                                    @if ($question->key === 'price')
+                                        <div class="form-group flex wrap">
+                                            <h2>{{ $question->title }}</h2>
+                                            @if (!empty($question->subtitle))
+                                                <p>{{ $question->subtitle }}</p>
+                                            @endif
+                                            <input type="text" name="price" class="form-control required-field price-input"
+                                                   value="{{ $brief->price ?? (($answers ?? [])[$question->key] ?? '') }}" placeholder="{{ $question->placeholder }}"
+                                                   data-original-placeholder="{{ $question->placeholder }}" maxlength="500">
+                                            <span class="error-message">Это поле обязательно для заполнения</span>
+                                        </div>
+
+                                        {{-- CHECKPOINT --}}
+                                    @elseif ($question->format === 'checkpoint')
+                                        <div class="checkpoint flex wrap">
+                                            <div class="radio">
+                                                <input type="checkbox" id="{{ $question->key }}" class="custom-checkbox"
+                                                       name="answers[{{ $question->key }}]" value="1"
+                                                       @if (!empty(($answers ?? [])[$question->key] ?? '')) checked @endif>
+                                                <label for="{{ $question->key }}">{{ $question->title }}</label>
+                                            </div>
+                                        </div>
+
+                                        {{-- DEFAULT и FAQ --}}
+                                    @elseif (in_array($question->format, ['default', 'faq']))
+                                        @php
+                                            $field = view('briefs.partials.question-field', compact('question', 'brief', 'answers'))->render();
+                                        @endphp
+
+                                        @if ($question->format === 'default')
+                                            <div class="form-group flex wrap">
+                                                <h2>{{ $question->title }}</h2>
+                                                @if (!empty($question->subtitle))
+                                                    <p>{{ $question->subtitle }}</p>
+                                                @endif
+                                                {!! $field !!}
+                                            </div>
+                                        @else
+                                            <div class="faq__body">
+                                                <div class="faq_block flex center">
+                                                    <div class="faq_item active">
+                                                        <div class="faq_question" onclick="toggleFaq(this)">
+                                                            <h2>{{ $question->title }}</h2>
+                                                            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                                 width="24" height="24">
+                                                                <path d="M7 10l5 5 5-5z"></path>
+                                                            </svg>
+                                                        </div>
+                                                        <div class="faq_answer">
+                                                            {!! $field !!}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
+
+                                @endforeach
                             @endif
 
-                        @endforeach
 
-                        @if ($page == 5)
-                            <div class="upload__files">
-                                <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
-                                    стилю интерьера</h6>
-                                <div id="drop-zone-references">
-                                    <p id="drop-zone-references-text">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
-                                    <input id="referenceInput" type="file" name="references[]" multiple
-                                           accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.3gp">
-                                </div>
-                                <p class="error-message" style="color: red;"></p>
-                                <small>Допустимые форматы: изображения (.jpg, .jpeg, .png, .heic, .heif), документы (.pdf, .xlsx, .xls,
-                                    .doc, .docx), видео (.mp4, .mov, .avi, .wmv, .flv, .mkv, .webm, .3gp)</small><br>
-                                <small>Максимальный суммарный размер: 50 МБ</small>
-                                @if ($brif->references)
-                                    <div class="uploaded-references">
-                                        <h6>Загруженные референсы:</h6>
-                                        <ul>
-                                            @foreach (json_decode($brif->references, true) ?? [] as $reference)
-                                                <li>
-                                                    <a href="{{ asset($reference) }}" target="_blank">{{ basename($reference) }}</a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                        @elseif($brief->isCommercial())
+                            <div id="zones-container">
+
+                                @if($page === 1)
+                                    @forelse($brief->rooms as $room)
+
+                                        <div class="zone-item">
+                                            <div class="zone-item-inputs-title">
+                                                <input type="text"
+                                                       name="rooms[{{$room->id}}][title]"
+                                                       maxlength="250"
+                                                       value="{{$room->title}}"
+                                                       class="form-control required-field" />
+                                                <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
+                                            </div>
+                                            <textarea maxlength="500" name="rooms[{{$room->id}}][{{$questions->first()->key}}]"
+                                                      class="form-control required-field"
+                                            >{{ (($answers ?? [])[$questions->first()->key] ?? [])[$room->id] ?? '' }}</textarea>
+                                        </div>
+
+                                        {{--                            На первой странице коммерческого брифа добавляем комнаты и сразу добавляем описание--}}
+                                    @empty
+                                        <div class="zone-item">
+                                            <div class="zone-item-inputs-title">
+                                                <input type="text" name="addRooms[0][title]" placeholder="Название зоны" maxlength="250"
+                                                       class="form-control required-field" />
+                                                <span class="remove-zone"><img src="/storage/icon/close__info.svg" alt=""></span>
+                                            </div>
+                                            <textarea maxlength="500" name="addRooms[0][{{$questions->first()->key}}]" placeholder="Описание зоны"
+                                                      class="form-control required-field"></textarea>
+                                        </div>
+                                    @endforelse
+
+
+                                    <div class="zone-item" id="add-zone">
+                                        <div class="blur__form__zone">
+                                            <p>Добавить зону</p>
+                                        </div>
                                     </div>
+                                @else
+                                    @foreach($brief->rooms as $room)
+                                        <div class="zone-item">
+                                            <h3>{{$room->title}}</h3>
+
+                                            <label>{{$pageInfo['title']}}</label>
+                                            <p class="hint">{{$pageInfo['subtitle']}}</p>
+
+
+                                            @if ($page == 2)
+                                                <div class="zone-area-inputs">
+
+                                                    @foreach($questions as $question)
+                                                        <div class="area-input-group">
+                                                            <label>{{$question->title}}</label>
+                                                            <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
+                                                                      class="form-control required-field" placeholder="{{$question->subtitle}}">{{ (($answers ?? [])[$question->key] ?? [])[$room->id] ?? '' }}</textarea>
+                                                        </div>
+                                                    @endforeach
+
+                                                </div>
+                                            @else
+
+                                                @foreach($questions as $question)
+                                                    <textarea maxlength="1000" name="answers[{{$room->id}}][{{$question->key}}]"
+                                                              class="form-control required-field" placeholder="{{$question->subtitle}}">{{ (($answers ?? [])[$question->key] ?? [])[$room->id] ?? '' }}</textarea>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    @endforeach
                                 @endif
+
                             </div>
+
                         @endif
+
+
+{{--                        На последней странице загружаем еще доки--}}
+                        @if ($page == $brief->totalQuestionPages())
+                                <div class="upload__files">
+                                    <h6>Пожалуйста, предоставьте референсы (фото, видео, документы), которые отражают ваши пожелания по
+                                        стилю интерьера</h6>
+                                    <div id="drop-zone-references">
+                                        <p id="drop-zone-references-text">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
+                                        <input id="referenceInput" type="file" name="documents[]" multiple
+                                               accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.3gp">
+                                    </div>
+                                    <p class="error-message" style="color: red;"></p>
+                                    <small>Допустимые форматы: изображения (.jpg, .jpeg, .png, .heic, .heif), документы (.pdf, .xlsx, .xls,
+                                        .doc, .docx), видео (.mp4, .mov, .avi, .wmv, .flv, .mkv, .webm, .3gp)</small><br>
+                                    <small>Максимальный суммарный размер: 50 МБ</small>
+                                    @if ($brief->documents)
+                                        <div class="uploaded-references">
+                                            <h6>Загруженные референсы:</h6>
+                                            <ul>
+                                                @foreach ($brief->documents as $document)
+                                                    <li>
+                                                        <a href="{{ asset($document->full_path) }}" target="_blank">{{ basename($document->original_name) }}</a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
                     </div>
                 </form>
-                <!-- Обновленная анимация загрузки на весь экран -->
-                <div id="fullscreen-loader" class="fullscreen-loader">
-                    <div class="loader-wrapper">
-                        <div class="loader-container">
-                            <div class="loader-animation">
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                                <div class="loader-circle"></div>
-                            </div>
-                            <div class="loader-text">
-                                <h4>Загрузка файлов</h4>
-                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>
-                                <div class="loader-progress">
-                                    <div class="loader-progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+{{--                <!-- Обновленная анимация загрузки на весь экран -->--}}
+{{--                <div id="fullscreen-loader" class="fullscreen-loader">--}}
+{{--                    <div class="loader-wrapper">--}}
+{{--                        <div class="loader-container">--}}
+{{--                            <div class="loader-animation">--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                                <div class="loader-circle"></div>--}}
+{{--                            </div>--}}
+{{--                            <div class="loader-text">--}}
+{{--                                <h4>Загрузка файлов</h4>--}}
+{{--                                <p>Пожалуйста, подождите. Ваши файлы загружаются на сервер.</p>--}}
+{{--                                <div class="loader-progress">--}}
+{{--                                    <div class="loader-progress-bar"></div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
 
             </div>
         </div>

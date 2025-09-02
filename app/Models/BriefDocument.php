@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class BriefDocument extends Model
 {
@@ -17,6 +19,13 @@ class BriefDocument extends Model
         'file_size',
     ];
 
+    protected $appends = ['full_path'];
+    public function getFullPathAttribute(): string
+    {
+        $expiresAt = Carbon::now()->addMinutes(60); // ссылка будет валидна 60 минут
+
+        return Storage::disk('yandex')->temporaryUrl($this->filepath, $expiresAt);
+    }
     /**
      * Связь с брифом
      */

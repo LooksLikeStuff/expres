@@ -226,8 +226,7 @@ class User extends Authenticatable
                 return asset('' . ltrim($this->attributes['avatar_url'], ''));
             }
 
-            // Проверяем, существует ли столбец avatar и есть ли в нем значение
-            if (Schema::hasColumn('users', 'avatar') && !empty($this->attributes['avatar'])) {
+            if (!empty($this->attributes['avatar'])) {
                 return asset('storage/' . $this->attributes['avatar']);
             }
 

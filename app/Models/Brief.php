@@ -68,6 +68,11 @@ class Brief extends Model
         return $this->type === BriefType::COMMERCIAL;
     }
 
+    public function totalQuestionPages(): int
+    {
+        return $this->isCommon() ? 5 : 8;
+    }
+
     // Заголовки страниц для брифов
     public function getPageTitles(): array
     {
@@ -100,11 +105,39 @@ class Brief extends Model
         }
 
         if ($this->isCommercial()) {
-            return  [
-                'Зоны и их функционал', 'Метраж зон', 'Зоны и их ', 'Мебилировка зон',
-                'Отделочные материалы', 'Освещение зон', 'Кондиционирование',
-                'Напольное покрытие зон', 'Отделка стен зон', 'Отделка потолков зон',
-                'Категорически неприемлемо', 'Бюджет на помещения', 'Пожелания',
+            return [
+                1 => [
+                    'title'    => 'Название зоны',
+                    'subtitle' => 'Укажите название каждой зоны (например, гостиная, кухня, спальня).'
+                ],
+                2 => [
+                    'title'    => 'Метраж зон',
+                    'subtitle' => 'Укажите примерный размер каждой зоны в квадратных метрах.'
+                ],
+                3 => [
+                    'title'    => 'Стиль оформления и меблировка зон',
+                    'subtitle' => 'Опишите стиль оформления для каждой зоны (например, минимализм, классика, лофт) и предпочтения по меблировке.'
+                ],
+                4 => [
+                    'title'    => 'Отделочные материалы и поверхности',
+                    'subtitle' => 'Выберите материалы, которые хотите использовать для отделки пола, стен и потолка в каждой зоне.'
+                ],
+                5 => [
+                    'title'    => 'Инженерные системы и коммуникации',
+                    'subtitle' => 'Опишите требования к освещению, электрике, вентиляции и кондиционированию для каждой зоны.'
+                ],
+                6 => [
+                    'title'    => 'Предпочтения и ограничения',
+                    'subtitle' => 'Перечислите материалы или решения, которые вы категорически не хотите использовать.'
+                ],
+                7 => [
+                    'title'    => 'Бюджет и документы',
+                    'subtitle' => 'Укажите общий бюджет на проект и загрузите необходимые документы.'
+                ],
+                8 => [
+                    'title'    => 'Дополнительные пожелания',
+                    'subtitle' => 'Добавьте любые дополнительные пожелания или комментарии для каждой зоны.'
+                ]
             ];
         }
 
@@ -219,6 +252,183 @@ class Brief extends Model
 
         // Fallback на JSON поле, если используется
         return [];
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(BriefQuestion::class, 'brief_type', 'type');
+    }
+
+    public function markAsHasSkippedPages(): void
+    {
+        $this->status = BriefStatus::SKIPPED_PAGES;
+
+        $this->save();
+    }
+
+    public function markAsCompleted(): void
+    {
+        $this->status = BriefStatus::COMPLETED;
+
+        $this->save();
+    }
+
+    public function hasSkippedPages(): bool
+    {
+        return $this->status === BriefStatus::SKIPPED_PAGES;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === BriefStatus::COMPLETED;
+    }
+
+    /**
+     * Получить статус заполнения страниц брифа
+     * 
+     * @return array [
+     *   'page_number' => true/false
+     * ]
+     */
+    public function getPagesCompletionStatus(): array
+    {
+        $status = [];
+        $answeredKeys = $this->answers()->pluck('question_key')->toArray();
+        
+        // Получаем все вопросы для данного типа брифа
+        $allQuestions = $this->questions()
+            ->where('is_active', true)
+            ->orderBy('page')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('page');
+
+        $pageTitles = $this->getPageTitles();
+        
+        foreach ($pageTitles as $pageNumber => $pageInfo) {
+            $questionsForPage = $allQuestions->get($pageNumber, collect());
+            $totalQuestions = $questionsForPage->count();
+            
+            if ($totalQuestions > 0) {
+                $answeredCount = $questionsForPage->whereIn('key', $answeredKeys)->count();
+                $status[$pageNumber] = $answeredCount === $totalQuestions;
+            } else {
+                $status[$pageNumber] = true; // Если нет вопросов, считаем страницу заполненной
+            }
+        }
+        
+        return $status;
+    }
+
+    /**
+     * Получить номера незаполненных страниц
+     * 
+     * @return array
+     */
+    public function getSkippedPages(): array
+    {
+        $completionStatus = $this->getPagesCompletionStatus();
+        $skippedPages = [];
+        
+        foreach ($completionStatus as $pageNumber => $status) {
+            if (!$status) {
+                $skippedPages[] = $pageNumber;
+            }
+        }
+        
+        return $skippedPages;
+    }
+
+    /**
+     * Получить первую незаполненную страницу
+     * 
+     * @return int|null
+     */
+    public function getFirstSkippedPage(): ?int
+    {
+        $skippedPages = $this->getSkippedPages();
+        
+        return empty($skippedPages) ? null : min($skippedPages);
+    }
+
+    /**
+     * Получить ответы брифа, индексированные по question_key
+     * 
+     * @return array
+     */
+    public function getAnswersByQuestionKey(): array
+    {
+        $answers = [];
+        
+        foreach ($this->answers as $answer) {
+            $key = $answer->question_key;
+            if ($answer->room_id) {
+                $answers[$key][$answer->room_id] = $answer->answer_text;
+            } else {
+                $answers[$key] = $answer->answer_text;
+            }
+        }
+        
+        return $answers;
+    }
+
+    /**
+     * Получить ответы для конкретной страницы
+     * 
+     * @param int $page
+     * @return array
+     */
+    public function getAnswersForPage(int $page): array
+    {
+        $answers = [];
+        
+        // Загружаем вопросы для данной страницы
+        $questions = $this->questions()
+            ->where('page', $page)
+            ->where('is_active', true)
+            ->get()
+            ->pluck('key')
+            ->toArray();
+        
+        // Получаем ответы только для вопросов данной страницы
+        $pageAnswers = $this->answers()
+            ->whereIn('question_key', $questions)
+            ->get();
+        
+        foreach ($pageAnswers as $answer) {
+            if ($answer->room_id) {
+                $answers[$answer->question_key][$answer->room_id] = $answer->answer_text;
+            } else {
+                $answers[$answer->question_key] = $answer->answer_text;
+            }
+        }
+        
+        return $answers;
+    }
+
+    /**
+     * Получить ответы для комнат (для общего брифа)
+     * 
+     * @return array
+     */
+    public function getRoomAnswers(): array
+    {
+        $answers = [];
+        
+        if (!$this->isCommon()) {
+            return $answers;
+        }
+        
+        $roomAnswers = $this->answers()
+            ->whereNotNull('room_id')
+            ->with('room')
+            ->get();
+        
+        foreach ($roomAnswers as $answer) {
+            $answers[$answer->question_key][$answer->room_id] = $answer->answer_text;
+        }
+        
+        return $answers;
     }
 
 }

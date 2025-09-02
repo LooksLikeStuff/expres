@@ -2,7 +2,7 @@
 
 namespace App\Services\Chats;
 
-use App\DTO\Briefs\ChatDTO;
+use App\DTO\ChatDTO;
 use App\Enums\ChatType;
 use App\Models\Chats\Chat;
 

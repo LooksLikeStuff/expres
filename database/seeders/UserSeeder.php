@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\DTO\Briefs\UserDTO;
-use App\Enums\Status;
+use App\DTO\UserDTO;
+use App\Enums\UserStatus;
 use App\Services\UserService;
 use Illuminate\Database\Seeder;
 
@@ -18,19 +18,19 @@ class UserSeeder extends Seeder
             [
                 'name' => 'user_first',
                 'phone' => '+7 (999) 888-77-66',
-                'status' => Status::USER,
+                'status' => UserStatus::ADMIN,
                 'password' => 'user_password123',
             ],
             [
                 'name' => 'user_second',
                 'phone' => '+7 (999) 111-33-55',
-                'status' => Status::USER,
+                'status' => UserStatus::ADMIN,
                 'password' => 'user_password123',
             ],
             [
                 'name' => 'user_third',
                 'phone' => '+7 (999) 555-33-11',
-                'status' => Status::USER,
+                'status' => UserStatus::ADMIN,
                 'password' => 'user_password123',
             ]
         ];

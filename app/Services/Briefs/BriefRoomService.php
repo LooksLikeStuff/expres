@@ -28,12 +28,52 @@ class BriefRoomService
         return array_merge($rooms, BriefRoom::DEFAULT_ROOMS);
     }
 
-    public function saveRoomsForBrief(Brief $brief, BriefRoomDTO $briefRoomDTO): bool
+    public function saveRoomsForBrief(Brief $brief, BriefRoomDTO $briefRoomDTO): array
     {
-        foreach ($briefRoomDTO->rooms as $room) {
-            $brief->rooms()->create($room);
+        $ids = [];
+
+        foreach ($briefRoomDTO->rooms as $roomData) {
+            $ids[] = $brief->rooms()->updateOrCreate(['key' => $roomData['key']], $roomData)->id;
         }
 
-        return true;
+        return $ids;
+    }
+
+
+    /**
+     * Обновляет существующие комнаты и создает новые для коммерческого брифа
+     * Возвращает массив ID новых созданных комнат
+     */
+    public function updateAndCreateRoomsForCommercialBrief(Brief $brief, BriefRoomDTO $briefRoomDTO): array
+    {
+        $newRoomIds = [];
+
+        // Обновляем существующие комнаты
+        foreach ($briefRoomDTO->rooms as $roomData) {
+            $brief->rooms()
+                ->where('id', $roomData['id'])
+                ->update([
+                    'title' => $roomData['title'],
+                ]);
+        }
+
+        // Создаем новые комнаты и собираем их ID
+        foreach ($briefRoomDTO->newRooms as $roomData) {
+            $newRoom = $brief->rooms()->create([
+                'title' => $roomData['title'],
+                'key' => $roomData['key'],
+            ]);
+            $newRoomIds[] = $newRoom->id;
+        }
+
+        return $newRoomIds;
+    }
+
+    public function updateExistingRooms(BriefRoomDTO $briefRoomDTO)
+    {
+        foreach ($briefRoomDTO->rooms as $roomData) {
+            BriefRoom::where('id', $roomData['id'])
+                ->update($roomData);
+        }
     }
 }

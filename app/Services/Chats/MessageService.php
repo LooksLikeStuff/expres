@@ -2,7 +2,7 @@
 
 namespace App\Services\Chats;
 
-use App\DTO\Briefs\MessageDTO;
+use App\DTO\MessageDTO;
 use App\Models\Chats\Message;
 
 class MessageService

@@ -330,8 +330,8 @@
         document.addEventListener('input', saveFormState);
         document.addEventListener('change', saveFormState);
 
-        // Загружаем сохранённое состояние при загрузке страницы
-        window.addEventListener('load', loadFormState);
+        // // Загружаем сохранённое состояние при загрузке страницы
+        // window.addEventListener('load', loadFormState);
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -353,22 +353,22 @@
     </script>
     <script>
         function refreshCsrfToken() {
-            return fetch('{{ route('refresh-csrf') }}')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Ошибка обновления CSRF токена');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);
-                    document.querySelectorAll('input[name="_token"]').forEach(input => input.value = data.token);
-                    console.log('CSRF токен успешно обновлен: ' + new Date().toLocaleTimeString());
-                    return data.token;
-                })
-                .catch(error => {
-                    console.error('Ошибка при обновлении CSRF токена:', error);
-                });
+            {{--return fetch('{{ route('refresh-csrf') }}')--}}
+            {{--    .then(response => {--}}
+            {{--        if (!response.ok) {--}}
+            {{--            throw new Error('Ошибка обновления CSRF токена');--}}
+            {{--        }--}}
+            {{--        return response.json();--}}
+            {{--    })--}}
+            {{--    .then(data => {--}}
+            {{--        document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);--}}
+            {{--        document.querySelectorAll('input[name="_token"]').forEach(input => input.value = data.token);--}}
+            {{--        console.log('CSRF токен успешно обновлен: ' + new Date().toLocaleTimeString());--}}
+            {{--        return data.token;--}}
+            {{--    })--}}
+            {{--    .catch(error => {--}}
+            {{--        console.error('Ошибка при обновлении CSRF токена:', error);--}}
+            {{--    });--}}
         }
 
         // Обновляем токен каждые 30 секунд
@@ -415,96 +415,7 @@
             });
         });
     </script>
-    <!-- PWA скрипты -->
-    <script>
-        // Регистрация сервис-воркера для PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker зарегистрирован:', registration.scope);
 
-                        // Передаем CSRF токен в сервис-воркер
-                        if (registration.active) {
-                            registration.active.postMessage({
-                                type: 'SET_CSRF_TOKEN',
-                                token: document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                    'content')
-                            });
-                        }
-
-                        // Запрос разрешения на push-уведомления
-                        requestNotificationPermission(registration);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка регистрации ServiceWorker:', error);
-                    });
-            });
-        }
-
-        // Запрос разрешения на уведомления и подписка на push
-        function requestNotificationPermission(registration) {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        console.log('Разрешение на уведомления получено');
-
-                        // Подписываемся на push-уведомления
-                        if (registration && registration.pushManager) {
-                            registration.pushManager.subscribe({
-                                userVisibleOnly: true,
-                                applicationServerKey: urlBase64ToUint8Array(
-                                    // Замените на ваш VAPID public key
-                                    'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
-                                )
-                            }).then(subscription => {
-                                // Отправляем подписку на сервер
-                                sendSubscriptionToServer(subscription);
-                            }).catch(err => console.error('Ошибка подписки:', err));
-                        }
-                    }
-                });
-            }
-        }
-
-        // Отправка подписки на сервер
-        function sendSubscriptionToServer(subscription) {
-            fetch('/api/push-subscriptions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify(subscription)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Не удалось отправить подписку на сервер');
-                    }
-                    console.log('Подписка успешно отправлена на сервер');
-                })
-                .catch(error => {
-                    console.error('Ошибка отправки подписки:', error);
-                });
-        }
-
-        // Преобразование base64-строки в массив Uint8Array для applicationServerKey
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-                .replace(/\-/g, '+')
-                .replace(/_/g, '/');
-
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-
-            return outputArray;
-        }
-    </script>
     <script>
         // Функция для предотвращения зума на iPhone при фокусе на input
         function preventInputZoom() {

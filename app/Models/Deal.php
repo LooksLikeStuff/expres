@@ -207,6 +207,13 @@ class Deal extends Model
         return $this->hasMany(Rating::class);
     }
 
+    // Отношение к клиенту сделки (новая таблица)
+    public function dealClient()
+    {
+        return $this->hasOne(DealClient::class);
+    }
+
+    // Старое отношение к клиенту-пользователю (сохраняем для совместимости)
     public function client()
     {
         return $this->belongsTo(User::class, 'client_id');
@@ -612,5 +619,111 @@ class Deal extends Model
 
         // Убираем null и дубликаты
         return array_values(array_unique(array_filter($ids)));
+    }
+
+    // Методы для обратной совместимости с клиентскими полями
+    
+    /**
+     * Получить имя клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientNameAttribute()
+    {
+        return $this->dealClient?->name ?? $this->attributes['client_name'] ?? null;
+    }
+
+    /**
+     * Получить телефон клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientPhoneAttribute()
+    {
+        return $this->dealClient?->phone ?? $this->attributes['client_phone'] ?? null;
+    }
+
+    /**
+     * Получить email клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientEmailAttribute()
+    {
+        return $this->dealClient?->email ?? $this->attributes['client_email'] ?? null;
+    }
+
+    /**
+     * Получить город клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientCityAttribute()
+    {
+        return $this->dealClient?->city ?? $this->attributes['client_city'] ?? null;
+    }
+
+    /**
+     * Получить часовой пояс клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientTimezoneAttribute()
+    {
+        return $this->dealClient?->timezone ?? $this->attributes['client_timezone'] ?? null;
+    }
+
+    /**
+     * Получить информацию о клиенте (с поддержкой новой и старой структуры)
+     */
+    public function getClientInfoAttribute()
+    {
+        return $this->dealClient?->info ?? $this->attributes['client_info'] ?? null;
+    }
+
+    /**
+     * Получить ссылку на аккаунт клиента (с поддержкой новой и старой структуры)
+     */
+    public function getClientAccountLinkAttribute()
+    {
+        return $this->dealClient?->account_link ?? $this->attributes['client_account_link'] ?? null;
+    }
+
+    /**
+     * Проверить, есть ли данные клиента
+     */
+    public function hasClientData(): bool
+    {
+        return $this->dealClient !== null || 
+               !empty($this->attributes['client_name']) || 
+               !empty($this->attributes['client_phone']);
+    }
+
+    /**
+     * Получить отформатированный телефон клиента
+     */
+    public function getFormattedClientPhoneAttribute(): ?string
+    {
+        $phone = $this->client_phone;
+        if (!$phone) {
+            return null;
+        }
+
+        return $this->dealClient?->getFormattedPhoneAttribute() ?? $this->formatPhone($phone);
+    }
+
+    /**
+     * Форматирование номера телефона (вспомогательный метод)
+     */
+    private function formatPhone(string $phone): string
+    {
+        // Убираем все символы кроме цифр
+        $cleaned = preg_replace('/[^0-9]/', '', $phone);
+        
+        // Если номер начинается с 8, заменяем на +7
+        if (str_starts_with($cleaned, '8') && strlen($cleaned) === 11) {
+            $cleaned = '7' . substr($cleaned, 1);
+        }
+        
+        // Если номер начинается с 7 и содержит 11 цифр
+        if (str_starts_with($cleaned, '7') && strlen($cleaned) === 11) {
+            return '+7 (' . substr($cleaned, 1, 3) . ') ' . 
+                   substr($cleaned, 4, 3) . '-' . 
+                   substr($cleaned, 7, 2) . '-' . 
+                   substr($cleaned, 9, 2);
+        }
+        
+        // Возвращаем исходный номер, если не удалось отформатировать
+        return $phone;
     }
 }

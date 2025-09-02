@@ -11,13 +11,16 @@ use App\Http\Requests\Briefs\AnswerRequest;
 use App\Http\Requests\Briefs\CreateRequest;
 use App\Http\Requests\Briefs\StoreRoomsRequest;
 use App\Models\Brief;
+use App\Models\BriefRoom;
 use App\Models\User;
 use App\Services\Briefs\BriefAnswerService;
 use App\Services\Briefs\BriefQuestionService;
 use App\Services\Briefs\BriefRoomService;
 use App\Services\Briefs\BriefService;
 use App\Services\BriefPdfService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class BriefController extends Controller
@@ -47,7 +50,14 @@ class BriefController extends Controller
         $commonBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommon());
         $commercialBriefs = $briefs->filter(fn(Brief $brief) => $brief->isCommercial());
 
-        return view('briefs.index', compact('briefs', 'activeBriefs', 'inactiveBriefs', 'commonBriefs', 'commercialBriefs'));
+        // Добавляем информацию о заполненности страниц для активных брифов
+        $activeBriefs->each(function ($brief) {
+            $brief->pagesStatus = $brief->getPagesCompletionStatus();
+        });
+
+        $briefTypes = BriefType::cases();
+
+        return view('briefs.index', compact('briefs', 'activeBriefs', 'inactiveBriefs', 'commonBriefs', 'commercialBriefs', 'briefTypes'));
     }
 
     /**
@@ -88,7 +98,19 @@ class BriefController extends Controller
      */
     public function show(Brief $brief)
     {
-        //
+        // Получаем структурированные данные через сервис
+        $data = $this->briefService->getStructuredDataForShow($brief);
+
+        // Дополнительные данные для конкретных типов брифов
+        if ($brief->isCommon()) {
+            $data['roomAnswers'] = $this->briefAnswerService->getRoomAnswersForCommonBrief($brief);
+        }
+
+        if ($brief->isCommercial()) {
+            $data['zoneAnswers'] = $this->briefAnswerService->getZoneAnswersForCommercialBrief($brief);
+        }
+
+        return view('briefs.show', $data);
     }
 
     /**
@@ -112,7 +134,9 @@ class BriefController extends Controller
      */
     public function destroy(Brief $brief)
     {
-        //
+        $brief->delete();
+
+        return redirect()->back()->with('success', 'Бриф успешно удалён');
     }
 
     //Страница создания комнат для общего брифа
@@ -123,14 +147,51 @@ class BriefController extends Controller
             return redirect()->route('briefs.index')->with('error', 'Комнаты необходимо указывать только для общего брифа.');
         }
 
-        $rooms = $this->briefRoomService->getBriefAndDefaultRooms($brief->id);
+        // Получаем дефолтные комнаты
+        $defaultRooms = BriefRoom::DEFAULT_ROOMS;
 
-        return view('briefs.rooms', compact('brief', 'rooms'));
+        // Загружаем комнаты брифа (кастомные и выбранные дефолтные)
+        $brief->load('rooms');
+        $briefRooms = $brief->rooms;
+
+        // Создаем список всех комнат для отображения
+        $allRooms = [];
+
+        // Добавляем кастомные комнаты брифа
+        foreach ($briefRooms as $room) {
+            if ($room->isCustom()) {
+                $allRooms[] = [
+                    'id' => $room->id,
+                    'key' => $room->key,
+                    'title' => $room->title,
+                    'is_custom' => true,
+                    'is_selected' => true, // Кастомные комнаты всегда выбранные
+                ];
+            }
+        }
+
+        // Добавляем дефолтные комнаты
+        foreach ($defaultRooms as $defaultRoom) {
+            $isSelected = $briefRooms->where('key', $defaultRoom['key'])->isNotEmpty();
+            $selectedRoom = $briefRooms->where('key', $defaultRoom['key'])->first();
+
+            $allRooms[] = [
+                'id' => $selectedRoom ? $selectedRoom->id : null,
+                'key' => $defaultRoom['key'],
+                'title' => $defaultRoom['title'],
+                'is_custom' => false,
+                'is_selected' => $isSelected,
+            ];
+        }
+
+        return view('briefs.rooms', compact('brief', 'allRooms'));
     }
 
     public function storeRooms(Brief $brief, StoreRoomsRequest $request)
     {
-        $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromStoreRoomsRequest($request));
+        if ($request->has('rooms')) {
+            $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromStoreRoomsRequest($request));
+        }
 
         return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => 1]);
     }
@@ -140,49 +201,117 @@ class BriefController extends Controller
      */
     public function questions(Brief $brief, int $page)
     {
-        //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с комнатами
+        if ($brief->isCompleted()) {
+            return redirect()->route('briefs.show', $brief);
+        }
+        //Если нулевая страница и бриф общего типа, то перенаправляем на страницу с добавлением комнат
         if ($brief->isCommon() && $page <= 0) {
-           return redirect()->route('briefs.rooms.create');
+            return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
+        }
+
+        //Если бриф Коммерческий и комнаты не заполнены то переводим на первую страницу где заоплняют комнаты
+        if ($brief->isCommercial() && !$brief->rooms()->exists()) {
+            $page = 1;
+        }
+
+        //Если это последняя страница или у брифа статус "Есть пропущенные страницы",
+        //то проверяем, есть ли пропущенные страницы
+        if ($page > $brief->totalQuestionPages() || $brief->hasSkippedPages()) {
+            $page = $this->briefQuestionService->getMinSkippedPage($brief);
+
+            //Если есть пропущенные страницы, то устанавливаем статус, что есть пропущенные страницы, иначе устанавливаем статус Завершен
+            if (!is_null($page)) {
+                $brief->markAsHasSkippedPages();
+            } else {
+                $brief->markAsCompleted();
+
+                return redirect()->route('user_deal');
+            }
         }
 
         $questions = $this->briefQuestionService->getQuestionsByTypeAndPage($brief->type, $page);
 
+        // Загружаем ответы для текущей страницы
+        $brief->load('answers', 'answers.room');
+        $answers = $brief->getAnswersForPage($page);
+
         if ($brief->isCommon()) {
-            if ($page === 3) $brief->load('rooms');
+            //На третьей страницы общего брифа заполняется информация для комнат, поэтому подгружаем их
+            if ($page === 3) {
+                $brief->load('rooms');
+                //Если у брифа нет ни одной комнаты, переводим на страницу добавления комнат
+                if ($brief->rooms->isEmpty()) return redirect()->route('briefs.rooms.create', ['brief' => $brief]);
 
-            return view('briefs.questions', ['questions' => $questions, 'page' => $page, 'totalPages' => 5, 'brief' => $brief]);
+                $brief->rooms->map(fn ($room) => $room->setQuestion($brief->type, $questions)); //Устанавливаем атрибут с вопросом по поводу комнаты
+
+                // Для страницы с комнатами загружаем ответы по комнатам
+                $roomAnswers = $brief->getRoomAnswers();
+                return view('briefs.questions', compact('questions', 'brief', 'page', 'answers', 'roomAnswers'));
+            }
+
         } else {
-            $user = User::find($brief->user_id) ?: Auth::user();
-            $zones = $brief->getZonesData();
-            $preferences = $brief->getPreferencesData();
-            $budget = $brief->price ?? 0;
-
-            return view('briefs.questions', [
-                'page' => $page,
-                'zones' => $zones,
-                'preferences' => $preferences,
-                'budget' => $budget,
-                'user' => $user,
-                'title_site' => 'Коммерческий бриф',
-                'brief' => $brief,
-                'totalPages' => 13,
-                'questions' => $questions,
-            ]);
+            //Для коммерческого брифа все вопросы связаны с зонами, подгружаем их всегда
+            $brief->load('rooms');
         }
+
+        return view('briefs.questions', compact('questions', 'brief', 'page', 'answers'));
     }
+
 
     public function answers(Brief $brief, AnswerRequest $request)
     {
-       $this->briefAnswerService->create($brief, BriefAnswerDTO::fromStoreRoomsRequest($request));
+        $page = $request->get('page');
 
-       dd($request->get('page'));
+        //Общий бриф
+        if ($brief->isCommon()) {
+            //На третьей странице добавляются комнаты
+            if ($page == 3) $dto = BriefAnswerDTO::fromValidatedCommonRoomsArray($request->validated('rooms'));
+            else $dto = BriefAnswerDTO::fromAnswerRequest($request);
+        }
+        else { //Коммерческий бриф
+            if($request->hasAny('rooms', 'addRooms')) {
+                $rooms = [];
+                //Обновляем существующие комнаты если были внесены изменения
+                if ($request->has('rooms')) {
+                    $rooms = $request->validated('rooms');
+                    $this->briefRoomService->updateExistingRooms(BriefRoomDTO::fromExistingCommercialRoomsData($rooms));
+                }
+
+                //Добавляем новые комнаты
+                if ($request->has('addRooms')) {
+                    $newRooms = $request->validated('addRooms');
+                    $newRoomIds = $this->briefRoomService->saveRoomsForBrief($brief, BriefRoomDTO::fromNewCommercialRoomsData($newRooms));
+
+                    // Переназначаем ключи, подставляем id новых комнат вместо $index, это нужно для того чтобы можно было удобно сохранить ответы на вопросы
+                    foreach ($newRooms as $index => $room) {
+                        $rooms[$newRoomIds[$index]] = $room;
+                    }
+
+                }
+                $dto = BriefAnswerDTO::fromValidatedCommercialRoomsArray($rooms);
+            } else {
+                // Для других страниц коммерческого брифа используем стандартную логику
+                $dto = BriefAnswerDTO::fromValidatedCommercialAnswersArray($request->validated('answers'));
+            }
+        }
+
+        $this->briefAnswerService->updateOrCreate($brief, $dto);
+
+
+        //Сохраняем документы брифа
+        if ($request->has('documents')) {
+            $this->briefService->saveDocuments($brief, $request->validated('documents'));
+        }
+
+        //Идем дальше на следующую страницу
+       return redirect()->route('briefs.questions', ['brief' => $brief, 'page' => $page + 1]);
     }
 
     /**
      * Скачать PDF-версию брифа
      *
      * @param Brief $brief
-     * @return \Illuminate\Http\Response
+     * @return RedirectResponse|Response
      */
     public function pdf(Brief $brief)
     {

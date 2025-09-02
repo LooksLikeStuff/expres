@@ -24,10 +24,10 @@ class AnswerRequest extends FormRequest
         return [
             'answers'      => 'nullable|array',
             'price'        => 'nullable|numeric',
+            'rooms'        => 'nullable|array',
+            'addRooms' => 'nullable|array',
             'documents'    => 'nullable|array',
             'documents.*'  => 'file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
-            'references'   => 'nullable|array',
-            'references.*' => 'file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,3gp',
             'skip_page'    => 'nullable|boolean'
         ];
     }

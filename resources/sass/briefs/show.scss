@@ -1,0 +1,486 @@
+// Brief Show Page Styles
+// ======================
+
+// Variables
+$primary-blue: #0085ff;
+$light-blue: #e9f5fe;
+$orange: #ff6a00;
+$light-orange: #fff0dc;
+$gray-bg: #f8f9fa;
+$gray-light: #f7f7f7;
+$gray-border: #ddd;
+$gray-dark: #333;
+$gray-medium: #777;
+$gray-icon: #617084;
+$text-muted: #999;
+
+$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+$transition-default: all 0.2s ease;
+
+// Header Section
+.flex-h1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: $gray-dark;
+    }
+
+    .btn {
+        margin-left: 15px;
+    }
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+// Brief Details Container
+.brief-details {
+    .card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: $card-shadow;
+        margin-bottom: 25px;
+        transition: $transition-default;
+
+        &:hover {
+            box-shadow: $card-shadow-hover;
+        }
+    }
+
+    .card-header {
+        background-color: $gray-light;
+        padding: 15px 20px;
+        border-bottom: 1px solid $gray-border;
+        font-weight: 600;
+
+        h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: $gray-dark;
+        }
+
+        .text-muted {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+}
+
+// Table Styles
+.table {
+    margin-bottom: 30px;
+    border-collapse: collapse;
+
+    th {
+        width: 200px;
+        font-weight: 600;
+        background-color: $gray-bg;
+        padding: 12px 15px;
+        border: 1px solid #dee2e6;
+    }
+
+    td {
+        padding: 12px 15px;
+        border: 1px solid #dee2e6;
+        vertical-align: top;
+    }
+
+    thead th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+    }
+
+    tbody tr {
+        &:hover {
+            background-color: #f9f9f9;
+        }
+    }
+
+    &.table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &.table-bordered {
+        border: 1px solid #dee2e6;
+
+        th,
+        td {
+            border: 1px solid #dee2e6;
+        }
+    }
+}
+
+// Room Badges
+.selected-rooms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.room-badge {
+    background-color: $light-blue;
+    color: $primary-blue;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: $transition-default;
+
+    &.custom-room-badge {
+        background-color: $light-orange;
+        color: $orange;
+        border: 1px solid $orange;
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+// Documents Grid
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.document-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: $card-shadow;
+    transition: $transition-default;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: $card-shadow-hover;
+    }
+
+    // Alternative grid layout for commercial briefs
+    &.grid-item {
+        flex-direction: column;
+        text-align: center;
+        width: calc(33.333% - 15px);
+        min-width: 250px;
+    }
+}
+
+.document-link {
+    display: flex;
+    align-items: center;
+    color: $gray-dark;
+    text-decoration: none;
+    width: 100%;
+
+    &:hover {
+        color: $primary-blue;
+        text-decoration: none;
+    }
+}
+
+.document-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: #f0f4f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 20px;
+
+    i {
+        color: $gray-icon;
+
+        // File type specific colors
+        &.fa-file-pdf { color: #e74c3c; }
+        &.fa-file-word { color: #3498db; }
+        &.fa-file-excel { color: #2ecc71; }
+        &.fa-file-image { color: #9b59b6; }
+        &.fa-file-video { color: #e67e22; }
+        &.fa-file-audio { color: #f39c12; }
+        &.fa-file-archive { color: #34495e; }
+        &.fa-file-code { color: #e74c3c; }
+        &.fa-drafting-compass { color: #3498db; }
+        &.fa-file-alt { color: #95a5a6; }
+        &.fa-file { color: #7f8c8d; }
+    }
+}
+
+.document-info {
+    flex: 1;
+    overflow: hidden;
+
+    .document-name {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: $gray-dark;
+    }
+}
+
+.document-type {
+    display: block;
+    font-size: 12px;
+    color: $text-muted;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+// References Grid
+.references-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.reference-item {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: $card-shadow;
+    transition: $transition-default;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $card-shadow-hover;
+    }
+}
+
+.reference-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.reference-image-link {
+    display: block;
+    width: 100%;
+}
+
+.reference-file-link {
+    display: flex;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+    padding: 12px;
+    background-color: $gray-bg;
+
+    &:hover {
+        background-color: $light-blue;
+        color: $primary-blue;
+        text-decoration: none;
+    }
+}
+
+// Zone Sections (for Commercial Briefs)
+.zone-section {
+    border-left: 4px solid #28a745;
+    padding-left: 15px;
+    margin-bottom: 30px;
+
+    h4 {
+        color: #28a745;
+        margin-bottom: 15px;
+        font-weight: 600;
+
+        i {
+            margin-right: 8px;
+        }
+    }
+}
+
+.answer-content {
+    background-color: $gray-bg;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #dee2e6;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+// Room Sections (for Common Briefs)
+.room-section {
+    margin-bottom: 25px;
+
+    h4 {
+        color: $primary-blue;
+        margin-bottom: 15px;
+        font-weight: 600;
+
+        i {
+            margin-right: 8px;
+        }
+    }
+}
+
+// Edit History Notification
+.edit-history-notification {
+    margin: 15px;
+    padding: 10px;
+
+    .alert {
+        border-radius: 6px;
+        
+        i {
+            margin-right: 8px;
+        }
+
+        .alert-link {
+            font-weight: 600;
+            text-decoration: underline;
+        }
+    }
+}
+
+// Badge Styles
+.badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    &.bg-success {
+        background-color: #28a745 !important;
+        color: white;
+    }
+
+    &.bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529;
+    }
+
+    &.bg-secondary {
+        background-color: #6c757d !important;
+        color: white;
+    }
+
+    &.bg-primary {
+        background-color: $primary-blue !important;
+        color: white;
+    }
+}
+
+// Responsive Design
+@media (max-width: 992px) {
+    .document-item.grid-item {
+        width: calc(50% - 15px);
+    }
+
+    .documents-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .flex-h1 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+
+        .button-group {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .brief-details .card-header {
+        padding: 12px 15px;
+
+        h2 {
+            font-size: 1.2rem;
+        }
+    }
+
+    .brief-details .card-body {
+        padding: 15px;
+    }
+
+    .table th {
+        width: auto;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 576px) {
+    .document-item.grid-item {
+        width: 100%;
+    }
+
+    .documents-grid,
+    .references-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .selected-rooms {
+        gap: 8px;
+    }
+
+    .room-badge {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        width: 100%;
+
+        .btn {
+            margin-left: 0;
+            width: 100%;
+        }
+    }
+
+    .document-item {
+        padding: 10px;
+    }
+
+    .document-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        margin-right: 10px;
+    }
+}
+
+// Print Styles
+@media print {
+    .flex-h1 .button-group {
+        display: none;
+    }
+
+    .brief-details .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+    }
+
+    .document-item,
+    .reference-item {
+        break-inside: avoid;
+    }
+}

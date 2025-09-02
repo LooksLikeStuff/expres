@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['active_projects_count']);
+//            $table->dropColumn(['active_projects_count']);
         });
     }
 
@@ -22,9 +22,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->smallInteger('active_projects_count')
-                ->after('city')
-                ->default(0);
+//            $table->smallInteger('active_projects_count')
+//                ->after('city')
+//                ->default(0);
         });
     }
 };

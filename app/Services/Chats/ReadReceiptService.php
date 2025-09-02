@@ -2,7 +2,7 @@
 
 namespace App\Services\Chats;
 
-use App\DTO\Briefs\ReadReceiptDTO;
+use App\DTO\ReadReceiptDTO;
 use App\Exceptions\Chats\MessageReadException;
 use App\Models\Chats\ReadReceipt;
 

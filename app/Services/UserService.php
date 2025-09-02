@@ -48,6 +48,13 @@ class UserService
         return User::where('phone', 'LIKE', "%{$phone}%")->get();
     }
 
+
+    public function getIdByName(string $name): ?int
+    {
+        return User::select('id')
+            ->where('name', trim($name))
+            ->first()?->id;
+    }
     public function existsByPhone(string $phone): bool
     {
         return User::where('phone', $phone)->exists();

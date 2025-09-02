@@ -93,7 +93,7 @@ services:
     phpmyadmin:
         image: 'phpmyadmin:latest'
         ports:
-            - '${FORWARD_PHPMYADMIN_PORT:-8080}:80'
+            - '${ы:-8080}:80'
         networks:
             - sail
         environment:
