@@ -88,7 +88,9 @@ export default defineConfig(({ mode }) => {
                     //briefs
                     'resources/js/briefs/create.js',
                     'resources/js/briefs/questions.js',
+                    'resources/js/briefs/show.js',
                     'resources/sass/briefs/questions.scss',
+                    'resources/sass/briefs/show.scss',
                 ],
                 refresh: true,
             }),

@@ -20,4 +20,27 @@ class BriefAnswerService
         }
     }
 
+    /**
+     * Получить ответы по комнатам для общего брифа (страница 3)
+     */
+    public function getRoomAnswersForCommonBrief(Brief $brief)
+    {
+        return $brief->answers()
+            ->whereHas('question', fn($q) => $q->where('page', 3))
+            ->with(['question', 'room'])
+            ->get()
+            ->groupBy('room_id');
+    }
+
+    /**
+     * Получить ответы по зонам для коммерческого брифа
+     */
+    public function getZoneAnswersForCommercialBrief(Brief $brief)
+    {
+        return $brief->answers()
+            ->with(['question', 'room'])
+            ->get()
+            ->groupBy('room_id');
+    }
+
 }

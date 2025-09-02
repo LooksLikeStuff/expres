@@ -90,7 +90,19 @@ class BriefController extends Controller
      */
     public function show(Brief $brief)
     {
-        dd($brief);
+        // Получаем структурированные данные через сервис
+        $data = $this->briefService->getStructuredDataForShow($brief);
+
+        // Дополнительные данные для конкретных типов брифов
+        if ($brief->isCommon()) {
+            $data['roomAnswers'] = $this->briefAnswerService->getRoomAnswersForCommonBrief($brief);
+        }
+
+        if ($brief->isCommercial()) {
+            $data['zoneAnswers'] = $this->briefAnswerService->getZoneAnswersForCommercialBrief($brief);
+        }
+
+        return view('briefs.show', $data);
     }
 
     /**
