@@ -90,13 +90,20 @@ class BriefSearchController extends Controller
                 ]);
             }
 
-            // Проверяем, привязан ли уже бриф к сделке
+            // Проверяем, привязан ли уже бриф к сделке (новая и старая система)
             $deal = Deal::with('dealClient')->find($dealId);
             $hasAttachedBrief = false;
             $attachedBriefType = null;
 
             if ($deal) {
-                if ($deal->common_id) {
+                // Проверяем новую систему брифов
+                if ($deal->briefs()->exists()) {
+                    $hasAttachedBrief = true;
+                    $activeBrief = $deal->activeBrief;
+                    $attachedBriefType = $activeBrief ? $activeBrief->type->value : 'unified';
+                }
+                // LEGACY: Проверяем старую систему
+                elseif ($deal->common_id) {
                     $hasAttachedBrief = true;
                     $attachedBriefType = 'common';
                 } elseif ($deal->commercial_id) {
@@ -106,7 +113,33 @@ class BriefSearchController extends Controller
             }
 
             try {
-                // Ищем общие брифы по ID пользователей (только завершенные и отредактированные)
+                // НОВАЯ СИСТЕМА: Ищем унифицированные брифы
+                $unifiedBriefs = collect([]);
+                if (class_exists(\App\Models\Brief::class)) {
+                    $unifiedBriefs = \App\Models\Brief::whereIn('user_id', $userIds)
+                        ->whereIn('status', [\App\Enums\Briefs\BriefStatus::COMPLETED])
+                        ->where(function($query) use ($dealId) {
+                            $query->whereNull('deal_id')
+                                  ->orWhere('deal_id', $dealId);
+                        })
+                        ->with('user')
+                        ->get()
+                        ->map(function($brief) use ($dealId) {
+                            return [
+                                'id' => $brief->id,
+                                'title' => $brief->title ?? ('Бриф #' . $brief->id),
+                                'type' => $brief->type->value,
+                                'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
+                                'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
+                                'already_linked' => $brief->deal_id == $dealId,
+                                'status' => $brief->status->value ?? 'Не указан',
+                                'can_attach' => !$brief->deal_id || $brief->deal_id == $dealId,
+                                'system' => 'unified'
+                            ];
+                        });
+                }
+
+                // LEGACY: Ищем общие брифы по ID пользователей (только завершенные и отредактированные)
                 $commonBriefs = Common::whereIn('user_id', $userIds)
                     ->whereIn('status', ['Завершенный', 'Отредактированный'])
                     ->with('user')
@@ -118,26 +151,32 @@ class BriefSearchController extends Controller
                         return [
                             'id' => $brief->id,
                             'title' => $brief->name ?? $brief->title ?? ('Общий бриф #' . $brief->id),
+                            'type' => 'common',
                             'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
                             'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
                             'already_linked' => $alreadyLinked,
                             'status' => $brief->status ?? 'Не указан',
-                            'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
+                            'can_attach' => !$alreadyLinked,
+                            'system' => 'legacy'
                         ];
                     });
 
                 Log::info('Найдено общих брифов (завершенные и отредактированные): ' . $commonBriefs->count(), [
                     'briefs' => $commonBriefs->toArray()
                 ]);
+                Log::info('Найдено унифицированных брифов: ' . $unifiedBriefs->count(), [
+                    'briefs' => $unifiedBriefs->toArray()
+                ]);
             } catch (Exception $e) {
                 Log::error('Ошибка при поиске общих брифов: ' . $e->getMessage(), [
                     'trace' => $e->getTraceAsString()
                 ]);
                 $commonBriefs = collect([]);
+                $unifiedBriefs = collect([]);
             }
 
             try {
-                // Ищем коммерческие брифы по ID пользователей (только завершенные и отредактированные)
+                // LEGACY: Ищем коммерческие брифы по ID пользователей (только завершенные и отредактированные)
                 $commercialBriefs = Commercial::whereIn('user_id', $userIds)
                     ->whereIn('status', ['Завершенный', 'Отредактированный'])
                     ->with('user')
@@ -149,11 +188,13 @@ class BriefSearchController extends Controller
                         return [
                             'id' => $brief->id,
                             'title' => $brief->name ?? $brief->title ?? ('Коммерческий бриф #' . $brief->id),
+                            'type' => 'commercial',
                             'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
                             'created_at' => \Carbon\Carbon::parse($brief->created_at)->format('d.m.Y H:i'),
                             'already_linked' => $alreadyLinked,
                             'status' => $brief->status ?? 'Не указан',
-                            'can_attach' => !$alreadyLinked // Можно привязать только если не привязан к другой сделке
+                            'can_attach' => !$alreadyLinked,
+                            'system' => 'legacy'
                         ];
                     });
 
@@ -167,6 +208,8 @@ class BriefSearchController extends Controller
                 $commercialBriefs = collect([]);
             }
 
+            $totalBriefs = $unifiedBriefs->count() + $commonBriefs->count() + $commercialBriefs->count();
+
             return response()->json([
                 'success' => true,
                 'users' => $users->map(function($user) {
@@ -177,12 +220,13 @@ class BriefSearchController extends Controller
                         'phone' => $user->phone
                     ];
                 }),
+                'unified_briefs' => $unifiedBriefs,
                 'briefs' => $commonBriefs,
                 'commercials' => $commercialBriefs,
                 'has_attached_brief' => $hasAttachedBrief,
                 'attached_brief_type' => $attachedBriefType,
-                'total_found' => $commonBriefs->count() + $commercialBriefs->count(),
-                'message' => 'Найдено доступных для привязки брифов: ' . ($commonBriefs->count() + $commercialBriefs->count())
+                'total_found' => $totalBriefs,
+                'message' => 'Найдено доступных для привязки брифов: ' . $totalBriefs
             ]);
 
         } catch (Exception $e) {
@@ -244,53 +288,97 @@ class BriefSearchController extends Controller
                 ]);
             }
 
-            // Проверяем тип брифа
-            if (!in_array($briefType, ['common', 'commercial'])) {
-                Log::warning('Неверный тип брифа', ['brief_type' => $briefType]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Неверный тип брифа. Допустимые значения: common, commercial'
-                ]);
-            }
+            // Получаем тип системы брифов
+            $briefSystem = $request->input('brief_system', 'legacy');
 
-            // Привязываем бриф к сделке в зависимости от типа
-            if ($briefType === 'common') {
-                $brief = Common::find($briefId);
+            // Новая унифицированная система брифов
+            if ($briefSystem === 'unified') {
+                $brief = \App\Models\Brief::find($briefId);
                 if (!$brief) {
-                    Log::warning('Общий бриф не найден', ['brief_id' => $briefId]);
+                    Log::warning('Унифицированный бриф не найден', ['brief_id' => $briefId]);
                     return response()->json([
                         'success' => false,
-                        'message' => 'Общий бриф не найден'
+                        'message' => 'Бриф не найден'
                     ]);
                 }
 
-                $deal->common_id = $briefId;
-                $deal->has_brief = true; // Устанавливаем флаг наличия брифа
-                $deal->save();
-
-                Log::info('Общий бриф успешно привязан', [
-                    'deal_id' => $dealId,
-                    'brief_id' => $briefId
-                ]);
-
-            } elseif ($briefType === 'commercial') {
-                $brief = Commercial::find($briefId);
-                if (!$brief) {
-                    Log::warning('Коммерческий бриф не найден', ['brief_id' => $briefId]);
+                // Проверяем, можно ли привязать бриф
+                if (!$deal->attachBrief($brief)) {
+                    Log::warning('Не удалось привязать унифицированный бриф', [
+                        'deal_id' => $dealId,
+                        'brief_id' => $briefId,
+                        'already_attached_to' => $brief->deal_id
+                    ]);
                     return response()->json([
                         'success' => false,
-                        'message' => 'Коммерческий бриф не найден'
+                        'message' => 'Бриф уже привязан к другой сделке'
                     ]);
                 }
 
-                $deal->commercial_id = $briefId;
-                $deal->has_brief = true; // Устанавливаем флаг наличия брифа
-                $deal->save();
-
-                Log::info('Коммерческий бриф успешно привязан', [
+                Log::info('Унифицированный бриф успешно привязан', [
                     'deal_id' => $dealId,
-                    'brief_id' => $briefId
+                    'brief_id' => $briefId,
+                    'brief_type' => $brief->type->value
                 ]);
+
+            } else {
+                // LEGACY: Старая система брифов
+                // Проверяем тип брифа
+                if (!in_array($briefType, ['common', 'commercial'])) {
+                    Log::warning('Неверный тип брифа', ['brief_type' => $briefType]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Неверный тип брифа. Допустимые значения: common, commercial'
+                    ]);
+                }
+
+                // Привязываем бриф к сделке в зависимости от типа
+                if ($briefType === 'common') {
+                    $brief = Common::find($briefId);
+                    if (!$brief) {
+                        Log::warning('Общий бриф не найден', ['brief_id' => $briefId]);
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Общий бриф не найден'
+                        ]);
+                    }
+
+                    $deal->common_id = $briefId;
+                    $deal->has_brief = true; // Устанавливаем флаг наличия брифа
+                    $deal->save();
+
+                    // Также обновляем поле deal_id в брифе
+                    $brief->deal_id = $dealId;
+                    $brief->save();
+
+                    Log::info('Общий бриф успешно привязан', [
+                        'deal_id' => $dealId,
+                        'brief_id' => $briefId
+                    ]);
+
+                } elseif ($briefType === 'commercial') {
+                    $brief = Commercial::find($briefId);
+                    if (!$brief) {
+                        Log::warning('Коммерческий бриф не найден', ['brief_id' => $briefId]);
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Коммерческий бриф не найден'
+                        ]);
+                    }
+
+                    $deal->commercial_id = $briefId;
+                    $deal->has_brief = true; // Устанавливаем флаг наличия брифа
+                    $deal->save();
+
+                    // Также обновляем поле deal_id в брифе
+                    $brief->deal_id = $dealId;
+                    $brief->save();
+
+                    Log::info('Коммерческий бриф успешно привязан', [
+                        'deal_id' => $dealId,
+                        'brief_id' => $briefId
+                    ]);
+                }
             }
 
             return response()->json([

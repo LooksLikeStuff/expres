@@ -1551,16 +1551,50 @@ class DealsController extends Controller
                 ], 404);
             }
 
-            // Проверяем наличие привязанных брифов
-            $hasAttachedBrief = !empty($deal->common_id) || !empty($deal->commercial_id);
-            $attachedBriefType = !empty($deal->common_id) ? 'common' : (!empty($deal->commercial_id) ? 'commercial' : null);
+            // Проверяем наличие привязанных брифов (новая и старая система)
+            $hasAttachedBrief = $deal->has_brief || !empty($deal->common_id) || !empty($deal->commercial_id);
+            $attachedBriefType = null;
+            
+            // Определяем тип привязанного брифа
+            if ($deal->briefs()->exists()) {
+                $activeBrief = $deal->activeBrief;
+                $attachedBriefType = $activeBrief ? $activeBrief->type->value : 'unified';
+            } elseif (!empty($deal->common_id)) {
+                $attachedBriefType = 'common';
+            } elseif (!empty($deal->commercial_id)) {
+                $attachedBriefType = 'commercial';
+            }
 
             // Получаем брифы для найденных пользователей
+            $unifiedBriefs = [];
             $commonBriefs = [];
             $commercialBriefs = [];
 
             if (!empty($userIds)) {
-                // Общие брифы со статусом "Завершенный" или "Завершен"
+                // НОВАЯ СИСТЕМА: Унифицированные брифы
+                $unifiedBriefs = \App\Models\Brief::whereIn('user_id', $userIds)
+                    ->whereIn('status', [\App\Enums\Briefs\BriefStatus::COMPLETED])
+                    ->where(function($query) use ($dealId) {
+                        $query->whereNull('deal_id')  // Только не привязанные брифы
+                              ->orWhere('deal_id', $dealId); // Или привязанные к текущей сделке
+                    })
+                    ->with('user')
+                    ->get()
+                    ->map(function($brief) use ($dealId) {
+                        return [
+                            'id' => $brief->id,
+                            'title' => $brief->title ?? ('Бриф #' . $brief->id),
+                            'type' => $brief->type->value,
+                            'user_id' => $brief->user_id,
+                            'user_name' => $brief->user->name ?? 'Неизвестный пользователь',
+                            'created_at' => $brief->created_at->format('d.m.Y H:i'),
+                            'already_linked' => $brief->deal_id == $dealId,
+                            'system' => 'unified'
+                        ];
+                    })
+                    ->toArray();
+
+                // LEGACY: Общие брифы со статусом "Завершенный" или "Завершен"
                 $commonBriefs = \App\Models\Common::whereIn('user_id', $userIds)
                     ->whereIn('status', ['Завершенный', 'Завершен'])
                     ->where(function($query) use ($dealId) {
@@ -1579,16 +1613,18 @@ class DealsController extends Controller
 
                         return [
                             'id' => $brief->id,
-                            'title' => $brief->title ?? ('Бриф #' . $brief->id),
+                            'title' => $brief->title ?? ('Общий бриф #' . $brief->id),
+                            'type' => 'common',
                             'user_id' => $brief->user_id,
                             'user_name' => $userName,
                             'created_at' => $brief->created_at->format('d.m.Y H:i'),
-                            'already_linked' => $brief->deal_id == $dealId
+                            'already_linked' => $brief->deal_id == $dealId,
+                            'system' => 'legacy'
                         ];
                     })
                     ->toArray();
 
-                // Коммерческие брифы со статусом "Завершенный" или "Завершен"
+                // LEGACY: Коммерческие брифы со статусом "Завершенный" или "Завершен"
                 $commercialBriefs = \App\Models\Commercial::whereIn('user_id', $userIds)
                     ->whereIn('status', ['Завершенный', 'Завершен'])
                     ->where(function($query) use ($dealId) {
@@ -1608,10 +1644,12 @@ class DealsController extends Controller
                         return [
                             'id' => $brief->id,
                             'title' => $brief->title ?? ('Коммерческий бриф #' . $brief->id),
+                            'type' => 'commercial',
                             'user_id' => $brief->user_id,
                             'user_name' => $userName,
                             'created_at' => $brief->created_at->format('d.m.Y H:i'),
-                            'already_linked' => $brief->deal_id == $dealId
+                            'already_linked' => $brief->deal_id == $dealId,
+                            'system' => 'legacy'
                         ];
                     })
                     ->toArray();
@@ -1630,12 +1668,14 @@ class DealsController extends Controller
             return response()->json([
                 'success' => true,
                 'users' => $usersInfo,
+                'unified_briefs' => $unifiedBriefs,
                 'briefs' => $commonBriefs,
                 'commercials' => $commercialBriefs,
                 'has_attached_brief' => $hasAttachedBrief,
                 'attached_brief_type' => $attachedBriefType,
                 'searched_phone' => $clientPhone,
-                'message' => count($commonBriefs) + count($commercialBriefs) > 0
+                'total_briefs' => count($unifiedBriefs) + count($commonBriefs) + count($commercialBriefs),
+                'message' => (count($unifiedBriefs) + count($commonBriefs) + count($commercialBriefs)) > 0
                     ? 'Найдены брифы для указанного телефона'
                     : 'Брифы не найдены для указанного телефона'
             ]);
@@ -1663,7 +1703,8 @@ class DealsController extends Controller
         try {
             $dealId = $request->input('deal_id');
             $briefId = $request->input('brief_id');
-            $briefType = $request->input('brief_type', 'common');
+            $briefType = $request->input('brief_type');
+            $briefSystem = $request->input('brief_system', 'legacy'); // unified или legacy
 
             if (!$dealId || !$briefId) {
                 return response()->json([
@@ -1682,7 +1723,33 @@ class DealsController extends Controller
                 ], 404);
             }
 
-            // В зависимости от типа брифа привязываем его к сделке
+            // Новая унифицированная система брифов
+            if ($briefSystem === 'unified') {
+                $brief = \App\Models\Brief::find($briefId);
+
+                if (!$brief) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Бриф не найден'
+                    ], 404);
+                }
+
+                // Проверяем, можно ли привязать бриф
+                if (!$deal->attachBrief($brief)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Бриф уже привязан к другой сделке'
+                    ], 400);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Бриф успешно привязан к сделке',
+                    'reload_required' => true
+                ]);
+            }
+
+            // LEGACY: Старая система брифов
             if ($briefType === 'common') {
                 $brief = Common::find($briefId);
 
@@ -1763,7 +1830,9 @@ class DealsController extends Controller
     {
         try {
             $dealId = $request->input('deal_id');
-            $briefType = $request->input('brief_type', 'common');
+            $briefType = $request->input('brief_type');
+            $briefSystem = $request->input('brief_system', 'legacy'); // unified или legacy
+            $briefId = $request->input('brief_id'); // Для новой системы
 
             if (!$dealId) {
                 return response()->json([
@@ -1782,7 +1851,29 @@ class DealsController extends Controller
                 ], 404);
             }
 
-            // В зависимости от типа отвязываем бриф от сделки
+            // Новая унифицированная система брифов
+            if ($briefSystem === 'unified') {
+                if ($briefId) {
+                    // Отвязываем конкретный бриф
+                    $brief = \App\Models\Brief::find($briefId);
+                    if ($brief && $brief->deal_id == $dealId) {
+                        $deal->detachBrief($brief);
+                    }
+                } else {
+                    // Отвязываем все брифы от сделки
+                    $briefs = $deal->briefs;
+                    foreach ($briefs as $brief) {
+                        $deal->detachBrief($brief);
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Бриф успешно отвязан от сделки'
+                ]);
+            }
+
+            // LEGACY: Старая система брифов
             if ($briefType === 'common') {
                 if (empty($deal->common_id)) {
                     return response()->json([

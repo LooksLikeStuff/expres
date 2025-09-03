@@ -130,26 +130,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('briefForm').addEventListener('submit', function (event) {
             // Проверяем, есть ли файлы для загрузки
-            if (document.getElementById('referenceInput') &&
-                document.getElementById('referenceInput').files &&
-                document.getElementById('referenceInput').files.length > 0) {
+            // if (document.getElementById('referenceInput') &&
+            //     document.getElementById('referenceInput').files &&
+            //     document.getElementById('referenceInput').files.length > 0) {
 
-                // Плавно показываем анимацию загрузки
-                const loader = document.getElementById('fullscreen-loader');
-                loader.classList.add('show');
+            //     // Плавно показываем анимацию загрузки
+            //     const loader = document.getElementById('fullscreen-loader');
+            //     loader.classList.add('show');
 
-                // Анимация прогресс-бара при отправке формы
-                let width = 0;
-                const progressBar = document.querySelector('.loader-progress-bar');
-                const progressInterval = setInterval(function () {
-                    if (width >= 90) {
-                        clearInterval(progressInterval);
-                    } else {
-                        width += Math.random() * 3;
-                        progressBar.style.width = width + '%';
-                    }
-                }, 300);
-            }
+            //     // Анимация прогресс-бара при отправке формы
+            //     let width = 0;
+            //     const progressBar = document.querySelector('.loader-progress-bar');
+            //     const progressInterval = setInterval(function () {
+            //         if (width >= 90) {
+            //             clearInterval(progressInterval);
+            //         } else {
+            //             width += Math.random() * 3;
+            //             progressBar.style.width = width + '%';
+            //         }
+            //     }, 300);
+            // }
+        
         });
     }
 
@@ -318,44 +319,46 @@ async function validateAndSubmit(page) {
         //     location.reload();
         //     return;
         // }            // Показываем анимацию загрузки только на странице 5 (загрузка референсов)
-        if (page === 5 && document.getElementById('referenceInput') &&
-        document.getElementById('referenceInput').files &&
-        document.getElementById('referenceInput').files.length > 0
-    )
-        {
+        // if (page === 5 && document.getElementById('referenceInput') &&
+        // document.getElementById('referenceInput').files &&
+        // document.getElementById('referenceInput').files.length > 0)
+        // {
 
-            // Плавно показываем анимацию загрузки
-            const loader = document.getElementById('fullscreen-loader');
-            loader.classList.add('show');
+        //     // Плавно показываем анимацию загрузки
+        //     const loader = document.getElementById('fullscreen-loader');
+        //     loader.classList.add('show');
 
-            // Анимация прогресс-бара
-            let width = 0;
-            const progressBar = document.querySelector('.loader-progress-bar');
-            const progressInterval = setInterval(function () {
-                if (width >= 90) {
-                    clearInterval(progressInterval);
-                } else {
-                    width += Math.random() * 3;
-                    progressBar.style.width = width + '%';
-                }
-            }, 300);
+        //     // Анимация прогресс-бара
+        //     let width = 0;
+        //     const progressBar = document.querySelector('.loader-progress-bar');
+        //     const progressInterval = setInterval(function () {
+        //         if (width >= 90) {
+        //             clearInterval(progressInterval);
+        //         } else {
+        //             width += Math.random() * 3;
+        //             progressBar.style.width = width + '%';
+        //         }
+        //     }, 300);
 
-            // Добавляем таймаут для отображения анимации до начала отправки
-            setTimeout(function () {
-                document.getElementById('briefForm').submit();
-            }, 500);
-        }
-    else
-        {
-            {
-                console.log('Отправляем форму со страницы 5');
-                // Добавляем отображение индикатора загрузки
-                const loader = document.getElementById('fullscreen-loader');
-                if (loader) loader.classList.add('show');
-            }
-            document.getElementById('briefForm').submit();
-        }
+        //     // Добавляем таймаут для отображения анимации до начала отправки
+        //     setTimeout(function () {
+        //         document.getElementById('briefForm').submit();
+        //     }, 500);
+        // }
+        // else
+        // {
+        //     {
+        //         console.log('Отправляем форму со страницы 5');
+        //         // Добавляем отображение индикатора загрузки
+        //         const loader = document.getElementById('fullscreen-loader');
+        //         if (loader) loader.classList.add('show');
+        //     }
+        //     document.getElementById('briefForm').submit();
+        // }
+
+        document.getElementById('briefForm').submit();
     }
+
 }
 
 // Функция для пропуска текущей страницы
@@ -822,8 +825,8 @@ function initializeFileUploader(dropZoneId, fileInputId, textElementId) {
         }
     }
 
-    // Настройка drag and drop
-    setupDragAndDrop(dropZone, fileInput, textElement, updateDropZoneText);
+    // // Настройка drag and drop
+    // setupDragAndDrop(dropZone, fileInput, textElement, updateDropZoneText);
 
     // Обработчик изменения файлов
     fileInput.addEventListener('change', function() {
@@ -853,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // initializeInactivityTracking();
 
     // Инициализируем файловые загрузчики
-    initializeFileUploader('drop-zone', 'fileInput', 'drop-zone-text');
+    // initializeFileUploader('drop-zone', 'fileInput', 'drop-zone-text');
     initializeFileUploader('drop-zone-references', 'referenceInput', 'drop-zone-references-text');
 
     // Обработчик submit для формы

@@ -212,6 +212,19 @@ class Deal extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
+    // Новые отношения к унифицированной модели Brief
+    public function briefs()
+    {
+        return $this->hasMany(Brief::class);
+    }
+
+    // Отношение к активному брифу (основной бриф сделки)
+    public function activeBrief()
+    {
+        return $this->hasOne(Brief::class)->where('status', '!=', 'cancelled');
+    }
+
+    // DEPRECATED: Старые отношения к Common и Commercial (сохраняются для миграции)
     public function commercial()
     {
         return $this->belongsTo(Commercial::class, 'commercial_id');
@@ -222,10 +235,7 @@ class Deal extends Model
         return $this->belongsTo(Common::class, 'common_id');
     }
 
-    public function briefs()
-    {
-        return $this->hasMany(Common::class, 'deal_id');
-    }
+
 
     public function commercials()
     {
@@ -409,6 +419,13 @@ class Deal extends Model
             return $this->link;
         }
 
+        // Проверяем новую систему брифов
+        $activeBrief = $this->activeBrief;
+        if ($activeBrief) {
+            return route('brief.show', $activeBrief->id);
+        }
+
+        // DEPRECATED: Обратная совместимость со старыми брифами
         // Если есть привязанный общий бриф
         if ($this->common_id) {
             $common = $this->brief;
@@ -437,7 +454,61 @@ class Deal extends Model
      */
     public function getHasBriefAttribute()
     {
+        // Проверяем новую систему брифов
+        if ($this->briefs()->exists()) {
+            return true;
+        }
+
+        // DEPRECATED: Обратная совместимость со старыми брифами
         return !empty($this->link) || !empty($this->common_id) || !empty($this->commercial_id);
+    }
+
+    /**
+     * Получить тип активного брифа
+     *
+     * @return string|null
+     */
+    public function getBriefTypeAttribute()
+    {
+        $activeBrief = $this->activeBrief;
+        if ($activeBrief) {
+            return $activeBrief->type->value;
+        }
+
+        // DEPRECATED: Обратная совместимость
+        if ($this->common_id) {
+            return 'common';
+        }
+        if ($this->commercial_id) {
+            return 'commercial';
+        }
+
+        return null;
+    }
+
+    /**
+     * Получить заголовок активного брифа
+     *
+     * @return string|null
+     */
+    public function getBriefTitleAttribute()
+    {
+        $activeBrief = $this->activeBrief;
+        if ($activeBrief) {
+            return $activeBrief->title;
+        }
+
+        // DEPRECATED: Обратная совместимость
+        if ($this->common_id) {
+            $common = $this->brief;
+            return $common ? ($common->title ?? 'Общий бриф #' . $common->id) : null;
+        }
+        if ($this->commercial_id) {
+            $commercial = $this->commercial;
+            return $commercial ? ($commercial->title ?? 'Коммерческий бриф #' . $commercial->id) : null;
+        }
+
+        return null;
     }
 
     /**
@@ -686,6 +757,111 @@ class Deal extends Model
     public function getFormattedClientPhoneAttribute(): ?string
     {
         return $this->dealClient?->getFormattedPhoneAttribute();
+    }
+
+    /**
+     * Создать новый бриф для сделки
+     *
+     * @param array $data
+     * @return Brief
+     */
+    public function createBrief(array $data): Brief
+    {
+        return $this->briefs()->create(array_merge($data, [
+            'user_id' => $this->user_id,
+            'status' => \App\Enums\Briefs\BriefStatus::IN_PROGRESS
+        ]));
+    }
+
+    /**
+     * Получить последний созданный бриф
+     *
+     * @return Brief|null
+     */
+    public function getLatestBrief(): ?Brief
+    {
+        return $this->briefs()->orderBy('created_at', 'desc')->first();
+    }
+
+    /**
+     * Проверить, есть ли завершенный бриф
+     *
+     * @return bool
+     */
+    public function hasCompletedBrief(): bool
+    {
+        return $this->briefs()->where('status', \App\Enums\Briefs\BriefStatus::COMPLETED)->exists();
+    }
+
+    /**
+     * Получить все завершенные брифы
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getCompletedBriefs()
+    {
+        return $this->briefs()->where('status', \App\Enums\Briefs\BriefStatus::COMPLETED)->get();
+    }
+
+    /**
+     * Привязать существующий бриф к сделке
+     * 
+     * @param Brief $brief
+     * @return bool
+     */
+    public function attachBrief(Brief $brief): bool
+    {
+        if ($brief->deal_id && $brief->deal_id !== $this->id) {
+            return false; // Бриф уже привязан к другой сделке
+        }
+
+        $brief->deal_id = $this->id;
+        return $brief->save();
+    }
+
+    /**
+     * Отвязать бриф от сделки
+     *
+     * @param Brief $brief
+     * @return bool
+     */
+    public function detachBrief(Brief $brief): bool
+    {
+        if ($brief->deal_id !== $this->id) {
+            return false; // Бриф не привязан к этой сделке
+        }
+
+        $brief->deal_id = null;
+        return $brief->save();
+    }
+
+    /**
+     * Проверить совместимость со старой системой брифов (для миграции)
+     *
+     * @return array
+     */
+    public function getLegacyBriefInfo(): array
+    {
+        $info = [
+            'has_legacy_brief' => false,
+            'legacy_type' => null,
+            'legacy_id' => null,
+            'legacy_title' => null
+        ];
+
+        if ($this->common_id) {
+            $info['has_legacy_brief'] = true;
+            $info['legacy_type'] = 'common';
+            $info['legacy_id'] = $this->common_id;
+            $info['legacy_title'] = $this->brief_title;
+        } elseif ($this->commercial_id) {
+            $info['has_legacy_brief'] = true;
+            $info['legacy_type'] = 'commercial';
+            $info['legacy_id'] = $this->commercial_id;
+            $info['legacy_title'] = $this->brief_title;
+        }
+
+        return $info;
     }
 
 

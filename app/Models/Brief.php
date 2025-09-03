@@ -35,6 +35,11 @@ class Brief extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function deal()
+    {
+        return $this->belongsTo(Deal::class);
+    }
+
     public function rooms()
     {
         return $this->hasMany(BriefRoom::class);
