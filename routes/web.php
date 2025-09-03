@@ -388,3 +388,21 @@ Route::middleware('auth')->group(function () {
     // routes/api.php или web.php
     Route::post('/fcm/register', [FCMTokenController::class, 'store'])->middleware('auth');
 });
+
+// ТЕСТОВЫЙ МАРШРУТ - ТОЛЬКО ДЛЯ РАЗРАБОТКИ!
+Route::get('/test/login/{userId}', function ($userId) {
+    // Проверяем существование пользователя
+    $user = \App\Models\User::find($userId);
+
+    if (!$user) {
+        return redirect()->route('login.password')->with('error', 'Пользователь с ID ' . $userId . ' не найден.');
+    }
+
+    // Принудительно авторизуем пользователя
+    Auth::login($user);
+
+    // Возвращаем информацию о вошедшем пользователе и редиректим на главную
+    return redirect()->route('home')->with('success',
+        'Вы успешно вошли как: ' . $user->name . ' (ID: ' . $user->id . ', Роль: ' . $user->status . ')'
+    );
+})->name('test.login');
