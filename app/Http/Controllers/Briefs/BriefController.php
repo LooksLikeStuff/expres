@@ -319,6 +319,7 @@ class BriefController extends Controller
         $this->authorize('view', $brief);
 
         try {
+            // Используем обновленный сервис для генерации PDF с данными из БД
             return $this->briefPdfService->generatePdf($brief);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());

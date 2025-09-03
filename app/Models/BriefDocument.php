@@ -19,7 +19,7 @@ class BriefDocument extends Model
         'file_size',
     ];
 
-    protected $appends = ['full_path'];
+    protected $appends = ['full_path', 'full_url'];
     public function getFullPathAttribute(): string
     {
         $expiresAt = Carbon::now()->addMinutes(60); // ссылка будет валидна 60 минут
@@ -39,8 +39,13 @@ class BriefDocument extends Model
      */
     public function getFullUrlAttribute(): string
     {
+        // Проверяем, что filepath существует и это строка
+        if (!isset($this->filepath) || !is_string($this->filepath)) {
+            return 'Файл недоступен';
+        }
+
         // Если путь уже абсолютный URL
-        if (str_starts_with($this->filepath, ['http://', 'https://'])) {
+        if (str_starts_with($this->filepath, 'http://') || str_starts_with($this->filepath, 'https://')) {
             return $this->filepath;
         }
 

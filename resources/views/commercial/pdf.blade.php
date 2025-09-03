@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Коммерческий бриф #{{ $brif->id }}</title>
+    <title>Коммерческий бриф #{{ $brief->id }}</title>
     <style>
         @font-face {
             font-family: 'DejaVu Sans';
@@ -70,7 +70,7 @@
         <img src="{{ public_path('storage/icon/fool_logo.svg') }}" alt="Логотип">
     </div>
     
-    <h1>Коммерческий бриф #{{ $brif->id }}</h1>
+    <h1>Коммерческий бриф #{{ $brief->id }}</h1>
     
     <table>
         <thead>
@@ -82,49 +82,51 @@
         <tbody>
             <tr>
                 <td>ID</td>
-                <td>{{ $brif->id }}</td>
+                <td>{{ $brief->id }}</td>
             </tr>
             <tr>
                 <td>Название</td>
-                <td>{{ $brif->title }}</td>
+                <td>{{ $brief->title ?? 'Не указано' }}</td>
             </tr>
             <tr>
                 <td>Описание</td>
-                <td>{{ $brif->description }}</td>
+                <td>{{ $brief->description ?? 'Не указано' }}</td>
             </tr>
             <tr>
                 <td>Статус</td>
-                <td>{{ $brif->status }}</td>
+                <td>{{ $brief->status->value ?? 'Не указан' }}</td>
             </tr>
             <tr>
                 <td>Имя пользователя</td>
-                <td>{{ $user->name }}</td>
+                <td>{{ $user->name ?? 'Не указан' }}</td>
             </tr>
-             <tr>
-            <td>Номер клиента:</td>
-            <td>{{ $user->phone }}</td>
-        </tr>
+            <tr>
+                <td>Номер клиента</td>
+                <td>{{ $user->phone ?? 'Не указан' }}</td>
+            </tr>
             <tr>
                 <td>Дата создания</td>
-                <td>{{ $brif->created_at }}</td>
+                <td>{{ $brief->created_at->format('d.m.Y H:i') }}</td>
             </tr>
             <tr>
                 <td>Дата обновления</td>
-                <td>{{ $brif->updated_at }}</td>
+                <td>{{ $brief->updated_at->format('d.m.Y H:i') }}</td>
             </tr>
         </tbody>
     </table>
 
-    <h2>Общий бюджет: {{ number_format($brif->price, 2, ',', ' ') }} ₽</h2>
+    <h2>Общий бюджет: {{ number_format($brief->price ?? 0, 0, ',', ' ') }} ₽</h2>
 
-    @if($zones)
-        <h2>Бюджет по зонам</h2>
+    @if(isset($zones) && is_array($zones) && count($zones) > 0)
+        <h2>Зоны</h2>
         <table>
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Зона</th>
-                    <th>Бюджет</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th>Общая площадь</th>
+                    <th>Проектируемая площадь</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,118 +134,124 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $zone['name'] ?? 'Без названия' }}</td>
-                        <td>
-                            @if (isset($price[$index]))
-                                {{ number_format($price[$index], 2, ',', ' ') }} ₽
-                            @else
-                                0 ₽
-                            @endif
-                        </td>
+                        <td>{{ $zone['description'] ?? '' }}</td>
+                        <td>{{ isset($zone['total_area']) ? $zone['total_area'] . ' м²' : 'Не указана' }}</td>
+                        <td>{{ isset($zone['projected_area']) ? $zone['projected_area'] . ' м²' : 'Не указана' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     @endif
 
-    <h2>Зоны</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Название</th>
-                <th>Описание</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($zones as $index => $zone)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $zone['name'] ?? 'Без названия' }}</td>
-                    <td>{{ $zone['description'] ?? '' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    @foreach ($preferencesFormatted as $zoneName => $zonePreferences)
-        <h2>Предпочтения для {{ $zoneName }}</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Вопрос</th>
-                    <th>Ответ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    // Массив с названиями страниц
-                    $pageNames = [
-                        'question_1' => "Название зоны",
-                        'question_2' => "Метраж зон",
-                        'question_3' => "Стиль оформления и меблировка зон",
-                        'question_4' => "Отделочные материалы и поверхности",
-                        'question_5' => "Инженерные системы и коммуникации",
-                        'question_6' => "Предпочтения и ограничения",
-                        'question_7' => "Бюджет и документы",
-                        'question_8' => "Дополнительные пожелания"
-                    ];
-                    
-                    // Проверяем существование функции перед объявлением
-                    if (!function_exists('extractQuestionNumberPdf')) {
-                        function extractQuestionNumberPdf($questionText) {
-                            if (preg_match('/Вопрос (\d+)/', $questionText, $matches)) {
-                                return 'question_' . $matches[1];
-                            }
-                            return $questionText;
-                        }
-                    }
-                @endphp
-                
-                @foreach ($zonePreferences as $index => $preference)
-                    @php
-                        // Преобразуем "Вопрос X" в настоящее название страницы
-                        $questionKey = extractQuestionNumberPdf($preference['question']);
-                        $displayName = $pageNames[$questionKey] ?? $preference['question'];
-                    @endphp
+    {{-- Вопросы и ответы по страницам --}}
+    @if(isset($questions) && is_array($questions))
+        @foreach($questions as $page => $pageQuestions)
+            <h2>Страница {{ $page }}</h2>
+            
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $displayName }}</td>
-                        <td>{{ $preference['answer'] }}</td>
+                        <th>Вопрос</th>
+                        <th>Ответ</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @endforeach
+                </thead>
+                <tbody>
+                    @if(is_array($pageQuestions) && count($pageQuestions) > 0)
+                        @foreach($pageQuestions as $question)
+                            @php
+                                $hasAnswer = false;
+                                if (isset($question['answer'])) {
+                                    if (is_array($question['answer'])) {
+                                        $hasAnswer = !empty(array_filter($question['answer']));
+                                    } else {
+                                        $hasAnswer = !empty(trim((string) $question['answer']));
+                                    }
+                                }
+                            @endphp
+                            @if($hasAnswer)
+                                <tr>
+                                    <td>{{ $question['title'] ?? 'Без названия' }}</td>
+                                    <td>
+                                        @php
+                                            $answer = $question['answer'] ?? '';
+                                            if (is_array($answer)) {
+                                                $displayAnswer = implode(', ', $answer);
+                                            } elseif (is_string($answer)) {
+                                                $displayAnswer = $answer;
+                                            } else {
+                                                $displayAnswer = (string) $answer;
+                                            }
+                                        @endphp
+                                        {{ $displayAnswer }}
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="2">Нет данных для этого раздела</td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        @endforeach
+    @endif
 
-    @if($brif->documents)
-        <h2>Документы</h2>
+    {{-- Ответы по зонам --}}
+    @if(isset($zoneAnswers) && $zoneAnswers->count() > 0)
+        <h2>Ответы по зонам</h2>
+        @foreach($zoneAnswers as $zoneId => $zoneAnswerGroup)
+            @php
+                $zone = collect($zones)->firstWhere('id', $zoneId);
+                $zoneTitle = $zone['name'] ?? "Зона ID: {$zoneId}";
+            @endphp
+            
+            <h3>{{ $zoneTitle }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Вопрос</th>
+                        <th>Ответ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($zoneAnswerGroup as $answer)
+                        @if($answer->question && !empty($answer->answer_text))
+                            <tr>
+                                <td>{{ $answer->question->title ?? 'Без названия' }}</td>
+                                <td>{{ $answer->answer_text }}</td>
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
+        @endforeach
+    @endif
+
+    {{-- Показываем прикрепленные документы --}}
+    @if($brief->documents && $brief->documents->count() > 0)
+        <h2>Прикрепленные документы</h2>
         <table>
             <thead>
                 <tr>
                     <th>Название файла</th>
-                    <th>Полная ссылка</th>
+                    <th>Ссылка</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                    $documents = json_decode($brif->documents, true) ?? [];
-                @endphp
-                
-                @if (!empty($documents) && is_array($documents))
-                    @foreach ($documents as $document)
-                        <tr>
-                            <td>{{ basename($document) }}</td>
-                            <td>{{ $document }}</td>
-                        </tr>
-                    @endforeach
-                @else
+                @foreach($brief->documents as $document)
                     <tr>
-                        <td colspan="2">Документов не найдено</td>
+                        <td>{{ $document->original_name ?? basename($document->file_path) }}</td>
+                        <td>{{ $document->getFullUrlAttribute() ?? $document->file_path }}</td>
                     </tr>
-                @endif
+                @endforeach
             </tbody>
         </table>
     @endif
+
+    <div style="margin-top: 30px; font-size: 12px; color: #777; text-align: center;">
+        <p>Дата создания: {{ $brief->created_at->format('d.m.Y H:i') }}</p>
+        <p>Дата обновления: {{ $brief->updated_at->format('d.m.Y H:i') }}</p>
+    </div>
 </body>
 </html>

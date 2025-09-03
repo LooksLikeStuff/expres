@@ -131,7 +131,10 @@
                                             <h4>{{ $brief->title }} #{{ $brief->id }}</h4>
 
                                             <div class="button__brifs flex">
-                                                <button class="button__variate2"><img src="/storage/icon/create__info.svg" alt=""> <span>Посмотреть</span></button>
+                                                <a href="{{ route('briefs.show', $brief) }}" class="button__variate2">
+                                                    <img src="/storage/icon/create__info.svg" alt="">
+                                                     <span>Посмотреть</span>
+                                                </a>
                                                 <button class="button__variate2"
                                                         onclick="event.stopPropagation(); window.location.href='{{ route('briefs.pdf', $brief) }}'">
                                                     <span>Скачать PDF</span>
