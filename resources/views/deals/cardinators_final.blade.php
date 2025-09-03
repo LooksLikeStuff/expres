@@ -568,9 +568,13 @@ window.addEventListener('unhandledrejection', function(e) {
                                     </td>
                                     
                                     <td class="deal-phone">
-                                        <a href="tel:{{ $dealItem->client_phone }}">
-                                            {{ $dealItem->client_phone }}
-                                        </a>
+                                        @if($dealItem->client_phone)
+                                            <a href="tel:{{ $dealItem->client_phone }}">
+                                                {{ $dealItem->formatted_client_phone ?? $dealItem->client_phone }}
+                                            </a>
+                                        @else
+                                            Не указан
+                                        @endif
                                     </td>
 
                                     <td class="deal-coordinator">

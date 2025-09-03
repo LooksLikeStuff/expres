@@ -28,7 +28,7 @@ class DealDocumentController extends Controller
             }
 
             // Получаем сделку
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Проверяем права доступа к сделке
             if (!$this->canUserAccessDeal(Auth::user(), $deal)) {
@@ -137,7 +137,7 @@ class DealDocumentController extends Controller
             }
 
             // Получаем сделку
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Проверяем права доступа к сделке
             if (!$this->canUserAccessDeal(Auth::user(), $deal)) {
@@ -337,7 +337,7 @@ class DealDocumentController extends Controller
             }
 
             // Получаем сделку
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Проверяем права доступа к сделке
             if (!$this->canUserAccessDeal($user, $deal)) {

@@ -27,7 +27,7 @@ class RatingController extends Controller
             'role' => 'required|string|in:architect,designer,visualizer,coordinator,partner'
         ]);
 
-        $deal = Deal::findOrFail($validated['deal_id']);
+        $deal = Deal::with('dealClient')->findOrFail($validated['deal_id']);
         $ratedUser = User::findOrFail($validated['rated_user_id']);
 
         // Проверяем, что пользователь еще не оставлял оценку этому исполнителю в этой сделке
@@ -95,7 +95,7 @@ class RatingController extends Controller
                 ], 400);
             }
             
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
             
             if (!$deal) {
                 Log::error('Сделка не найдена', ['deal_id' => $dealId]);
@@ -291,7 +291,7 @@ class RatingController extends Controller
     public function checkAllRatingsComplete(Request $request)
     {
         $dealId = $request->input('deal_id');
-        $deal = Deal::findOrFail($dealId);
+        $deal = Deal::with('dealClient')->findOrFail($dealId);
         $currentUser = Auth::user();
         
         // Определяем, кого текущий пользователь должен оценивать
@@ -359,7 +359,7 @@ class RatingController extends Controller
             }
             
             // Находим все сделки пользователя со статусом "Проект завершен"
-            $deals = Deal::where('status', 'Проект завершен')
+            $deals = Deal::with('dealClient')->where('status', 'Проект завершен')
                 ->whereHas('users', function($q) use ($currentUser) {
                     $q->where('user_id', $currentUser->id);
                 })

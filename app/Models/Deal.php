@@ -29,9 +29,7 @@ class Deal extends Model
         'chat_id',
         'common_id',
         'commercial_id',
-        'client_name',
         'name',
-        'client_phone',
         'total_sum',
         'measuring_cost',
         'project_budget',
@@ -45,9 +43,6 @@ class Deal extends Model
         'avatar_path',
         'link',
         'created_date',
-        'client_city',
-        'client_email',
-        'client_info',
         'execution_comment',
         'comment',
         'project_number',
@@ -56,9 +51,7 @@ class Deal extends Model
         'rooms_count_pricing',
         'execution_order_comment',
         'execution_order_file',
-        'client_timezone',
         'office_partner_id',
-        'client_account_link',
         'measurement_comments',
         'measurements_file',
         'brief',
@@ -621,62 +614,62 @@ class Deal extends Model
         return array_values(array_unique(array_filter($ids)));
     }
 
-    // Методы для обратной совместимости с клиентскими полями
+    // Методы для работы с клиентскими полями из таблицы deal_clients
     
     /**
-     * Получить имя клиента (с поддержкой новой и старой структуры)
+     * Получить имя клиента только из таблицы deal_clients
      */
     public function getClientNameAttribute()
     {
-        return $this->dealClient?->name ?? $this->attributes['client_name'] ?? null;
+        return $this->dealClient?->name;
     }
 
     /**
-     * Получить телефон клиента (с поддержкой новой и старой структуры)
+     * Получить телефон клиента только из таблицы deal_clients
      */
     public function getClientPhoneAttribute()
     {
-        return $this->dealClient?->phone ?? $this->attributes['client_phone'] ?? null;
+        return $this->dealClient?->phone;
     }
 
     /**
-     * Получить email клиента (с поддержкой новой и старой структуры)
+     * Получить email клиента только из таблицы deal_clients
      */
     public function getClientEmailAttribute()
     {
-        return $this->dealClient?->email ?? $this->attributes['client_email'] ?? null;
+        return $this->dealClient?->email;
     }
 
     /**
-     * Получить город клиента (с поддержкой новой и старой структуры)
+     * Получить город клиента только из таблицы deal_clients
      */
     public function getClientCityAttribute()
     {
-        return $this->dealClient?->city ?? $this->attributes['client_city'] ?? null;
+        return $this->dealClient?->city;
     }
 
     /**
-     * Получить часовой пояс клиента (с поддержкой новой и старой структуры)
+     * Получить часовой пояс клиента только из таблицы deal_clients
      */
     public function getClientTimezoneAttribute()
     {
-        return $this->dealClient?->timezone ?? $this->attributes['client_timezone'] ?? null;
+        return $this->dealClient?->timezone;
     }
 
     /**
-     * Получить информацию о клиенте (с поддержкой новой и старой структуры)
+     * Получить информацию о клиенте только из таблицы deal_clients
      */
     public function getClientInfoAttribute()
     {
-        return $this->dealClient?->info ?? $this->attributes['client_info'] ?? null;
+        return $this->dealClient?->info;
     }
 
     /**
-     * Получить ссылку на аккаунт клиента (с поддержкой новой и старой структуры)
+     * Получить ссылку на аккаунт клиента только из таблицы deal_clients
      */
     public function getClientAccountLinkAttribute()
     {
-        return $this->dealClient?->account_link ?? $this->attributes['client_account_link'] ?? null;
+        return $this->dealClient?->account_link;
     }
 
     /**
@@ -684,9 +677,7 @@ class Deal extends Model
      */
     public function hasClientData(): bool
     {
-        return $this->dealClient !== null || 
-               !empty($this->attributes['client_name']) || 
-               !empty($this->attributes['client_phone']);
+        return $this->dealClient !== null;
     }
 
     /**
@@ -694,36 +685,8 @@ class Deal extends Model
      */
     public function getFormattedClientPhoneAttribute(): ?string
     {
-        $phone = $this->client_phone;
-        if (!$phone) {
-            return null;
-        }
-
-        return $this->dealClient?->getFormattedPhoneAttribute() ?? $this->formatPhone($phone);
+        return $this->dealClient?->getFormattedPhoneAttribute();
     }
 
-    /**
-     * Форматирование номера телефона (вспомогательный метод)
-     */
-    private function formatPhone(string $phone): string
-    {
-        // Убираем все символы кроме цифр
-        $cleaned = preg_replace('/[^0-9]/', '', $phone);
-        
-        // Если номер начинается с 8, заменяем на +7
-        if (str_starts_with($cleaned, '8') && strlen($cleaned) === 11) {
-            $cleaned = '7' . substr($cleaned, 1);
-        }
-        
-        // Если номер начинается с 7 и содержит 11 цифр
-        if (str_starts_with($cleaned, '7') && strlen($cleaned) === 11) {
-            return '+7 (' . substr($cleaned, 1, 3) . ') ' . 
-                   substr($cleaned, 4, 3) . '-' . 
-                   substr($cleaned, 7, 2) . '-' . 
-                   substr($cleaned, 9, 2);
-        }
-        
-        // Возвращаем исходный номер, если не удалось отформатировать
-        return $phone;
-    }
+
 }

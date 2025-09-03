@@ -17,7 +17,7 @@ class DealFeedController extends Controller
             'content' => 'required|string|max:1990',
         ]);
 
-        $deal = Deal::findOrFail($dealId);
+        $deal = Deal::with('dealClient')->findOrFail($dealId);
         $feed = DealFeed::create([
             'deal_id' => $dealId,
             'user_id' => Auth::id(),

@@ -72,7 +72,7 @@ class DealClientController extends Controller
             ]);
 
             // Проверяем права доступа к сделке
-            $deal = Deal::findOrFail($validated['deal_id']);
+            $deal = Deal::with('dealClient')->findOrFail($validated['deal_id']);
             
             // Здесь можно добавить проверку прав доступа пользователя к сделке
             // $this->authorize('update', $deal);
@@ -122,7 +122,7 @@ class DealClientController extends Controller
     {
         try {
             // Проверяем права доступа к сделке
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Здесь можно добавить проверку прав доступа пользователя к сделке
             // $this->authorize('update', $deal);

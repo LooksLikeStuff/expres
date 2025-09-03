@@ -17,9 +17,12 @@ class ClientDealsController extends Controller
         $title_site = "Мои сделки | Личный кабинет Экспресс-дизайн";
         $user = Auth::user();
         
-        // Прямой поиск сделок по ID пользователя и номеру телефона клиента
+        // Поиск сделок по ID пользователя и через связанную таблицу DealClient
         $userDeals = Deal::where('user_id', $user->id)
-                        ->orWhere('client_phone', $user->phone)
+                        ->orWhereHas('dealClient', function($query) use ($user) {
+                            $query->where('phone', 'LIKE', '%' . preg_replace('/[^0-9]/', '', $user->phone) . '%');
+                        })
+                        ->with('dealClient') // Подгружаем связанные данные клиента
                         ->orderBy('created_at', 'desc')
                         ->get();
         

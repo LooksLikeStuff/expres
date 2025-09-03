@@ -31,10 +31,14 @@ class DealObserver
 
         $membersIds = $deal->getMemberIds();
         try {
-            $client = $this->userService->getByClientPhone($deal->client_phone);
+            // Используем новый геттер для получения телефона клиента
+            $clientPhone = $deal->client_phone;
+            if ($clientPhone) {
+                $client = $this->userService->getByClientPhone($clientPhone);
 
-            if ($client) {
-                $membersIds[] = $client->id;
+                if ($client) {
+                    $membersIds[] = $client->id;
+                }
             }
         } catch (ModelNotFoundException $exception) {
             \Log::error('client not found by phone', ['id' => $deal->id, 'phone' => $deal->client_phone]);

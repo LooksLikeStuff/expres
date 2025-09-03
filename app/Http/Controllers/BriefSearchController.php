@@ -91,7 +91,7 @@ class BriefSearchController extends Controller
             }
 
             // Проверяем, привязан ли уже бриф к сделке
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
             $hasAttachedBrief = false;
             $attachedBriefType = null;
 
@@ -234,7 +234,7 @@ class BriefSearchController extends Controller
                 ]);
             }
 
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 Log::warning('Сделка не найдена при привязке брифа', ['deal_id' => $dealId]);
@@ -346,7 +346,7 @@ class BriefSearchController extends Controller
             ]);
 
             // Находим сделку
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 Log::warning('Сделка не найдена при отвязке брифа', ['deal_id' => $dealId]);

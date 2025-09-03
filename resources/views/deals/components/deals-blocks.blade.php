@@ -61,9 +61,13 @@
                                     </p>
                                    
                                     <p>Телефон:
-                                        <a href="tel:{{ $dealItem->client_phone }}">
-                                            {{ $dealItem->client_phone }}
-                                        </a>
+                                        @if($dealItem->client_phone)
+                                            <a href="tel:{{ $dealItem->client_phone }}">
+                                                {{ $dealItem->formatted_client_phone ?? $dealItem->client_phone }}
+                                            </a>
+                                        @else
+                                            Не указан
+                                        @endif
                                     </p>
                                     <p>Координатор:
                                         @if ($dealItem->coordinator_id)

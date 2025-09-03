@@ -141,7 +141,7 @@ class DealsController extends Controller
 
             // Если есть ID сделки, получаем её для обновления
             if ($dealId) {
-                $deal = Deal::find($dealId);
+                $deal = Deal::with('dealClient')->find($dealId);
                 if (!$deal) {
                     return response()->json([
                         'success' => false,
@@ -366,13 +366,17 @@ class DealsController extends Controller
         // Применяем поиск
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->where('client_phone', 'LIKE', "%{$search}%")
-                  ->orWhere('client_email', 'LIKE', "%{$search}%")
-                  ->orWhere('project_number', 'LIKE', "%{$search}%")
+                $q->where('project_number', 'LIKE', "%{$search}%")
                   ->orWhere('package', 'LIKE', "%{$search}%")
                   ->orWhere('deal_note', 'LIKE', "%{$search}%")
-                  ->orWhere('client_city', 'LIKE', "%{$search}%")
-                  ->orWhere('total_sum', 'LIKE', "%{$search}%");
+                  ->orWhere('total_sum', 'LIKE', "%{$search}%")
+                  // Поиск по клиентским данным в связанной таблице
+                  ->orWhereHas('dealClient', function($clientQuery) use ($search) {
+                      $clientQuery->where('phone', 'LIKE', "%{$search}%")
+                                  ->orWhere('email', 'LIKE', "%{$search}%")
+                                  ->orWhere('name', 'LIKE', "%{$search}%")
+                                  ->orWhere('city', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
@@ -420,7 +424,7 @@ class DealsController extends Controller
             });
         }], 'score');
 
-        $deals = $query->get();
+        $deals = $query->with('dealClient')->get();
 
         $statuses = [
             'Ждем ТЗ', 'Планировка', 'Коллажи', 'Визуализация', 'Рабочка/сбор ИП',
@@ -452,7 +456,7 @@ class DealsController extends Controller
      */
     public function updateDeal(Request $request, $id)
     {
-        $deal = Deal::findOrFail($id);
+        $deal = Deal::with('dealClient')->findOrFail($id);
         $user = Auth::user();
 
         // Сохраняем оригинальные значения для логирования
@@ -860,7 +864,7 @@ class DealsController extends Controller
             'content' => 'required|string|max:1990',
         ]);
 
-        $deal = Deal::findOrFail($dealId);
+        $deal = Deal::with('dealClient')->findOrFail($dealId);
         $user = Auth::user();
 
         $feed = new DealFeed();
@@ -1260,7 +1264,7 @@ class DealsController extends Controller
      */
     public function changeLogsForDeal($dealId)
     {
-        $deal = Deal::findOrFail($dealId);
+        $deal = Deal::with('dealClient')->findOrFail($dealId);
         $logs = DealChangeLog::where('deal_id', $deal->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -1275,7 +1279,7 @@ class DealsController extends Controller
     public function getDealFeeds($dealId)
     {
         try {
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             $feeds = $deal->dealFeeds()->with('user')->orderBy('created_at', 'desc')->get();
             $result = $feeds->map(function ($feed) {
                 return [
@@ -1439,7 +1443,7 @@ class DealsController extends Controller
         }
 
         try {
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
 
             // Логируем действие перед удалением
             Log::info('Удаление сделки администратором', [
@@ -1538,7 +1542,7 @@ class DealsController extends Controller
             ]);
 
             // Получаем информацию о сделке
-            $deal = \App\Models\Deal::find($dealId);
+            $deal = \App\Models\Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 return response()->json([
@@ -1669,7 +1673,7 @@ class DealsController extends Controller
             }
 
             // Получаем информацию о сделке
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 return response()->json([
@@ -1769,7 +1773,7 @@ class DealsController extends Controller
             }
 
             // Получаем информацию о сделке
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 return response()->json([
@@ -1895,7 +1899,7 @@ class DealsController extends Controller
             }
 
             // Получаем информацию о сделке
-            $deal = Deal::find($dealId);
+            $deal = Deal::with('dealClient')->find($dealId);
 
             if (!$deal) {
                 return response()->json([
@@ -2059,7 +2063,7 @@ class DealsController extends Controller
             }
 
             // Получаем сделку
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
 
             // Проверяем права доступа
             if (!in_array(Auth::user()->status, ['coordinator', 'partner', 'admin'])) {
@@ -2426,7 +2430,8 @@ class DealsController extends Controller
                 'dealFeeds' => function($q) {
                     $q->orderBy('created_at', 'desc');
                 },
-                'users'
+                'users',
+                'dealClient'
             ])->findOrFail($dealId);
 
             // Проверяем права доступа к сделке - только coordinator, admin, partner
@@ -2937,7 +2942,7 @@ class DealsController extends Controller
     public function getDealData($id)
     {
         try {
-            $deal = Deal::findOrFail($id);
+            $deal = Deal::with('dealClient')->findOrFail($id);
 
             // Проверяем права доступа к сделке
             $user = Auth::user();

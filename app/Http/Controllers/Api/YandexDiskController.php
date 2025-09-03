@@ -50,7 +50,7 @@ class YandexDiskController extends Controller
             $fieldName = $request->input('field_name');
             
             // Проверяем права доступа к сделке
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Логируем начало загрузки
             Log::info('🚀 API: Начало загрузки файла на Яндекс.Диск', [
@@ -129,7 +129,7 @@ class YandexDiskController extends Controller
             $fieldName = $request->input('field_name');
 
             // Проверяем права доступа к сделке
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
 
             Log::info('🗑️ API: Начало удаления файла с Яндекс.Диска', [
                 'deal_id' => $dealId,
@@ -196,7 +196,7 @@ class YandexDiskController extends Controller
             $fieldName = $request->input('field_name');
             
             // Проверяем права доступа к сделке
-            $deal = Deal::findOrFail($dealId);
+            $deal = Deal::with('dealClient')->findOrFail($dealId);
             
             // Получаем информацию о файле
             $fileInfo = $this->yandexDiskService->getFileInfo($dealId, $fieldName);

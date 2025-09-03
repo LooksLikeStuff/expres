@@ -55,6 +55,57 @@ class UserService
             ->where('name', trim($name))
             ->first()?->id;
     }
+
+    /**
+     * Поиск пользователя по телефону клиента из DealClient
+     */
+    public function getByClientPhone(string $phone): ?User
+    {
+        // Нормализуем телефон
+        $normalizedPhone = preg_replace('/[^0-9]/', '', $phone);
+        
+        // Сначала ищем в основной таблице users
+        $user = $this->findByPhone($phone);
+        if ($user) {
+            return $user;
+        }
+        
+        // Если не найден, ищем через DealClient
+        $dealClient = \App\Models\DealClient::where('phone', 'LIKE', '%' . $normalizedPhone . '%')->first();
+        if ($dealClient && $dealClient->deal && $dealClient->deal->user) {
+            return $dealClient->deal->user;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Поиск всех пользователей связанных с телефоном (включая через DealClient)
+     */
+    public function findAllByPhone(string $phone): Collection
+    {
+        $normalizedPhone = preg_replace('/[^0-9]/', '', $phone);
+        $users = collect();
+        
+        // Ищем в основной таблице users
+        $directUsers = User::where('phone', 'LIKE', '%' . $normalizedPhone . '%')->get();
+        $users = $users->merge($directUsers);
+        
+        // Ищем через DealClient
+        $dealClients = \App\Models\DealClient::where('phone', 'LIKE', '%' . $normalizedPhone . '%')
+            ->with('deal.user')
+            ->get();
+            
+        foreach ($dealClients as $dealClient) {
+            if ($dealClient->deal && $dealClient->deal->user) {
+                $users->push($dealClient->deal->user);
+            }
+        }
+        
+        // Убираем дубликаты по ID
+        return $users->unique('id');
+    }
+
     public function existsByPhone(string $phone): bool
     {
         return User::where('phone', $phone)->exists();
@@ -76,10 +127,7 @@ class UserService
         return User::select(['id', 'name', 'avatar_url'])->get();
     }
 
-    public function getByClientPhone(string $phone): ?User
-    {
-        return User::where('phone', $phone)->first();
-    }
+
 
     public function updateOrCreate(UserDTO $userDTO): User
     {

@@ -239,7 +239,7 @@ class BrifsController extends Controller
         $brif = Common::findOrFail($id);
 
         // Проверяем, является ли пользователь ответственным за сделку
-        $deal = Deal::find($brif->deal_id);
+        $deal = Deal::with('dealClient')->find($brif->deal_id);
 
 
         // Если бриф активен, перенаправляем на страницу с вопросами
@@ -291,7 +291,7 @@ class BrifsController extends Controller
         }
 
         // Проверяем, является ли пользователь ответственным за сделку
-        $deal = Deal::find($brif->deal_id);
+        $deal = Deal::with('dealClient')->find($brif->deal_id);
 
         // Получаем дополнительные данные, такие как зоны и предпочтения
         $zones = $brif && $brif->zones ? json_decode($brif->zones, true) : [];
