@@ -319,6 +319,13 @@ class MigrateDatabaseStructure extends Command
         
         $migratedCount = 0;
         foreach ($usersWithCodes as $user) {
+            // Проверяем, существует ли пользователь в целевой БД
+            $userExists = $this->targetConnection->table('users')->where('id', $user->id)->exists();
+            if (!$userExists) {
+                $this->warn("⚠️ Пропускаем коды верификации для пользователя ID {$user->id} - пользователь не существует в целевой БД");
+                continue;
+            }
+            
             // Email verification code
             if (in_array('email_verification_code', $verificationFields) && !empty($user->email_verification_code)) {
                 $this->insertVerificationCode($user, $user->email_verification_code, VerificationType::EMAIL);
@@ -410,6 +417,13 @@ class MigrateDatabaseStructure extends Command
         
         $migratedCount = 0;
         foreach ($usersWithSessions as $user) {
+            // Проверяем, существует ли пользователь в целевой БД
+            $userExists = $this->targetConnection->table('users')->where('id', $user->id)->exists();
+            if (!$userExists) {
+                $this->warn("⚠️ Пропускаем сессию для пользователя ID {$user->id} - пользователь не существует в целевой БД");
+                continue;
+            }
+            
             if (!$this->isDryRun) {
                 $this->targetConnection->table('user_sessions')->updateOrInsert(
                     ['user_id' => $user->id],
@@ -457,6 +471,35 @@ class MigrateDatabaseStructure extends Command
                     $clientFields = ['client_name', 'client_phone', 'client_email', 'client_city', 'client_timezone', 'client_info', 'client_account_link'];
                     foreach ($clientFields as $field) {
                         unset($dealData[$field]);
+                    }
+                    
+                    // Проверяем foreign key constraints для всех связей с пользователями
+                    $userFieldsToCheck = [
+                        'user_id', 
+                        'coordinator_id', 
+                        'designer_id', 
+                        'architect_id', 
+                        'visualizer_id', 
+                        'office_partner_id',
+                        'client_id',
+                        'deleted_user_id'
+                    ];
+                    $skipDeal = false;
+                    
+                    foreach ($userFieldsToCheck as $field) {
+                        if (!empty($deal->$field)) {
+                            $userExists = $this->targetConnection->table('users')->where('id', $deal->$field)->exists();
+                            if (!$userExists) {
+                                $this->warn("⚠️ Пропускаем сделку ID {$deal->id} - пользователь {$field}={$deal->$field} не существует");
+                                $skipDeal = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if ($skipDeal) {
+                        $progressBar->advance();
+                        continue;
                     }
                     
                     if (!$this->isDryRun) {
