@@ -412,6 +412,65 @@ class Brief extends Model
     }
 
     /**
+     * Сохранить ответ с автоматической проверкой ключа вопроса
+     *
+     * @param string $questionKey
+     * @param string $answerText
+     * @param int|null $roomId
+     * @param array|null $answerJson
+     * @return BriefAnswer
+     */
+    public function saveAnswer(string $questionKey, string $answerText, ?int $roomId = null, ?array $answerJson = null): BriefAnswer
+    {
+        // Проверяем, существует ли уже ответ на этот вопрос
+        $existingAnswer = $this->answers()
+            ->where('question_key', $questionKey)
+            ->where('room_id', $roomId)
+            ->first();
+
+        if ($existingAnswer) {
+            // Обновляем существующий ответ
+            $existingAnswer->answer_text = $answerText;
+            if ($answerJson !== null) {
+                $existingAnswer->answer_json = json_encode($answerJson);
+            }
+            $existingAnswer->save();
+            return $existingAnswer;
+        } else {
+            // Создаем новый ответ с автоматической проверкой ключа
+            return BriefAnswer::createWithValidatedKey([
+                'brief_id' => $this->id,
+                'room_id' => $roomId,
+                'question_key' => $questionKey,
+                'answer_text' => $answerText,
+                'answer_json' => $answerJson ? json_encode($answerJson) : null,
+            ]);
+        }
+    }
+
+    /**
+     * Массовое сохранение ответов
+     *
+     * @param array $answers Массив ответов: ['question_key' => 'answer', ...]
+     * @param int|null $roomId
+     * @return array Массив созданных/обновленных BriefAnswer
+     */
+    public function saveAnswers(array $answers, ?int $roomId = null): array
+    {
+        $savedAnswers = [];
+
+        foreach ($answers as $questionKey => $answerText) {
+            if (empty($answerText)) {
+                continue; // Пропускаем пустые ответы
+            }
+
+            $savedAnswers[] = $this->saveAnswer($questionKey, $answerText, $roomId);
+        }
+
+        return $savedAnswers;
+    }
+
+    /**
      * Получить ответы для комнат (для общего брифа)
      * 
      * @return array

@@ -65,6 +65,49 @@ class Common extends Model
     }
     
     /**
+     * Boot метод для настройки событий модели
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // При сохранении обновляем ключи в answers
+        static::saving(function ($common) {
+            $common->updateAnswersKeys();
+        });
+    }
+
+    /**
+     * Обновляет ключи в answers если они устарели
+     */
+    private function updateAnswersKeys()
+    {
+        if (!$this->answers) {
+            return;
+        }
+
+        $answers = json_decode($this->answers, true);
+        if (!is_array($answers)) {
+            return;
+        }
+
+        // Используем сервис для обновления ключей
+        $keyService = app(\App\Services\BriefQuestionKeyService::class);
+        $updatedAnswers = $keyService->updateCommonAnswersKeys($answers);
+
+        // Сохраняем обновленные answers если что-то изменилось
+        if ($updatedAnswers !== $answers) {
+            Log::info('Обновлены ключи в answers общего брифа', [
+                'common_id' => $this->id,
+                'old_keys' => array_keys($answers),
+                'new_keys' => array_keys($updatedAnswers)
+            ]);
+            
+            $this->answers = json_encode($updatedAnswers);
+        }
+    }
+
+    /**
      * Проверяет, редактировался ли бриф
      *
      * @return bool

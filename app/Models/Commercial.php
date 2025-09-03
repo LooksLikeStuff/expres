@@ -63,6 +63,49 @@ class Commercial extends Model
     }
     
     /**
+     * Boot метод для настройки событий модели
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // При сохранении обновляем ключи в preferences
+        static::saving(function ($commercial) {
+            $commercial->updatePreferencesKeys();
+        });
+    }
+
+    /**
+     * Обновляет ключи в preferences если они устарели
+     */
+    private function updatePreferencesKeys()
+    {
+        if (!$this->preferences) {
+            return;
+        }
+
+        $preferences = json_decode($this->preferences, true);
+        if (!is_array($preferences)) {
+            return;
+        }
+
+        // Используем сервис для обновления ключей
+        $keyService = app(\App\Services\BriefQuestionKeyService::class);
+        $updatedPreferences = $keyService->updateCommercialPreferencesKeys($preferences);
+
+        // Сохраняем обновленные preferences если что-то изменилось
+        if ($updatedPreferences !== $preferences) {
+            Log::info('Обновлены ключи в preferences коммерческого брифа', [
+                'commercial_id' => $this->id,
+                'old_keys' => array_keys($preferences),
+                'new_keys' => array_keys($updatedPreferences)
+            ]);
+            
+            $this->preferences = json_encode($updatedPreferences);
+        }
+    }
+
+    /**
      * Загружает документы на Яндекс.Диск
      *
      * @param array $files Массив файлов для загрузки

@@ -11,36 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('deals', function (Blueprint $table) {
-            // Проверяем существование полей перед удалением для безопасности
-            if (Schema::hasColumn('deals', 'client_name')) {
-                $table->dropColumn('client_name');
+        // Для SQLite делаем несколько отдельных операций
+        $columnsToRemove = [
+            'client_name',
+            'client_phone', 
+            'client_email',
+            'client_city',
+            'client_timezone',
+            'client_info',
+            'client_account_link'
+        ];
+
+        foreach ($columnsToRemove as $column) {
+            if (Schema::hasColumn('deals', $column)) {
+                Schema::table('deals', function (Blueprint $table) use ($column) {
+                    $table->dropColumn($column);
+                });
             }
-            
-            if (Schema::hasColumn('deals', 'client_phone')) {
-                $table->dropColumn('client_phone');
-            }
-            
-            if (Schema::hasColumn('deals', 'client_email')) {
-                $table->dropColumn('client_email');
-            }
-            
-            if (Schema::hasColumn('deals', 'client_city')) {
-                $table->dropColumn('client_city');
-            }
-            
-            if (Schema::hasColumn('deals', 'client_timezone')) {
-                $table->dropColumn('client_timezone');
-            }
-            
-            if (Schema::hasColumn('deals', 'client_info')) {
-                $table->dropColumn('client_info');
-            }
-            
-            if (Schema::hasColumn('deals', 'client_account_link')) {
-                $table->dropColumn('client_account_link');
-            }
-        });
+        }
     }
 
     /**

@@ -28,4 +28,16 @@ enum BriefStatus: string
             self::COMPLETED => false,
         };
     }
+
+    public static function fromLabel(string $label): ?self
+    {
+        return match ($label) {
+            'Черновик', 'draft' => self::DRAFT,
+            'Активный', 'active' => self::ACTIVE,
+            'Редактируется', 'editing' => self::EDITING,
+            'Завершенный', 'completed' => self::COMPLETED,
+            'Есть пропущенные страницы', 'skipped_pages' => self::SKIPPED_PAGES,
+            default => SELF::DRAFT,
+        };
+    }
 }

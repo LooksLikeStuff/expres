@@ -14,4 +14,13 @@ enum BriefType: string
             self::COMMERCIAL => 'Коммерческий бриф',
         };
     }
+
+    public static function fromLabel(string $label): ?self
+    {
+        return match ($label) {
+            'Общий бриф', 'common' => self::COMMON,
+            'Коммерческий бриф', 'commercial' => self::COMMERCIAL,
+            default => null,
+        };
+    }
 }
