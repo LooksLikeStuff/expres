@@ -391,7 +391,7 @@ Route::middleware('auth')->group(function () {
 
 // ТЕСТОВЫЙ МАРШРУТ - ТОЛЬКО ДЛЯ РАЗРАБОТКИ!
 // Маршрут для входа под любым пользователем по ID
-if (!app()->isProduction()) {
+if (!app()->isProduction() || config('app.debug')) {
     Route::get('/test/login/{userId}', function ($userId) {
         // Проверяем существование пользователя
         $user = \App\Models\User::find($userId);
