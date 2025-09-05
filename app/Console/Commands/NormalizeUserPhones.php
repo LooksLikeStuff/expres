@@ -21,7 +21,6 @@ class NormalizeUserPhones extends Command
             ->withTrashed() // если есть SoftDeletes
             ->chunkById(200, function ($users) use (&$updated) {
                 foreach ($users as $user) {
-                    if ($user->id === 1231) dd($user);
                     if (! $user->phone) {
                         continue;
                     }
