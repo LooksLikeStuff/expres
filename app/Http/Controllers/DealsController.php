@@ -1250,8 +1250,7 @@ class DealsController extends Controller
             'msg'       => "Здравствуйте! Для регистрации пройдите по ссылке: https://lk.express-diz.ru/register ",
             'partner_id'=> 1,
         ]);
-
-        dd($response);
+        
         if ($response->failed()) {
             Log::error("Ошибка при отправке SMS для сделки ID: {$deal->id}. Ответ сервера: " . $response->body());
             throw new \Exception('Ошибка при отправке SMS.');
