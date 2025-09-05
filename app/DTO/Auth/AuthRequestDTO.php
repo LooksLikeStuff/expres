@@ -19,7 +19,7 @@ class AuthRequestDTO
     public static function fromLoginPasswordRequest(LoginPasswordRequest $request): self
     {
         return new self(
-            phone: $request->validated('phone'),
+            phone: normalizePhone($request->validated('phone')),
             password: $request->validated('password')
         );
 
@@ -28,7 +28,7 @@ class AuthRequestDTO
     public static function fromLoginCodeRequest(LoginCodeRequest $request): self
     {
         return new self(
-            phone: $request->validated('phone'),
+            phone: normalizePhone($request->validated('phone')),
             password: '',
             code: $request->validated('code')
         );
@@ -37,7 +37,7 @@ class AuthRequestDTO
     public static function fromArray(array $data): self
     {
         return new self(
-            phone: $data['phone'],
+            phone: normalizePhone($data['phone']),
             password: $data['password'],
             code: $data['code'] ?? null,
         );
