@@ -27,7 +27,7 @@
             searchBtn.addEventListener('click', function() {
                 const dealId = this.getAttribute('data-deal-id');
                 const clientPhone = this.getAttribute('data-client-phone');
-                
+
                 if (!clientPhone) {
                     showMessage('Номер телефона клиента не указан', 'error');
                     return;
@@ -41,7 +41,7 @@
         if (detachBtn) {
             detachBtn.addEventListener('click', function() {
                 const dealId = this.getAttribute('data-deal-id');
-                
+
                 if (confirm('Вы уверены, что хотите отвязать бриф от сделки?')) {
                     detachBrief(dealId);
                 }
@@ -74,7 +74,7 @@
             const requestData = {
                 client_phone: clientPhone
             };
-            
+
             console.log('📤 Отправка запроса:', {
                 url: `/api/deals/${dealId}/search-briefs`,
                 data: requestData
@@ -98,7 +98,7 @@
 
             const data = await response.json();
             console.log('📋 Данные ответа:', data);
-            
+
             // Дополнительная отладка статусов брифов
             if (data.briefs && data.briefs.length > 0) {
                 console.log('🔍 Общие брифы и их статусы:');
@@ -106,14 +106,8 @@
                     console.log(`  - Бриф #${brief.id}: статус "${brief.status}", можно привязать: ${brief.can_attach}`);
                 });
             }
-            
-            if (data.commercials && data.commercials.length > 0) {
-                console.log('🔍 Коммерческие брифы и их статусы:');
-                data.commercials.forEach(brief => {
-                    console.log(`  - Бриф #${brief.id}: статус "${brief.status}", можно привязать: ${brief.can_attach}`);
-                });
-            }
 
+            console.log(response.ok, data.success);
             if (response.ok && data.success) {
                 displayBriefResults(data, dealId);
                 showMessage(`Найдено брифов: ${data.total_found || 0}`, 'success');
@@ -125,13 +119,13 @@
         } catch (error) {
             console.error('❌ Ошибка поиска брифов:', error);
             showMessage('Ошибка при поиске брифов: ' + error.message, 'error');
-            
+
             if (resultsContainer) {
                 resultsContainer.style.display = 'none';
             }
         } finally {
             isLoading = false;
-            
+
             // Восстанавливаем кнопку
             if (searchBtn) {
                 searchBtn.disabled = false;
@@ -157,7 +151,7 @@
 
         // Собираем все брифы в один массив
         const allBriefs = [];
-        
+
         if (data.briefs && data.briefs.length > 0) {
             data.briefs.forEach(brief => {
                 allBriefs.push({
@@ -168,16 +162,7 @@
             });
         }
 
-        if (data.commercials && data.commercials.length > 0) {
-            data.commercials.forEach(brief => {
-                allBriefs.push({
-                    ...brief,
-                    type: 'commercial',
-                    type_name: 'Коммерческий бриф'
-                });
-            });
-        }
-
+        console.log(data.briefs);
         if (allBriefs.length === 0) {
             resultsList.innerHTML = `
                 <div style="padding: 20px; text-align: center; color: #6c757d;">
@@ -211,7 +196,7 @@
         const attachableStatuses = ['Завершенный', 'Завершен', 'completed', 'Отредактированный'];
         const isAttachable = attachableStatuses.includes(brief.status);
         const canAttach = isAttachable && !brief.already_linked;
-        
+
         // Определяем цвет и текст статуса
         let statusColor, statusText;
         if (brief.already_linked) {
@@ -260,7 +245,7 @@
                 </div>
                 <div class="ms-3">
                     ${canAttach ? `
-                        <button type="button" 
+                        <button type="button"
                                 class="btn btn-success btn-sm attach-brief-btn"
                                 data-brief-id="${brief.id}"
                                 data-brief-type="${brief.type}"
@@ -285,7 +270,7 @@
                 const briefId = this.getAttribute('data-brief-id');
                 const briefType = this.getAttribute('data-brief-type');
                 const dealId = this.getAttribute('data-deal-id');
-                
+
                 attachBrief(briefId, briefType, dealId, this);
             });
         }
@@ -301,7 +286,7 @@
 
         isLoading = true;
         const originalText = button.innerHTML;
-        
+
         // Показываем состояние загрузки
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Привязываем...';
@@ -324,17 +309,17 @@
 
             if (response.ok && data.success) {
                 showMessage('Бриф успешно привязан к сделке!', 'success');
-                
+
                 // Обновляем кнопку
                 button.className = 'btn btn-success btn-sm';
                 button.innerHTML = '<i class="fas fa-check"></i> Привязан';
                 button.disabled = true;
-                
+
                 // Перезагружаем страницу через 2 секунды для обновления статуса
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
-                
+
             } else {
                 throw new Error(data.message || 'Ошибка при привязке брифа');
             }
@@ -342,7 +327,7 @@
         } catch (error) {
             console.error('Ошибка привязки брифа:', error);
             showMessage('Ошибка при привязке брифа: ' + error.message, 'error');
-            
+
             // Восстанавливаем кнопку
             button.disabled = false;
             button.innerHTML = originalText;
@@ -359,7 +344,7 @@
 
         isLoading = true;
         const detachBtn = document.getElementById('detachBriefBtn');
-        
+
         if (detachBtn) {
             detachBtn.disabled = true;
             detachBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отвязываем...';
@@ -379,12 +364,12 @@
 
             if (response.ok && data.success) {
                 showMessage('Бриф успешно отвязан от сделки!', 'success');
-                
+
                 // Перезагружаем страницу для обновления статуса
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
-                
+
             } else {
                 throw new Error(data.message || 'Ошибка при отвязке брифа');
             }
@@ -392,7 +377,7 @@
         } catch (error) {
             console.error('Ошибка отвязки брифа:', error);
             showMessage('Ошибка при отвязке брифа: ' + error.message, 'error');
-            
+
             // Восстанавливаем кнопку
             if (detachBtn) {
                 detachBtn.disabled = false;
@@ -416,7 +401,7 @@
      */
     function formatDate(dateString) {
         if (!dateString) return 'Не указано';
-        
+
         try {
             const date = new Date(dateString);
             return date.toLocaleDateString('ru-RU', {
@@ -483,7 +468,7 @@
         notification.innerHTML = `
             <i class="${icons[type] || icons.info}"></i>
             <span>${message}</span>
-            <button onclick="this.parentElement.remove()" 
+            <button onclick="this.parentElement.remove()"
                     style="background: none; border: none; color: white; margin-left: auto; cursor: pointer; font-size: 16px;">
                 ×
             </button>
@@ -519,7 +504,7 @@
                     opacity: 1;
                 }
             }
-            
+
             @keyframes slideOutRight {
                 from {
                     transform: translateX(0);
@@ -530,7 +515,7 @@
                     opacity: 0;
                 }
             }
-            
+
             .brief-item:hover {
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 transform: translateY(-1px);

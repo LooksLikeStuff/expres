@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ждем загрузки jQuery с таймаутом
     var initAttempts = 0;
     var maxAttempts = 50;
-    
+
     function waitForJquery() {
         initAttempts++;
-        
+
         if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
             console.log('✅ jQuery и Select2 загружены, настраиваем язык');
             configureSelect2Language();
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ Не удалось дождаться загрузки jQuery или Select2');
         }
     }
-    
+
     function configureSelect2Language() {
         try {
             $.fn.select2.defaults.set('language', {
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ Ошибка настройки языка Select2:', error);
         }
     }
-    
+
     // Начинаем ожидание
     waitForJquery();
 });
@@ -125,9 +125,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Подключение стилей для страницы редактирования сделки -->
 @include('deals.partials.components.styles')
-  
+
 @section('content')
-<style>.form-control {  
+<style>.form-control {
     display: block;
     width: 100%;
     height: calc(2.5em + .75rem + 2px);
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="main__module">
             @include('layouts/header')
            <div class="container-fluid py-4">
-    
+
     <!-- Отображение flash-сообщений -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -158,28 +158,28 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    
+
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    
+
     @if(session('warning'))
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    
+
     @if(session('info'))
         <div class="alert alert-info alert-dismissible fade show" role="alert">
             <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    
+
     <!-- Хедер страницы -->
     <div class="row mb-4">
         <div class="col-12">
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-edit me-2"></i>
                                 Сделка #{{ $deal->project_number ?? $deal->id }} | {{ $deal->project_number }}
                             </h2>
-                          
+
                         </div>
                         <div>
                             <a href="{{ route('deal.cardinator') }}" class="btn btn-light">
@@ -235,17 +235,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         </nav>
                     </div>
                 </div>
-                
+
                 <div class="deal-tabs-content">
                     <!-- Форма редактирования -->
-                    <form id="deal-edit-form" 
-                          action="{{ route('deal.update', $deal->id) }}" 
-                          method="POST" 
+                    <form id="deal-edit-form"
+                          action="{{ route('deal.update', $deal->id) }}"
+                          method="POST"
                           enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="deal_id" value="{{ $deal->id }}">
-                        
+
                         <!-- Контент вкладок -->
                         <div class="tab-content" id="dealTabsContent">
                             <!-- Вкладка: Заказ -->
@@ -253,48 +253,48 @@ document.addEventListener('DOMContentLoaded', function() {
                                 @php
                                     $userRole = Auth::user()->status;
                                 @endphp
-                                
+
                                 <div class="row">
                                     <!-- Телефон клиента -->
                                     <div class="col-md-6 mb-3">
                                         <label for="client_phone" class="form-label">
                                             <i class="fas fa-phone me-1"></i>Телефон клиента <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-control maskphone" id="client_phone" name="client_phone" 
+                                        <input type="text" class="form-control maskphone" id="client_phone" name="client_phone"
                                                value="{{ $deal->client_phone }}" required>
                                     </div>
-                                    
+
                                     <!-- Номер проекта -->
                                     <div class="col-md-6 mb-3">
                                         <label for="project_number" class="form-label">
                                             <i class="fas fa-hashtag me-1"></i>№ проекта <span class="text-danger">*</span>
                                         </label>
                                         @if($userRole === 'partner')
-                                            <input type="text" class="form-control" id="project_number" name="project_number" 
-                                                   value="{{ $deal->project_number }}" readonly 
+                                            <input type="text" class="form-control" id="project_number" name="project_number"
+                                                   value="{{ $deal->project_number }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                         @else
-                                            <input type="text" class="form-control" id="project_number" name="project_number" 
+                                            <input type="text" class="form-control" id="project_number" name="project_number"
                                                    value="{{ $deal->project_number }}" required maxlength="150">
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Имя клиента -->
                                     <div class="col-md-6 mb-3">
                                         <label for="client_name" class="form-label">
                                             <i class="fas fa-user me-1"></i>Имя клиента <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-control" id="client_name" name="client_name" 
+                                        <input type="text" class="form-control" id="client_name" name="client_name"
                                                value="{{ $deal->client_name }}" required maxlength="255">
                                     </div>
-                                    
+
                                     <!-- Статус -->
                                     <div class="col-md-6 mb-3">
                                         <label for="status" class="form-label">
                                             <i class="fas fa-tag me-1"></i>Статус
                                         </label>
                                         @if($userRole === 'partner')
-                                            <input type="text" class="form-control" value="{{ $deal->status }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $deal->status }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="status" value="{{ $deal->status }}">
                                         @else
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Координатор -->
                                     <div class="col-md-6 mb-3">
                                         <label for="coordinator_id" class="form-label">
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control" value="{{ $coordinatorName ?: 'Не назначен' }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $coordinatorName ?: 'Не назначен' }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="coordinator_id" value="{{ $deal->coordinator_id }}">
                                         @elseif(in_array($userRole, ['coordinator', 'admin']))
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Партнер -->
                                     <div class="col-md-6 mb-3">
                                         <label for="office_partner_id" class="form-label">
@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control" value="{{ $partnerName ?: 'Не назначен' }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $partnerName ?: 'Не назначен' }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="office_partner_id" value="{{ $deal->office_partner_id }}">
                                         @elseif(in_array($userRole, ['coordinator', 'admin']))
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Город/часовой пояс -->
                                     <div class="col-md-6 mb-3">
                                         <label for="client_timezone" class="form-label">
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             @endif
                                         </select>
                                     </div>
-                                    
+
                                     <!-- Пакет -->
                                     <div class="col-md-6 mb-3">
                                         <label for="package" class="form-label">
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <option value="Партнер 75% комиссия" {{ $deal->package === 'Партнер 75% комиссия' ? 'selected' : '' }}>Партнер 75% комиссия</option>
                                         </select>
                                     </div>
-                                    
+
                                     <!-- Услуга по прайсу -->
                                     <div class="col-md-6 mb-3">
                                         <label for="price_service_option" class="form-label">
@@ -428,16 +428,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <option value="Визуализация на одну комнату" {{ $deal->price_service_option === 'Визуализация на одну комнату' ? 'selected' : '' }}>Визуализация на одну комнату</option>
                                         </select>
                                     </div>
-                                    
+
                                     <!-- Количество комнат по прайсу -->
                                     <div class="col-md-6 mb-3">
                                         <label for="rooms_count_pricing" class="form-label">
                                             <i class="fas fa-door-open me-1"></i>Кол-во комнат по прайсу
                                         </label>
-                                        <input type="text" class="form-control" id="rooms_count_pricing" name="rooms_count_pricing" 
+                                        <input type="text" class="form-control" id="rooms_count_pricing" name="rooms_count_pricing"
                                                value="{{ $deal->rooms_count_pricing }}">
                                     </div>
-                                    
+
                                     <!-- Кто делает комплектацию -->
                                     <div class="col-md-6 mb-3">
                                         <label for="completion_responsible" class="form-label">
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <option value="закупки и снабжение от УК" {{ $deal->completion_responsible === 'закупки и снабжение от УК' ? 'selected' : '' }}>Нужны закупки и снабжение от УК</option>
                                         </select>
                                     </div>
-                                    
+
                                     <!-- Аватар сделки -->
                                     @if(in_array($userRole, ['coordinator', 'admin']))
                                     <div class="col-md-6 mb-3">
@@ -460,10 +460,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="avatar_path">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="avatar_path" 
-                                                       name="avatar_path" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="avatar_path"
+                                                       name="avatar_path"
                                                        data-upload-type="yandex"
                                                        accept="image/*">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('avatar_path').click()">
@@ -485,34 +485,34 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="yandex-file-links-container" data-field="avatar_path"></div>
                                     </div>
                                     @endif
-                                    
+
                                     <!-- Сумма заказа -->
                                     <div class="col-md-6 mb-3">
                                         <label for="total_sum" class="form-label">
                                             <i class="fas fa-ruble-sign me-1"></i>Сумма заказа
                                         </label>
-                                        <input type="number" class="form-control" id="total_sum" name="total_sum" 
+                                        <input type="number" class="form-control" id="total_sum" name="total_sum"
                                                value="{{ $deal->total_sum }}" step="0.01">
                                     </div>
-                                    
+
                                     <!-- Дата создания -->
                                     <div class="col-md-6 mb-3">
                                         <label for="created_date" class="form-label">
                                             <i class="fas fa-calendar-plus me-1"></i>Дата создания
                                         </label>
-                                        <input type="date" class="form-control" id="created_date" name="created_date" 
+                                        <input type="date" class="form-control" id="created_date" name="created_date"
                                                value="{{ $deal->created_date ? (is_string($deal->created_date) ? $deal->created_date : $deal->created_date->format('Y-m-d')) : '' }}">
                                     </div>
-                                    
+
                                     <!-- Дата оплаты -->
                                     <div class="col-md-6 mb-3">
                                         <label for="payment_date" class="form-label">
                                             <i class="fas fa-money-check me-1"></i>Дата оплаты
                                         </label>
-                                        <input type="date" class="form-control" id="payment_date" name="payment_date" 
+                                        <input type="date" class="form-control" id="payment_date" name="payment_date"
                                                value="{{ $deal->payment_date ? (is_string($deal->payment_date) ? $deal->payment_date : $deal->payment_date->format('Y-m-d')) : '' }}">
                                     </div>
-                                    
+
                                     <!-- Комментарий -->
                                     <div class="col-12 mb-3">
                                         <label for="comment" class="form-label">
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Вкладка: Работа над проектом -->
                             <div class="tab-pane fade" id="rabota" role="tabpanel" aria-labelledby="rabota-tab">
                                 <div class="row">
@@ -544,26 +544,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                                             <i class="fas fa-play-circle text-success me-1"></i>
                                                             Дата старта работы
                                                         </label>
-                                                        <input type="date" class="form-control enhanced-date-picker" 
-                                                               id="start_date" name="start_date" 
+                                                        <input type="date" class="form-control enhanced-date-picker"
+                                                               id="start_date" name="start_date"
                                                                value="{{ $deal->start_date ? (is_string($deal->start_date) ? $deal->start_date : $deal->start_date->format('Y-m-d')) : '' }}"
                                                                placeholder="Выберите дату начала">
 
                                                     </div>
-                                                    
+
                                                     <!-- Срок проекта -->
                                                     <div class="col-md-4">
                                                         <label for="project_duration" class="form-label fw-bold">
                                                             <i class="fas fa-hourglass-half text-warning me-1"></i>
                                                             Длительность (рабочих дней)
                                                         </label>
-                                                        <input type="number" class="form-control" 
-                                                               id="project_duration" name="project_duration" 
+                                                        <input type="number" class="form-control"
+                                                               id="project_duration" name="project_duration"
                                                                value="{{ $deal->project_duration }}"
                                                                min="1" max="365" placeholder="Введите количество дней">
-                                                      
+
                                                     </div>
-                                                    
+
                                                     <!-- Дата завершения (автоматически рассчитывается) -->
                                                     <div class="col-md-4">
                                                         <label for="project_end_date" class="form-label fw-bold">
@@ -573,18 +573,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <i class="fas fa-robot"></i> AUTO
                                                             </span>
                                                         </label>
-                                                        <input type="date" class="form-control auto-calculated-field" 
-                                                               id="project_end_date" name="project_end_date" 
+                                                        <input type="date" class="form-control auto-calculated-field"
+                                                               id="project_end_date" name="project_end_date"
                                                                value="{{ $deal->project_end_date ? (is_string($deal->project_end_date) ? $deal->project_end_date : $deal->project_end_date->format('Y-m-d')) : '' }}"
                                                                readonly>
-                                                        
+
                                                     </div>
                                                 </div>
-                                              
+
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Архитектор -->
                                     <div class="col-md-6 mb-3">
                                         <label for="architect_id" class="form-label">
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control" value="{{ $architectName ?: 'Не назначен' }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $architectName ?: 'Не назначен' }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="architect_id" value="{{ $deal->architect_id }}">
                                         @else
@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Дизайнер -->
                                     <div class="col-md-6 mb-3">
                                         <label for="designer_id" class="form-label">
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control" value="{{ $designerName ?: 'Не назначен' }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $designerName ?: 'Не назначен' }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="designer_id" value="{{ $deal->designer_id }}">
                                         @else
@@ -652,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Визуализатор -->
                                     <div class="col-md-6 mb-3">
                                         <label for="visualizer_id" class="form-label">
@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control" value="{{ $visualizerName ?: 'Не назначен' }}" readonly 
+                                            <input type="text" class="form-control" value="{{ $visualizerName ?: 'Не назначен' }}" readonly
                                                    style="background-color: #f8f9fa; border-color: #dee2e6;">
                                             <input type="hidden" name="visualizer_id" value="{{ $deal->visualizer_id }}">
                                         @else
@@ -686,16 +686,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         @endif
                                     </div>
-                                    
+
                                     <!-- Ссылка на визуализацию -->
                                     <div class="col-md-6 mb-3">
                                         <label for="visualization_link" class="form-label">
                                             <i class="fas fa-link me-1"></i>Ссылка на визуализацию
                                         </label>
-                                        <input type="url" class="form-control" id="visualization_link" name="visualization_link" 
+                                        <input type="url" class="form-control" id="visualization_link" name="visualization_link"
                                                value="{{ $deal->visualization_link }}" placeholder="https://">
                                     </div>
-                                    
+
                                     <!-- Планировка финал -->
                                     <div class="col-md-6 mb-3">
                                         <label for="plan_final" class="form-label">
@@ -703,10 +703,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="plan_final">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="plan_final" 
-                                                       name="plan_final" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="plan_final"
+                                                       name="plan_final"
                                                        data-upload-type="yandex"
                                                        accept="application/pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('plan_final').click()">
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="plan_final"></div>
                                     </div>
-                                    
+
                                     <!-- Коллаж финал -->
                                     <div class="col-md-6 mb-3">
                                         <label for="final_collage" class="form-label">
@@ -737,10 +737,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="final_collage">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="final_collage" 
-                                                       name="final_collage" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="final_collage"
+                                                       name="final_collage"
                                                        data-upload-type="yandex"
                                                        accept="application/pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('final_collage').click()">
@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <i class="fas fa-camera me-2"></i>Скриншоты работы над проектом
                                         </h6>
                                     </div>
-                                    
+
                                     <!-- Первый скриншот работы -->
                                     <div class="col-md-6 mb-3">
                                         <label for="screenshot_work_1" class="form-label">
@@ -780,10 +780,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="screenshot_work_1">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="screenshot_work_1" 
-                                                       name="screenshot_work_1" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="screenshot_work_1"
+                                                       name="screenshot_work_1"
                                                        data-upload-type="yandex"
                                                        accept="image/*,.pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('screenshot_work_1').click()">
@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="screenshot_work_1"></div>
                                     </div>
-                                    
+
                                     <!-- Второй скриншот работы -->
                                     <div class="col-md-6 mb-3">
                                         <label for="screenshot_work_2" class="form-label">
@@ -814,10 +814,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="screenshot_work_2">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="screenshot_work_2" 
-                                                       name="screenshot_work_2" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="screenshot_work_2"
+                                                       name="screenshot_work_2"
                                                        data-upload-type="yandex"
                                                        accept="image/*,.pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('screenshot_work_2').click()">
@@ -840,7 +840,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="screenshot_work_2"></div>
                                     </div>
-                                    
+
                                     <!-- Третий скриншот работы -->
                                     <div class="col-md-6 mb-3">
                                         <label for="screenshot_work_3" class="form-label">
@@ -848,10 +848,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="screenshot_work_3">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="screenshot_work_3" 
-                                                       name="screenshot_work_3" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="screenshot_work_3"
+                                                       name="screenshot_work_3"
                                                        data-upload-type="yandex"
                                                        accept="image/*,.pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('screenshot_work_3').click()">
@@ -874,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="screenshot_work_3"></div>
                                     </div>
-                                    
+
                                     <!-- Скриншот финального этапа -->
                                     <div class="col-md-6 mb-3">
                                         <label for="screenshot_final" class="form-label">
@@ -882,10 +882,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="screenshot_final">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="screenshot_final" 
-                                                       name="screenshot_final" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="screenshot_final"
+                                                       name="screenshot_final"
                                                        data-upload-type="yandex"
                                                        accept="image/*,.pdf">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('screenshot_final').click()">
@@ -910,7 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Вкладка: Финал проекта -->
                             <div class="tab-pane fade" id="final" role="tabpanel" aria-labelledby="final-tab">
                                 <div class="row">
@@ -921,10 +921,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="measurements_file">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="measurements_file" 
-                                                       name="measurements_file" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="measurements_file"
+                                                       name="measurements_file"
                                                        data-upload-type="yandex"
                                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.dwg,.dxf,.pln,.rvt,.skp,.3ds,.max,.obj,.fbx,.ifc,.step,.stp,.iges,.igs,.sat,.x_t,.x_b,.catpart,.catproduct,.txt,.rtf,.odt,.ods,.csv,.zip,.rar,.7z">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('measurements_file').click()">
@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="measurements_file"></div>
                                     </div>
-                                    
+
                                     <!-- Финал проекта с расширенными форматами -->
                                     <div class="col-md-6 mb-3">
                                         <label for="final_project_file" class="form-label">
@@ -955,10 +955,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="final_project_file">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="final_project_file" 
-                                                       name="final_project_file" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="final_project_file"
+                                                       name="final_project_file"
                                                        data-upload-type="yandex"
                                                        accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.tiff,.tif,.psd,.ai,.eps,.indd,.zip,.rar,.7z,.dwg,.dxf,.pln,.rvt">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('final_project_file').click()">
@@ -981,7 +981,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="final_project_file"></div>
                                     </div>
-                                    
+
                                     <!-- Акт выполненных работ с расширенными форматами -->
                                     <div class="col-md-6 mb-3">
                                         <label for="work_act" class="form-label">
@@ -989,10 +989,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="work_act">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="work_act" 
-                                                       name="work_act" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="work_act"
+                                                       name="work_act"
                                                        data-upload-type="yandex"
                                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.txt,.jpg,.jpeg,.png,.zip,.rar,.7z">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('work_act').click()">
@@ -1015,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="work_act"></div>
                                     </div>
-                                    
+
                                     <!-- Скрин чата с расширенными форматами изображений -->
                                     <div class="col-md-6 mb-3">
                                         <label for="chat_screenshot" class="form-label">
@@ -1023,10 +1023,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="chat_screenshot">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="chat_screenshot" 
-                                                       name="chat_screenshot" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="chat_screenshot"
+                                                       name="chat_screenshot"
                                                        data-upload-type="yandex"
                                                        accept="image/*,.pdf,.doc,.docx">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('chat_screenshot').click()">
@@ -1052,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <!-- Динамический контейнер для новых ссылок -->
                                         <div class="yandex-file-links-container" data-field="chat_screenshot"></div>
                                     </div>
-                                    
+
                                     <!-- Исходный файл архикад с множественными САПР форматами -->
                                     <div class="col-md-6 mb-3">
                                         <label for="archicad_file" class="form-label">
@@ -1060,10 +1060,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </label>
                                         <div class="yandex-upload-container" data-field-name="archicad_file">
                                             <div class="upload-area">
-                                                <input type="file" 
-                                                       class="yandex-file-input yandex-upload d-none" 
-                                                       id="archicad_file" 
-                                                       name="archicad_file" 
+                                                <input type="file"
+                                                       class="yandex-file-input yandex-upload d-none"
+                                                       id="archicad_file"
+                                                       name="archicad_file"
                                                        data-upload-type="yandex"
                                                        accept=".pln,.dwg,.dxf,.rvt,.skp,.3ds,.max,.obj,.fbx,.ifc,.step,.stp,.iges,.igs,.sat,.x_t,.x_b,.catpart,.catproduct,.zip,.rar,.7z">
                                                 <div class="upload-hint text-center p-3" onclick="document.getElementById('archicad_file').click()">
@@ -1091,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Вкладка: Документы -->
                             <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
                                 <div class="documents-module-simple">
@@ -1104,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <!-- Область загрузки -->
                                     <!-- Улучшенная область загрузки документов -->
                                     <div class="documents-upload-area mb-4">
-                                        <div class="upload-container p-4 border rounded" id="documentsUploadArea" 
+                                        <div class="upload-container p-4 border rounded" id="documentsUploadArea"
                                              style="border: 2px dashed #007bff; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.3s ease;">
                                             <div class="upload-content">
                                                 <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
@@ -1119,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <i class="fas fa-plus me-2"></i>
                                                     <span class="upload-btn-text">Выбрать файлы</span>
                                                 </button>
-                                                
+
                                                 <div class="mt-3">
                                                     <small class="text-muted">
                                                         <i class="fas fa-info-circle me-1"></i>
@@ -1127,14 +1127,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     </small>
                                                 </div>
                                             </div>
-                                            
-                                            <input type="file" 
-                                                   id="documentUploadInput" 
-                                                   class="d-none" 
-                                                   multiple 
+
+                                            <input type="file"
+                                                   id="documentUploadInput"
+                                                   class="d-none"
+                                                   multiple
                                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.rar">
                                         </div>
-                                        
+
                                         <!-- Информация о выбранных файлах -->
                                         <div id="filesCountInfo" class="mt-3" style="display: none;">
                                             <div class="alert alert-info border-start border-4 border-primary">
@@ -1150,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <!-- Список загруженных документов -->
                                     <div class="uploaded-documents-section">
                                         <h4><i class="fas fa-list me-2"></i>Загруженные документы</h4>
-                                        
+
                                         @php
                                             $documentsArray = [];
                                             if (isset($deal->documents)) {
@@ -1161,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 }
                                             }
                                         @endphp
-                                        
+
                                         @if(count($documentsArray) > 0)
                                             <div class="uploaded-files">
                                                 @foreach($documentsArray as $index => $document)
@@ -1320,7 +1320,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     }
 
                                     console.log('✅ Элементы модуля документов найдены');
-                                    
+
                                     // Дополнительная проверка существования элементов
                                     if (!filesCountInfo) {
                                         console.warn('⚠️ Элемент filesCountInfo не найден');
@@ -1345,11 +1345,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     uploadInput.addEventListener('change', function(e) {
                                         const files = e.target.files;
                                         console.log('Выбрано файлов:', files.length);
-                                        
+
                                         if (files.length > 0) {
                                             updateFilesCountDisplay(files);
                                             showSelectedFiles(files);
-                                            
+
                                             // Сразу начинаем загрузку
                                             uploadFiles(files);
                                         }
@@ -1366,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             const word = getFileWord(count);
                                             const totalSize = Array.from(files).reduce((sum, file) => sum + file.size, 0);
                                             const formattedSize = formatFileSize(totalSize);
-                                            
+
                                             filesCountText.textContent = `${count} ${word} выбрано (общий размер: ${formattedSize})`;
                                             if (filesCountInfo) {
                                                 filesCountInfo.style.display = 'block';
@@ -1385,27 +1385,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (!selectedFilesList) return;
 
                                         selectedFilesList.innerHTML = '';
-                                        
+
                                         if (files.length > 0) {
                                             const previewContainer = document.createElement('div');
                                             previewContainer.className = 'selected-files-preview';
-                                            
+
                                             Array.from(files).forEach(file => {
                                                 const fileItem = document.createElement('div');
                                                 fileItem.className = 'selected-file-item';
-                                                
+
                                                 const icon = getFileIcon(file.name);
                                                 const size = formatFileSize(file.size);
-                                                
+
                                                 fileItem.innerHTML = `
                                                     <i class="fas ${icon} file-icon"></i>
                                                     <span class="file-name">${file.name}</span>
                                                     <span class="file-size">${size}</span>
                                                 `;
-                                                
+
                                                 previewContainer.appendChild(fileItem);
                                             });
-                                            
+
                                             selectedFilesList.appendChild(previewContainer);
                                         }
                                     }
@@ -1420,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     function getFileIcon(fileName) {
                                         const extension = fileName.split('.').pop().toLowerCase();
-                                        
+
                                         switch (extension) {
                                             case 'pdf': return 'fa-file-pdf';
                                             case 'doc':
@@ -1465,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             e.preventDefault();
                                             e.stopPropagation();
                                             area.classList.remove('drag-over');
-                                            
+
                                             const files = e.dataTransfer.files;
                                             if (files.length > 0) {
                                                 // Создаем новый DataTransfer объект для установки files
@@ -1473,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 Array.from(files).forEach(file => {
                                                     dataTransfer.items.add(file);
                                                 });
-                                                
+
                                                 input.files = dataTransfer.files;
                                                 const event = new Event('change', { bubbles: true });
                                                 input.dispatchEvent(event);
@@ -1483,11 +1483,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     async function uploadFiles(files) {
                                         console.log('Начинаем загрузку файлов:', files.length);
-                                        
+
                                         const btnText = uploadBtn.querySelector('.upload-btn-text');
                                         const btnIcon = uploadBtn.querySelector('i');
                                         const uploadArea = document.getElementById('documentsUploadArea');
-                                        
+
                                         // Показываем процесс загрузки
                                         if (btnText) btnText.textContent = `Загружаем ${files.length} файл(ов)...`;
                                         if (btnIcon) {
@@ -1500,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         try {
                                             const formData = new FormData();
-                                            
+
                                             // Добавляем файлы
                                             for (let i = 0; i < files.length; i++) {
                                                 formData.append('documents[]', files[i]);
@@ -1532,12 +1532,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                             if (response.ok && result.success) {
                                                 const successMsg = `Успешно загружено ${files.length} файл(ов)!`;
                                                 showNotification(successMsg, 'success');
-                                                
+
                                                 // Обновляем список документов
                                                 if (result.documents) {
                                                     updateDocumentsList(result.documents);
                                                 }
-                                                
+
                                                 // Сбрасываем форму
                                                 resetUploadForm();
                                             } else {
@@ -1564,11 +1564,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (uploadInput) {
                                             uploadInput.value = '';
                                         }
-                                        
+
                                         if (filesCountInfo) {
                                             filesCountInfo.style.display = 'none';
                                         }
-                                        
+
                                         // Очищаем список выбранных файлов
                                         const selectedFilesList = document.getElementById('selectedFilesList');
                                         if (selectedFilesList) {
@@ -1579,12 +1579,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     function updateDocumentsList(documents) {
                                         // Найдем контейнер для документов
                                         const emptyState = document.querySelector('.documents-empty-state');
-                                        
+
                                         if (emptyState && documents.length > 0) {
                                             if (emptyState) {
                                                 emptyState.style.display = 'none';
                                             }
-                                            
+
                                             // Добавляем новые документы
                                             // Это базовая реализация, можно улучшить
                                             location.reload(); // Перезагружаем страницу для отображения новых документов
@@ -1602,7 +1602,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         // Простая реализация уведомлений
                                         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
                                         const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-                                        
+
                                         const notification = document.createElement('div');
                                         notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
                                         notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
@@ -1611,9 +1611,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                             ${message}
                                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                         `;
-                                        
+
                                         document.body.appendChild(notification);
-                                        
+
                                         // Автоматическое удаление через 5 секунд
                                         setTimeout(() => {
                                             if (notification.parentNode) {
@@ -1632,41 +1632,36 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 </script>
                             </div>
-                            
+
                             <!-- Вкладка: Бриф -->
                             <div class="tab-pane fade" id="brief" role="tabpanel" aria-labelledby="brief-tab">
                                 <div class="row">
                                     <div class="col-12">
                                         <!-- Текущий статус брифа -->
                                         <div class="mb-4" style="border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; padding: 20px;">
-                                            @if($deal->common_id || $deal->commercial_id)
+                                            @php
+                                                // Получаем привязанный бриф (новый унифицированный)
+                                                $attachedBrief = $deal->getRelation('brief');
+                                            @endphp
+
+                                            @if($attachedBrief)
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div>
                                                         <h6 class="mb-2" style="color: #28a745; font-weight: 600;">
                                                             ✅ Бриф привязан к сделке
                                                         </h6>
                                                         <p class="mb-0" style="color: #6c757d; font-size: 14px;">
-                                                            Тип: {{ $deal->common_id ? 'Общий бриф #' . $deal->common_id : 'Коммерческий бриф #' . $deal->commercial_id }}
+                                                            Тип: {{ $attachedBrief->type->label() }} #{{ $attachedBrief->id }}
                                                         </p>
                                                     </div>
                                                     <div class="d-flex gap-2">
-                                                        @if($deal->common_id)
-                                                            <a href="{{ route('common.show', $deal->common_id) }}" 
-                                                               class="btn btn-outline-primary btn-sm" 
-                                                               target="_blank"
-                                                               title="Открыть бриф в новой вкладке">
-                                                                <i class="fas fa-eye me-1"></i>
-                                                                Просмотр брифа
-                                                            </a>
-                                                        @elseif($deal->commercial_id)
-                                                            <a href="{{ route('commercial.show', $deal->commercial_id) }}" 
-                                                               class="btn btn-outline-primary btn-sm" 
-                                                               target="_blank"
-                                                               title="Открыть бриф в новой вкладке">
-                                                                <i class="fas fa-eye me-1"></i>
-                                                                Просмотр брифа
-                                                            </a>
-                                                        @endif
+                                                        <a href="{{ route('briefs.show', $attachedBrief->id) }}"
+                                                           class="btn btn-outline-primary btn-sm"
+                                                           target="_blank"
+                                                           title="Открыть бриф в новой вкладке">
+                                                            <i class="fas fa-eye me-1"></i>
+                                                            Просмотр брифа
+                                                        </a>
                                                         <button type="button" class="btn btn-outline-danger btn-sm" id="detachBriefBtn" data-deal-id="{{ $deal->id }}">
                                                             <i class="fas fa-unlink me-1"></i>
                                                             Отвязать бриф
@@ -1682,27 +1677,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 </p>
                                             @endif
                                         </div>
-                                        
+
                                         <!-- Поиск брифа -->
-                                        @if(!$deal->common_id && !$deal->commercial_id)
+                                        @if(!$attachedBrief)
                                         <div class="mb-4">
                                             <h6 class="mb-3" style="font-weight: 600;">Поиск брифов</h6>
-                                            
+
                                             <div class="row">
                                                 <div class="col-md-8 mb-3">
                                                     <label for="client_phone_search" class="form-label">Телефон клиента</label>
-                                                    <input type="text" class="form-control" id="client_phone_search" 
-                                                           value="{{ $deal->client_phone }}" readonly 
+                                                    <input type="text" class="form-control" id="client_phone_search"
+                                                           value="{{ $deal->client_phone }}" readonly
                                                            style="background-color: #e9ecef;">
                                                 </div>
                                                 <div class="col-md-4 mb-3 d-flex align-items-end">
-                                                    <button type="button" class="btn btn-primary w-100" id="searchBriefBtn" 
+                                                    <button type="button" class="btn btn-primary w-100" id="searchBriefBtn"
                                                             data-deal-id="{{ $deal->id }}" data-client-phone="{{ $deal->client_phone }}">
                                                         Найти брифы
                                                     </button>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Результаты поиска -->
                                             <div id="briefSearchResults" style="display: none;" class="mt-4">
                                                 <div style="border-top: 1px solid #dee2e6; padding-top: 16px;">
@@ -1730,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Кнопки управления -->
                         <div class="row mt-4">
                             <div class="col-12">
@@ -1788,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(initSelect2, 100);
         }
     }
-    
+
     initSelect2();
 });
 </script>
@@ -1802,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Простая инициализация...');
-    
+
     // Инициализация Bootstrap вкладок
     if (typeof bootstrap !== 'undefined') {
         const triggerTabList = [].slice.call(document.querySelectorAll('.deal-tab-button[data-bs-toggle="tab"]'));
@@ -1811,7 +1806,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('✅ Вкладки Bootstrap инициализированы');
     }
-    
+
     // Инициализация AJAX системы редактирования
     if (typeof window.dealEditAjax !== 'undefined') {
         console.log('🔧 Инициализация AJAX системы...');

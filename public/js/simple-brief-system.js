@@ -27,7 +27,7 @@
             searchBtn.addEventListener('click', function() {
                 const dealId = this.getAttribute('data-deal-id');
                 const clientPhone = this.getAttribute('data-client-phone');
-                
+
                 if (!clientPhone) {
                     showMessage('Номер телефона клиента не указан', 'error');
                     return;
@@ -41,7 +41,7 @@
         if (detachBtn) {
             detachBtn.addEventListener('click', function() {
                 const dealId = this.getAttribute('data-deal-id');
-                
+
                 if (confirm('Вы уверены, что хотите отвязать бриф от сделки?')) {
                     detachBrief(dealId);
                 }
@@ -74,7 +74,7 @@
             const requestData = {
                 client_phone: clientPhone
             };
-            
+
             console.log('📤 Отправка запроса:', {
                 url: `/api/deals/${dealId}/search-briefs`,
                 data: requestData
@@ -98,7 +98,7 @@
 
             const data = await response.json();
             console.log('📋 Данные ответа:', data);
-            
+
             // Дополнительная отладка статусов брифов
             if (data.briefs && data.briefs.length > 0) {
                 console.log('🔍 Общие брифы и их статусы:');
@@ -106,7 +106,7 @@
                     console.log(`  - Бриф #${brief.id}: статус "${brief.status}", можно привязать: ${brief.can_attach}`);
                 });
             }
-            
+
             if (data.commercials && data.commercials.length > 0) {
                 console.log('🔍 Коммерческие брифы и их статусы:');
                 data.commercials.forEach(brief => {
@@ -114,6 +114,7 @@
                 });
             }
 
+            console.log(response.ok, data.success);
             if (response.ok && data.success) {
                 displayBriefResults(data, dealId);
                 showMessage(`Найдено брифов: ${data.total_found || 0}`, 'success');
@@ -125,13 +126,13 @@
         } catch (error) {
             console.error('❌ Ошибка поиска брифов:', error);
             showMessage('Ошибка при поиске брифов: ' + error.message, 'error');
-            
+
             if (resultsContainer) {
                 resultsContainer.style.display = 'none';
             }
         } finally {
             isLoading = false;
-            
+
             // Восстанавливаем кнопку
             if (searchBtn) {
                 searchBtn.disabled = false;
@@ -157,23 +158,15 @@
 
         // Собираем все брифы в один массив
         const allBriefs = [];
-        
+
+        // Новые унифицированные брифы
         if (data.briefs && data.briefs.length > 0) {
             data.briefs.forEach(brief => {
                 allBriefs.push({
                     ...brief,
-                    type: 'common',
-                    type_name: 'Общий бриф'
-                });
-            });
-        }
-
-        if (data.commercials && data.commercials.length > 0) {
-            data.commercials.forEach(brief => {
-                allBriefs.push({
-                    ...brief,
-                    type: 'commercial',
-                    type_name: 'Коммерческий бриф'
+                    type: brief.type,
+                    type_name: brief.type === 'common' ? 'Общий бриф' : 'Коммерческий бриф',
+                    system: 'unified'
                 });
             });
         }
@@ -182,7 +175,7 @@
             resultsList.innerHTML = `
                 <div style="padding: 20px; text-align: center; color: #6c757d;">
                     <i class="fas fa-search" style="font-size: 24px; margin-bottom: 8px;"></i>
-                    <p>Брифы не найдены по номеру телефона <strong>${data.search_phone || ''}</strong></p>
+                    <p>Брифы не найдены по номеру телефона <strong>${data.searched_phone || ''}</strong></p>
                     <small>Попробуйте указать номер в другом формате</small>
                 </div>
             `;
@@ -207,23 +200,35 @@
         element.style.cssText = 'border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; background: #fff;';
 
         // Определяем можно ли привязать бриф
-        // Доступные для привязки статусы: только "Завершенный", "Завершен", "completed", "Отредактированный"
-        const attachableStatuses = ['Завершенный', 'Завершен', 'completed', 'Отредактированный'];
-        const isAttachable = attachableStatuses.includes(brief.status);
-        const canAttach = isAttachable && !brief.already_linked;
-        
+        let isAttachable = false;
+        let canAttach = false;
+
+        if (brief.system === 'unified') {
+            // Для новых унифицированных брифов
+            isAttachable = brief.status === 'completed';
+            canAttach = isAttachable && !brief.already_linked;
+        } else {
+            // Для старых брифов (legacy)
+            const attachableStatuses = ['Завершенный', 'Завершен', 'completed', 'Отредактированный'];
+            isAttachable = attachableStatuses.includes(brief.status);
+            canAttach = isAttachable && !brief.already_linked;
+        }
+
         // Определяем цвет и текст статуса
         let statusColor, statusText;
         if (brief.already_linked) {
             statusColor = '#6c757d'; // серый
             statusText = 'Уже привязан';
-        } else if (brief.status === 'Завершенный' || brief.status === 'Завершен' || brief.status === 'completed') {
+        } else if (brief.system === 'unified' && brief.status === 'completed') {
             statusColor = '#28a745'; // зеленый
             statusText = 'Завершен - можно привязать';
-        } else if (brief.status === 'Отредактированный') {
+        } else if (brief.system === 'legacy' && (brief.status === 'Завершенный' || brief.status === 'Завершен' || brief.status === 'completed')) {
+            statusColor = '#28a745'; // зеленый
+            statusText = 'Завершен - можно привязать';
+        } else if (brief.system === 'legacy' && brief.status === 'Отредактированный') {
             statusColor = '#17a2b8'; // бирюзовый
             statusText = 'Отредактирован - можно привязать';
-        } else if (brief.status === 'Активный') {
+        } else if (brief.system === 'legacy' && brief.status === 'Активный') {
             statusColor = '#ffc107'; // желтый
             statusText = 'Активный - нельзя привязать';
         } else {
@@ -231,11 +236,16 @@
             statusText = brief.status || 'Черновик - нельзя привязать';
         }
 
+        // Добавляем индикатор системы
+        const systemBadge = brief.system === 'unified' ?
+            '<span class="badge bg-primary me-1" style="font-size: 10px;">NEW</span>' :
+            '<span class="badge bg-secondary me-1" style="font-size: 10px;">LEGACY</span>';
+
         element.innerHTML = `
             <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                     <h6 class="mb-2" style="font-weight: 600; color: #495057;">
-                        ${brief.type_name} #${brief.id}
+                        ${systemBadge}${brief.type_name} #${brief.id}
                     </h6>
                     <div class="mb-1">
                         <small class="text-muted">
@@ -260,10 +270,11 @@
                 </div>
                 <div class="ms-3">
                     ${canAttach ? `
-                        <button type="button" 
+                        <button type="button"
                                 class="btn btn-success btn-sm attach-brief-btn"
                                 data-brief-id="${brief.id}"
                                 data-brief-type="${brief.type}"
+                                data-brief-system="${brief.system}"
                                 data-deal-id="${dealId}">
                             <i class="fas fa-link me-1"></i>
                             Привязать
@@ -284,9 +295,10 @@
             attachBtn.addEventListener('click', function() {
                 const briefId = this.getAttribute('data-brief-id');
                 const briefType = this.getAttribute('data-brief-type');
+                const briefSystem = this.getAttribute('data-brief-system');
                 const dealId = this.getAttribute('data-deal-id');
-                
-                attachBrief(briefId, briefType, dealId, this);
+
+                attachBrief(briefId, briefType, briefSystem, dealId, this);
             });
         }
 
@@ -296,12 +308,12 @@
     /**
      * Привязка брифа к сделке
      */
-    async function attachBrief(briefId, briefType, dealId, button) {
+    async function attachBrief(briefId, briefType, briefSystem, dealId, button) {
         if (isLoading) return;
 
         isLoading = true;
         const originalText = button.innerHTML;
-        
+
         // Показываем состояние загрузки
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Привязываем...';
@@ -315,8 +327,7 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
-                    brief_id: briefId,
-                    brief_type: briefType
+                    brief_id: briefId
                 })
             });
 
@@ -324,17 +335,17 @@
 
             if (response.ok && data.success) {
                 showMessage('Бриф успешно привязан к сделке!', 'success');
-                
+
                 // Обновляем кнопку
                 button.className = 'btn btn-success btn-sm';
                 button.innerHTML = '<i class="fas fa-check"></i> Привязан';
                 button.disabled = true;
-                
+
                 // Перезагружаем страницу через 2 секунды для обновления статуса
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
-                
+
             } else {
                 throw new Error(data.message || 'Ошибка при привязке брифа');
             }
@@ -342,7 +353,7 @@
         } catch (error) {
             console.error('Ошибка привязки брифа:', error);
             showMessage('Ошибка при привязке брифа: ' + error.message, 'error');
-            
+
             // Восстанавливаем кнопку
             button.disabled = false;
             button.innerHTML = originalText;
@@ -359,7 +370,7 @@
 
         isLoading = true;
         const detachBtn = document.getElementById('detachBriefBtn');
-        
+
         if (detachBtn) {
             detachBtn.disabled = true;
             detachBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отвязываем...';
@@ -379,12 +390,12 @@
 
             if (response.ok && data.success) {
                 showMessage('Бриф успешно отвязан от сделки!', 'success');
-                
+
                 // Перезагружаем страницу для обновления статуса
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
-                
+
             } else {
                 throw new Error(data.message || 'Ошибка при отвязке брифа');
             }
@@ -392,7 +403,7 @@
         } catch (error) {
             console.error('Ошибка отвязки брифа:', error);
             showMessage('Ошибка при отвязке брифа: ' + error.message, 'error');
-            
+
             // Восстанавливаем кнопку
             if (detachBtn) {
                 detachBtn.disabled = false;
@@ -416,7 +427,7 @@
      */
     function formatDate(dateString) {
         if (!dateString) return 'Не указано';
-        
+
         try {
             const date = new Date(dateString);
             return date.toLocaleDateString('ru-RU', {
@@ -483,7 +494,7 @@
         notification.innerHTML = `
             <i class="${icons[type] || icons.info}"></i>
             <span>${message}</span>
-            <button onclick="this.parentElement.remove()" 
+            <button onclick="this.parentElement.remove()"
                     style="background: none; border: none; color: white; margin-left: auto; cursor: pointer; font-size: 16px;">
                 ×
             </button>
@@ -519,7 +530,7 @@
                     opacity: 1;
                 }
             }
-            
+
             @keyframes slideOutRight {
                 from {
                     transform: translateX(0);
@@ -530,7 +541,7 @@
                     opacity: 0;
                 }
             }
-            
+
             .brief-item:hover {
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 transform: translateY(-1px);

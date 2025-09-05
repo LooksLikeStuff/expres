@@ -232,9 +232,8 @@ class Deal extends Model
 
     public function brief()
     {
-        return $this->belongsTo(Common::class, 'common_id');
+        return $this->hasOne(Brief::class);
     }
-
 
 
     public function commercials()
@@ -686,7 +685,7 @@ class Deal extends Model
     }
 
     // Методы для работы с клиентскими полями из таблицы deal_clients
-    
+
     /**
      * Получить имя клиента только из таблицы deal_clients
      */
@@ -805,7 +804,7 @@ class Deal extends Model
 
     /**
      * Привязать существующий бриф к сделке
-     * 
+     *
      * @param Brief $brief
      * @return bool
      */

@@ -97,11 +97,6 @@ class User extends Authenticatable
                 $brief->save();
             }
 
-            foreach ($user->commercials as $commercial) {
-                $commercial->user_id_before_deletion = $user->id;
-                $commercial->save();
-            }
-
             // Для сделок сохраняем информацию о клиенте
             foreach ($user->deals as $deal) {
                 // Если удаляется основной владелец сделки, сохраняем его данные
@@ -120,6 +115,16 @@ class User extends Authenticatable
 
             // Аналогично для других связей, если необходимо
         });
+    }
+
+    public function setPhoneAttribute($value): void
+    {
+        $this->attributes['phone'] = normalizePhone($value);
+    }
+
+    public function getPhoneAttribute($value): ?string
+    {
+        return formatPhone($value);
     }
 
     public function isAdmin(): bool
