@@ -920,12 +920,12 @@ class DealsController extends Controller
     {
         $validated = $request->validate([
             'client_phone'            => 'required|string|max:50',
-            'client_name'             => 'required|string|max:255', // Добавляем валидацию для имени клиента
+            'client_name'             => 'required|string|max:255',
             'package'                 => 'required|string|max:255',
             'price_service_option'    => 'required|string|max:255',
             'rooms_count_pricing'     => 'nullable|string|max:255',
             'execution_order_comment' => 'nullable|string|max:1000',
-            'execution_order_file'    => 'nullable|file|mimes:pdf,jpg,jpeg,png', // Убрали ограничение max:5120
+            'execution_order_file'    => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'office_partner_id'       => 'nullable|exists:users,id',
             'coordinator_id'          => 'nullable|exists:users,id',
             'total_sum'               => 'nullable|numeric',
@@ -934,12 +934,12 @@ class DealsController extends Controller
             'execution_comment'       => 'nullable|string',
             'comment'                 => 'nullable|string',
             'client_timezone'         => 'nullable|string',
-            'completion_responsible'  => 'required|string', // Изменено с nullable на required
+            'completion_responsible'  => 'required|string',
             'start_date'              => 'nullable|date',
             'project_duration'        => 'nullable|integer',
             'project_end_date'        => 'nullable|date',
-            'documents'               => 'nullable|array', // Добавляем валидацию для массива документов
-            'documents.*'             => 'nullable|file', // Убрали ограничение max:20480
+            'documents'               => 'nullable|array',
+            'documents.*'             => 'nullable|file',
         ]);
 
         $user = Auth::user();
@@ -952,18 +952,17 @@ class DealsController extends Controller
             $coordinatorId = $validated['coordinator_id'] ?? auth()->id();
 
             // Нормализация номера телефона клиента для поиска (удаление нецифровых символов)
-            $normalizedPhone = preg_replace('/\D/', '', $validated['client_phone']);
+            $normalizedPhone = normalizePhone($validated['client_phone']);
 
             // Поиск существующего пользователя по номеру телефона
             $existingUser = User::where('phone', 'LIKE', '%' . $normalizedPhone . '%')->first();
 
             // Используем ID существующего пользователя или текущего авторизованного пользователя
-            // Это гарантирует, что user_id никогда не будет NULL
             $userId = $existingUser ? $existingUser->id : auth()->id();
 
             // Создаем сделку без клиентских полей
             $deal = Deal::create([
-                'status'                 => 'Ждем ТЗ', // устанавливаем значение по умолчанию
+                'status'                 => 'Ждем ТЗ',
                 'package'                => $validated['package'],
                 'price_service_option'   => $validated['price_service_option'],
                 'rooms_count_pricing'    => $validated['rooms_count_pricing'] ?? null,
@@ -975,7 +974,7 @@ class DealsController extends Controller
                 'execution_comment'      => $validated['execution_comment'] ?? null,
                 'comment'                => $validated['comment'] ?? null,
                 'completion_responsible' => $validated['completion_responsible'] ?? null,
-                'user_id'                => $userId, // Устанавливаем ID найденного пользователя или текущего
+                'user_id'                => $userId,
                 'registration_token'     => Str::random(32),
                 'registration_token_expiry' => now()->addDays(7),
                 'start_date'             => $validated['start_date'] ?? null,
@@ -983,36 +982,35 @@ class DealsController extends Controller
                 'project_end_date'       => $validated['project_end_date'] ?? null,
             ]);
 
-            // Создаем клиентские данные через новый сервис
-            $clientDTO = DealClientDTO::fromArray([
-                'deal_id' => $deal->id,
-                'name' => $validated['client_name'],
-                'phone' => $validated['client_phone'],
-                'email' => $validated['client_email'] ?? null,
-                'city' => $validated['client_city'] ?? null,
-                'timezone' => $validated['client_timezone'] ?? null,
-                'info' => $validated['client_info'] ?? null,
+            // --- Новый способ: сохраняем клиента через DealClient модель ---
+            $dealClientData = [
+                'deal_id'      => $deal->id,
+                'name'         => $validated['client_name'],
+                'phone'        => $validated['client_phone'],
+                'email'        => $validated['client_email'] ?? null,
+                'city'         => $validated['client_city'] ?? null,
+                'timezone'     => $validated['client_timezone'] ?? null,
+                'info'         => $validated['client_info'] ?? null,
                 'account_link' => $validated['client_account_link'] ?? null,
-            ]);
+            ];
 
-            try {
-                $this->dealClientService->createOrUpdate($clientDTO);
-            } catch (\InvalidArgumentException $e) {
-                // Если не удалось создать клиента, удаляем сделку и возвращаем ошибку
-                $deal->delete();
-                throw new \Exception('Ошибка создания данных клиента: ' . $e->getMessage());
+            // Если клиент уже есть по телефону, обновляем его, иначе создаём нового
+            $dealClient = \App\Models\DealClient::findByPhone($dealClientData['phone']);
+            if ($dealClient) {
+                $dealClient->fill($dealClientData);
+                $dealClient->save();
+            } else {
+                $dealClient = \App\Models\DealClient::create($dealClientData);
             }
 
             // Сохраняем документы и получаем пути к файлам
             if ($request->hasFile('documents')) {
                 $documentsPaths = $this->saveDocuments($request, $deal->id);
 
-                // Сохраняем пути в JSON-поле documents
                 if (!empty($documentsPaths)) {
                     $deal->documents = json_encode($documentsPaths);
                     $deal->save();
 
-                    // Логируем успешную загрузку
                     Log::info('Документы успешно загружены для сделки ID: ' . $deal->id, [
                         'count' => count($documentsPaths),
                         'paths' => $documentsPaths
@@ -1054,7 +1052,6 @@ class DealsController extends Controller
             // Привязываем существующего клиента, если найден
             if ($existingUser) {
                 $dealUsers[$existingUser->id] = ['role' => 'client'];
-                // Записываем в лог привязку клиента по номеру телефона
                 \Illuminate\Support\Facades\Log::info('Клиент привязан к сделке по номеру телефона', [
                     'deal_id' => $deal->id,
                     'client_id' => $existingUser->id,
@@ -1070,7 +1067,6 @@ class DealsController extends Controller
             if (!$existingUser) {
                 $this->sendSmsNotification($deal, $deal->registration_token);
             } else {
-                // Для существующего клиента сразу обновляем статус сделки
                 $deal->status = 'Регистрация';
                 $deal->save();
             }
@@ -1235,16 +1231,18 @@ class DealsController extends Controller
     /**
      * Отправка SMS-уведомления с регистрационной ссылкой.
      */
-    private function sendSmsNotification($deal, $registrationToken)
+    private function sendSmsNotification(Deal $deal, $registrationToken)
     {
+        $client = $deal->load('dealClient')?->dealClient;
+
         if (!$registrationToken) {
             Log::error("Отсутствует регистрационный токен для сделки ID: {$deal->id}");
             throw new \Exception('Отсутствует регистрационный токен для сделки.');
         }
 
-        $rawPhone = preg_replace('/\D/', '', $deal->client_phone);
+        $rawPhone = preg_replace('/\D/', '', normalizePhone($client->phone));
 
-        $apiKey = config('services.smsru.api_id', '6CDCE0B0-6091-278C-5145-360657FF0F9B');
+        $apiKey = config('services.smsru.api_id', config('services.smsru.api_key'));
 
         $response = Http::get("https://sms.ru/sms/send", [
             'api_id'    => $apiKey,
@@ -1253,6 +1251,7 @@ class DealsController extends Controller
             'partner_id'=> 1,
         ]);
 
+        dd($response);
         if ($response->failed()) {
             Log::error("Ошибка при отправке SMS для сделки ID: {$deal->id}. Ответ сервера: " . $response->body());
             throw new \Exception('Ошибка при отправке SMS.');

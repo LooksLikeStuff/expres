@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\LoginCodeRequest;
 use App\Http\Requests\Auth\LoginPasswordRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SendCodeRequest;
+use App\Models\Deal;
 use App\Services\AuthService;
 use App\Services\VerificationService;
 use Illuminate\Http\JsonResponse;
@@ -108,7 +109,7 @@ class AuthController extends Controller
         }
 
         // TODO: Добавить DealService для проверки токена
-        $deal = null; // Deal::where('registration_token', $token)->where('registration_token_expiry', '>', now())->first();
+        $deal = Deal::where('registration_token', $token)->where('registration_token_expiry', '>', now())->first();
 
         if (!$deal) {
             return redirect()->route('login.password')->with('error', 'Ссылка на регистрацию устарела или неверна.');
@@ -190,7 +191,7 @@ class AuthController extends Controller
         }
 
         $phone = $this->normalizePhoneNumber($request->phone);
-        
+
         $verificationDTO = new VerificationRequestDTO(
             phone: $phone,
             code: $request->verification_code,
@@ -224,7 +225,7 @@ class AuthController extends Controller
         ]);
 
         $phone = $this->normalizePhoneNumber($request->phone);
-        
+
         if (!$this->authService->isUserExists($phone)) {
             return response()->json([
                 'success' => false,
@@ -256,7 +257,7 @@ class AuthController extends Controller
         ]);
 
         $phone = $this->normalizePhoneNumber($request->phone);
-        
+
         $verificationDTO = new VerificationRequestDTO(
             phone: $phone,
             code: $request->code,
@@ -291,14 +292,14 @@ class AuthController extends Controller
     private function normalizePhoneNumber(string $phone): string
     {
         $rawPhone = preg_replace('/\D/', '', $phone);
-        
+
         // Приводим к формату 7XXXXXXXXXX
         if (strlen($rawPhone) === 10) {
             $rawPhone = '7' . $rawPhone;
         } elseif (strlen($rawPhone) === 11 && $rawPhone[0] === '8') {
             $rawPhone = '7' . substr($rawPhone, 1);
         }
-        
+
         return $rawPhone;
     }
 
@@ -308,14 +309,14 @@ class AuthController extends Controller
     private function formatPhoneNumber(string $phone): string
     {
         $normalized = $this->normalizePhoneNumber($phone);
-        
+
         if (strlen($normalized) === 11) {
-            return '+7 (' . substr($normalized, 1, 3) . ') ' 
-                . substr($normalized, 4, 3) . '-' 
-                . substr($normalized, 7, 2) . '-' 
+            return '+7 (' . substr($normalized, 1, 3) . ') '
+                . substr($normalized, 4, 3) . '-'
+                . substr($normalized, 7, 2) . '-'
                 . substr($normalized, 9, 2);
         }
-        
+
         return $phone;
     }
 }

@@ -212,6 +212,7 @@ class Deal extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
+
     // Новые отношения к унифицированной модели Brief
     public function briefs()
     {
